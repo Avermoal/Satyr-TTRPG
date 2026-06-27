@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="menu_page">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <property name="margin-top">24</property>
+    <property name="margin-bottom">24</property>
+    <property name="margin-start">24</property>
+    <property name="margin-end">24</property>
+    <child>
+      <object class="GtkButton" id="to_new_campain_btn">
+        <property name="label">NEW CAMPAIN</property>
+        <property name="halign">center</property>
+        <signal name="clicked" handler="on_to_new_campain_btn_clicked" object="interfacestack" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="to_load_save">
+        <property name="label">LOAD SAVE</property>
+        <property name="halign">center</property>
+        <signal name="clicked" handler="on_to_load_save_btn_clicked" object="interfacestack" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="to_join">
+        <property name="label">JOIN</property>
+        <property name="halign">center</property>
+        <signal name="clicked" handler="on_to_join_btn_clicked" object="interfacestack" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="exit">
+        <property name="label">EXIT</property>
+        <property name="halign">center</property>
+        <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
+      </object>
+    </child>
+  </object>
+</interface>
