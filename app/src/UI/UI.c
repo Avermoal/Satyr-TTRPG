@@ -43,7 +43,7 @@ void createUI(struct UI* ui, GtkWindow* win)
 void destroyUI(struct UI* ui)
 {
   g_object_unref(ui->menu_builder);
-  //g_object_unref(ui->dms_builder);
-  //g_object_unref(ui->playeers_builder);
+  g_object_unref(ui->dms_builder);
+  g_object_unref(ui->players_builder);
   free(ui);
 }

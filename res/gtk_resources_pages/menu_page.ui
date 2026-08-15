@@ -1,38 +1,95 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0.3 -->
 <interface>
-  <object class="GtkBox" id="menu_page">
+  <!-- interface-name menu_page.ui -->
+  <requires lib="gtk" version="4.18"/>
+  <object class="GtkGrid" id="menu_page">
+    <property name="column-homogeneous">True</property>
     <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
-    <property name="margin-top">24</property>
-    <property name="margin-bottom">24</property>
-    <property name="margin-start">24</property>
-    <property name="margin-end">24</property>
+    <property name="row-homogeneous">True</property>
     <child>
-      <object class="GtkButton" id="to_new_campain_btn">
-        <property name="label">NEW CAMPAIN</property>
-        <property name="halign">center</property>
-        <signal name="clicked" handler="on_to_new_campain_btn_clicked" object="interfacestack" swapped="no"/>
+      <object class="GtkBox">
+        <layout>
+          <property name="column">0</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="to_load_save">
-        <property name="label">LOAD SAVE</property>
-        <property name="halign">center</property>
-        <signal name="clicked" handler="on_to_load_save_btn_clicked" object="interfacestack" swapped="no"/>
+      <object class="GtkBox">
+        <layout>
+          <property name="column">2</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="to_join">
-        <property name="label">JOIN</property>
+      <object class="GtkLabel">
         <property name="halign">center</property>
-        <signal name="clicked" handler="on_to_join_btn_clicked" object="interfacestack" swapped="no"/>
+        <property name="justify">center</property>
+        <property name="label">By
+Avermoal and ЯTR</property>
+        <property name="valign">center</property>
+        <layout>
+          <property name="column">1</property>
+          <property name="column-span">1</property>
+          <property name="row">0</property>
+          <property name="row-span">1</property>
+        </layout>
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="exit">
-        <property name="label">EXIT</property>
-        <property name="halign">center</property>
-        <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkBox"/>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_new_campaign_btn">
+            <property name="halign">center</property>
+            <property name="label">New Campaign</property>
+            <property name="valign">center</property>
+            <signal name="clicked" handler="on_to_new_campaign_btn_clicked" object="interfacestack" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_load_save_btn">
+            <property name="halign">center</property>
+            <property name="label">Load Save</property>
+            <property name="valign">center</property>
+            <signal name="clicked" handler="on_to_load_save_btn_clicked" object="interfacestack" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_join_campaign_btn">
+            <property name="halign">center</property>
+            <property name="label">Join Campaign</property>
+            <property name="valign">center</property>
+            <signal name="clicked" handler="on_to_join_btn_clicked" object="interfacestack" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="exit_btn">
+            <property name="halign">center</property>
+            <property name="label">Exit</property>
+            <property name="valign">center</property>
+            <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox"/>
+        </child>
+        <layout>
+          <property name="column">1</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
       </object>
     </child>
   </object>

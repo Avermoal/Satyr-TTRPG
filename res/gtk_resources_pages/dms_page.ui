@@ -1,17 +1,101 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0.3 -->
 <interface>
-  <object class="GtkBox" id="dms_page">
-    <property name="orientation">vertical</property>
-    <property name="spacing">12</property>
-    <property name="margin-top">24</property>
-    <property name="margin-bottom">24</property>
-    <property name="margin-start">24</property>
-    <property name="margin-end">24</property>
+  <!-- interface-name dms_page.ui -->
+  <requires lib="gtk" version="4.18"/>
+  <object class="GtkGrid" id="dms_page">
+    <property name="baseline-row">0</property>
     <child>
-      <object class="GtkButton" id="to_menu">
-        <property name="label">MENU</property>
-        <property name="halign">center</property>
-        <signal name="clicked" handler="on_to_menu" object="win" swapped="no"/>
+      <object class="GtkBox" id="main_menu">
+        <child>
+          <object class="GtkMenuButton" id="file">
+            <property name="halign">start</property>
+            <property name="label">File</property>
+            <property name="popover">
+              <object class="GtkPopover" id="file_settings">
+                <property name="child">
+                  <object class="GtkEmojiChooser" id="test"/>
+                </property>
+              </object>
+            </property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="game_manual">
+            <property name="halign">start</property>
+            <property name="label">Game manual</property>
+            <property name="popover">
+              <object class="GtkPopover"/>
+            </property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="other_1">
+            <property name="halign">start</property>
+            <property name="label">other_1</property>
+            <property name="popover">
+              <object class="GtkPopover"/>
+            </property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="other_2">
+            <property name="halign">start</property>
+            <property name="label">other_2</property>
+            <property name="popover">
+              <object class="GtkPopover"/>
+            </property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkMenuButton" id="other_3">
+            <property name="halign">start</property>
+            <property name="label">other_3</property>
+            <property name="popover">
+              <object class="GtkPopover"/>
+            </property>
+            <property name="valign">start</property>
+          </object>
+        </child>
+        <layout>
+          <property name="column">0</property>
+          <property name="column-span">3</property>
+          <property name="row">0</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkListBox" id="left_menu">
+        <layout>
+          <property name="column">0</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkListBox" id="right_menu">
+        <layout>
+          <property name="column">2</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGLArea" id="game_map">
+        <layout>
+          <property name="column">1</property>
+          <property name="column-span">1</property>
+          <property name="row">1</property>
+          <property name="row-span">1</property>
+        </layout>
       </object>
     </child>
   </object>

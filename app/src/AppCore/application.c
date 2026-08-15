@@ -62,7 +62,6 @@ static void onactivate(GtkApplication* app, gpointer userdata)
   g_signal_connect(session->win->win, "destroy", G_CALLBACK(on_window_destroy), app);
   /*GTK window present*/
   gtk_window_present(GTK_WINDOW(session->win->win));
-
 }
 
 static void on_window_destroy(GtkWidget* win, GtkApplication* app)

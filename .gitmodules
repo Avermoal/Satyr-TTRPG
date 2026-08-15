@@ -1,0 +1,3 @@
+[submodule "externs/plibsys"]
+	path = externs/plibsys
+	url = https://github.com/saprykin/plibsys.git

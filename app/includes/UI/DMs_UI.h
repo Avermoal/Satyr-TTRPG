@@ -3,6 +3,6 @@
 
 #include <gtk/gtk.h>
 
-void on_to_menu(GtkButton* btn, GtkWindow* win, gpointer userdata);
+void on_to_menu(GtkButton* btn, gpointer userdata);
 
 #endif/*UI_DMS_UI_H*/

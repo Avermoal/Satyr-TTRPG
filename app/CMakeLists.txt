@@ -28,6 +28,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
   target_link_libraries(${APP_NAME} PRIVATE PkgConfig::GTK4)
 
+  add_subdirectory(${CMAKE_SOURCE_DIR}/externs/plibsys ${CMAKE_CURRENT_BINARY_DIR}/plibsys)
+  target_link_libraries(${APP_NAME} PRIVATE plibsys)
+
   target_compile_options(${APP_NAME} PRIVATE ${GTK4_CFLAGS_OTHER})
 
   add_custom_command(
@@ -50,8 +53,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_include_directories(${APP_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/includes)
 
   target_link_libraries(${APP_NAME} PRIVATE PkgConfig::GTK4)
+  
+  add_subdirectory(${CMAKE_SOURCE_DIR}/externs/plibsys ${CMAKE_CURRENT_BINARY_DIR}/plibsys)
+  target_link_libraries(${APP_NAME} PRIVATE plibsys)
 
-  target_Compile_options(${APP_NAME} PRIVATE ${GTK4_CFLAGS_OTHER})
+  target_compile_options(${APP_NAME} PRIVATE ${GTK4_CFLAGS_OTHER})
   add_custom_command(
     TARGET ${APP_NAME} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory
