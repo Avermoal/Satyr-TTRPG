@@ -1,0 +1,6 @@
+#ifndef MAP_MAP_RENDERER_H
+#define MAP_MAP_RENDERER_H
+
+
+
+#define/*MAP_MAP_RENDERER_H*/
