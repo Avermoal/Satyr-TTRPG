@@ -4,89 +4,111 @@
   <!-- interface-name menu_page.ui -->
   <requires lib="gtk" version="4.18"/>
   <object class="GtkGrid" id="menu_page">
-    <property name="column-homogeneous">True</property>
     <property name="orientation">vertical</property>
-    <property name="row-homogeneous">True</property>
     <child>
       <object class="GtkBox">
-        <layout>
-          <property name="column">0</property>
-          <property name="column-span">1</property>
-          <property name="row">1</property>
-          <property name="row-span">1</property>
-        </layout>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
+            <property name="vexpand">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_new_campaign_btn">
+            <property name="css-classes">satyr-button</property>
+            <property name="halign">baseline-center</property>
+            <property name="label">NEW COMPANY</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-top">16</property>
+            <property name="valign">baseline-center</property>
+            <signal name="clicked" handler="on_to_new_campaign_btn_clicked" object="interfacestack" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_load_save_btn">
+            <property name="css-classes">satyr-button</property>
+            <property name="halign">baseline-center</property>
+            <property name="label">LOAD COMPANY</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-top">16</property>
+            <property name="valign">baseline-center</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="to_join_campaign_btn">
+            <property name="css-classes">satyr-button</property>
+            <property name="halign">baseline-center</property>
+            <property name="label">JOIN</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-top">16</property>
+            <property name="valign">baseline-center</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="exit_btn">
+            <property name="css-classes">satyr-button</property>
+            <property name="halign">baseline-center</property>
+            <property name="label">EXIT</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-top">16</property>
+            <property name="valign">baseline-center</property>
+            <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="satyr_qr">
+            <property name="halign">baseline-center</property>
+            <property name="icon-name">view-refresh</property>
+            <property name="icon-size">large</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-top">16</property>
+            <property name="valign">baseline-center</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">True</property>
+            <property name="orientation">vertical</property>
+            <property name="vexpand">True</property>
+          </object>
+        </child>
         <layout>
           <property name="column">2</property>
           <property name="column-span">1</property>
-          <property name="row">1</property>
-          <property name="row-span">1</property>
+          <property name="row">0</property>
+          <property name="row-span">2</property>
         </layout>
       </object>
     </child>
     <child>
-      <object class="GtkLabel">
-        <property name="halign">center</property>
-        <property name="justify">center</property>
-        <property name="label">By
-Avermoal and ЯTR</property>
-        <property name="valign">center</property>
+      <object class="GtkLabel" id="satyr_label">
+        <property name="css-classes">satyr-title</property>
+        <property name="halign">baseline-center</property>
+        <property name="hexpand">True</property>
+        <property name="label">SATYR</property>
+        <property name="margin-bottom">16</property>
+        <property name="margin-top">16</property>
+        <property name="valign">baseline-center</property>
+        <property name="vexpand">True</property>
         <layout>
-          <property name="column">1</property>
-          <property name="column-span">1</property>
+          <property name="column">0</property>
+          <property name="column-span">2</property>
           <property name="row">0</property>
           <property name="row-span">1</property>
         </layout>
       </object>
     </child>
     <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="spacing">12</property>
-        <child>
-          <object class="GtkBox"/>
-        </child>
-        <child>
-          <object class="GtkButton" id="to_new_campaign_btn">
-            <property name="halign">center</property>
-            <property name="label">New Campaign</property>
-            <property name="valign">center</property>
-            <signal name="clicked" handler="on_to_new_campaign_btn_clicked" object="interfacestack" swapped="no"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="to_load_save_btn">
-            <property name="halign">center</property>
-            <property name="label">Load Save</property>
-            <property name="valign">center</property>
-            <signal name="clicked" handler="on_to_load_save_btn_clicked" object="interfacestack" swapped="no"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="to_join_campaign_btn">
-            <property name="halign">center</property>
-            <property name="label">Join Campaign</property>
-            <property name="valign">center</property>
-            <signal name="clicked" handler="on_to_join_btn_clicked" object="interfacestack" swapped="no"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="exit_btn">
-            <property name="halign">center</property>
-            <property name="label">Exit</property>
-            <property name="valign">center</property>
-            <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkBox"/>
-        </child>
+      <object class="GtkImage">
+        <property name="css-classes">satyr-image</property>
+        <property name="file">res/icons/Satyr.svg</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <layout>
-          <property name="column">1</property>
-          <property name="column-span">1</property>
+          <property name="column">0</property>
+          <property name="column-span">2</property>
           <property name="row">1</property>
           <property name="row-span">1</property>
         </layout>

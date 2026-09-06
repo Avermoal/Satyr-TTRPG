@@ -1,0 +1,55 @@
+
+window.satyr-window {
+    background-color: #564e58;
+    color: #f2efe9;
+}
+
+label.satyr-title {
+    font-family: "Cinzel Decorative", sans-serif;
+    font-weight: bold;
+    font-size: 8.5em;
+    color: #f2efe9;
+}
+
+
+button.satyr-button {
+    font-family: "Manrope ExtraLight", sans-serif;
+    min-width: 14em;
+
+    padding: 0.8em 1.5em;
+    border-radius: 8px;
+    background-color: #f2efe9;
+    color: #252627;
+    font-weight: bold;
+    font-size: 1.2em;
+
+    border: none;
+    box-shadow: none;
+    background-image: none;
+    transition: background-color 0.2s ease;
+}
+
+button.satyr-button:hover {
+    background-color: #ffffff;
+}
+
+button.satyr-button:active {
+    background-color: #e5e2dc;
+}
+
+button.satyr-button label {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #252627;
+}
+
+label.satyr-footer {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #f2efe9;
+}
+
+image.satyr-icon,
+picture.satyr-picture {
+    color: #f2efe9;
+}

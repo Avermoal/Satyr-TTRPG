@@ -3,5 +3,9 @@
 <interface>
   <!-- interface-name players_page.ui -->
   <requires lib="gtk" version="4.0"/>
-  <object class="GtkBox" id="players_page"/>
+  <object class="GtkBox" id="players_page">
+    <child>
+      <object class="GtkPicture" id="test_pic"/>
+    </child>
+  </object>
 </interface>

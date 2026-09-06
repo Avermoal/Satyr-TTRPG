@@ -26,7 +26,6 @@ void free_window_structure(struct window* win)
 {
   destroyscene(win->scn);
   free(win);
-  win = nullptr;
 }
 
 void update_on_idle(struct window* win)
