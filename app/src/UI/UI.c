@@ -12,6 +12,7 @@
 #define PLAYERS_SOURCES "res/gtk_resources_pages/players_page.ui"
 
 static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWindow* win);
+static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win);
 
 void createUI(struct UI* ui, GtkWindow* win)
 {
@@ -24,6 +25,7 @@ void createUI(struct UI* ui, GtkWindow* win)
     ui->menu_builder = gtk_builder_new();
     gtk_builder_expose_object(ui->menu_builder, "win", G_OBJECT(win));
     gtk_builder_expose_object(ui->menu_builder, "interfacestack", G_OBJECT(interfacestack));
+    set_menu_page_callbacks(ui->menu_builder, win);
     gtk_builder_add_from_file(ui->menu_builder, MENU_SOURCES, nullptr);
     ui->dms_builder = gtk_builder_new();
     set_dms_page_callbacks(ui->dms_builder, ui->dms_ui, win);
@@ -66,6 +68,22 @@ static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWind
                                          G_CALLBACK(on_side_menu_btn_clicked));
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_hide_btn_clicked",
                                          G_CALLBACK(on_side_hide_btn_clicked));
+  gtk_builder_set_scope(builder, scope);
+  gtk_builder_set_current_object(builder, G_OBJECT(win));
+}
+
+static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win)
+{
+  GtkBuilderScope* scope = gtk_builder_cscope_new();
+
+  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_to_new_campaign_btn_clicked",
+                                         G_CALLBACK(on_to_new_campaign_btn_clicked));
+  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_to_load_save_btn_clicked",
+                                         G_CALLBACK(on_to_load_save_btn_clicked));
+  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_to_join_btn_clicked",
+                                         G_CALLBACK(on_to_join_btn_clicked));
+  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_exit_btn_clicked",
+                                         G_CALLBACK(on_exit_btn_clicked));
   gtk_builder_set_scope(builder, scope);
   gtk_builder_set_current_object(builder, G_OBJECT(win));
 }
