@@ -7,7 +7,7 @@
 #include "ViewInterface/window.h"
 #include "GameState/game_state.h"
 
-#define PATH_TO_CUSTOM_CSS_THEME_MENU "res/themes/menu.css"
+#define PATH_TO_CUSTOM_CSS_THEME_MENU "res/themes/satyr.css"
 #define CINZEL_PATH "res/fonts/CinzelDecorative-Bold.ttf"
 #define MANROPE_PATH "res/fonts/Manrope-Medium.ttf"
 

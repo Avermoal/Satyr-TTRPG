@@ -1,0 +1,202 @@
+/* ==========================================================================
+ *  SATYR — тема GTK4 (адаптивная, относительные единицы)
+ *
+ *  Масштабирование:
+ *  • 1rem привязан к font-size у window (задаётся в pt, одинаков на всех
+ *    экранах и учитывает DPI).
+ *  • Все размеры ниже — в rem. Чтобы изменить масштаб ВСЕГО интерфейса,
+ *    поменяйте одно значение: font-size в блоке window.
+ *  • px в GTK логические и уже масштабируются ОС; здесь они заменены на rem.
+ *  ========================================================================== */
+
+@define-color sy_bg          #2d232e;
+@define-color sy_surface     #e0ddcf;
+@define-color sy_fg          #2d232e;
+
+/* производные */
+@define-color sy_bg_top       shade(@sy_bg, 1.16);
+@define-color sy_bg_bottom    shade(@sy_bg, 0.86);
+@define-color sy_surface_hi   shade(@sy_surface, 1.05);   /* hover  */
+@define-color sy_surface_lo   shade(@sy_surface, 0.90);   /* active */
+@define-color sy_raised       mix(@sy_bg, @sy_surface, 0.07);
+@define-color sy_popover      mix(@sy_bg, @sy_surface, 0.10);
+@define-color sy_outline      alpha(@sy_surface, 0.55);
+@define-color sy_disabled_bg  mix(@sy_bg, @sy_surface, 0.30);
+@define-color sy_disabled_fg  alpha(@sy_fg, 0.45);
+
+/* --- база (единая точка масштаба) ---------------------------------------- */
+
+window {
+  font-family: 'Cantarell', 'Inter', 'Segoe UI', sans-serif;
+  font-size: 12pt;                  /* база: 1rem = 16px при 96 DPI.
+  Увеличьте до 14pt/16pt для крупного UI */
+  background-image: linear-gradient(180deg, @sy_bg_top, @sy_bg 45%, @sy_bg_bottom);
+  color: @sy_surface;
+}
+/* если градиент не нужен:
+ *  window { background-image: none; background-color: @sy_bg; } */
+
+/* --- обычные кнопки (призрачный стиль) ----------------------------------- */
+
+button {
+  border: none;
+  border-radius: 1.125rem;          /* 18px */
+  background-image: none;
+  background-color: alpha(@sy_surface, 0.08);
+  color: @sy_surface;
+  padding: 0.625rem 1.125rem;       /* 10px 18px */
+  box-shadow: none;
+  transition: all 160ms ease;
+}
+button:hover   { background-color: alpha(@sy_surface, 0.16); }
+button:active,
+button:checked { background-color: alpha(@sy_surface, 0.24); }
+button:disabled { background-color: transparent; color: alpha(@sy_surface, 0.35); }
+button:focus-visible {
+  outline-style: solid;
+  outline-width: 0.125rem;          /* 2px */
+  outline-color: @sy_outline;
+  outline-offset: 0.125rem;         /* 2px */
+}
+
+/* --- главные кнопки меню (.satyr-button из menu_page.ui) ------------------ */
+
+button.satyr-button {
+  font-family: "Manrope ExtraLight", sans-serif;
+  min-width: 15rem;                 /* 240px */
+  padding: 1.125rem 3rem;           /* 18px 48px */
+  border-radius: 1.5rem;            /* 24px, rounded-3xl */
+  background-color: @sy_surface;
+  color: @sy_fg;
+  font-size: 0.9375rem;             /* 15px */
+  font-weight: 700;
+  letter-spacing: 0.14em;           /* уже относительное */
+  box-shadow: 0 0.375rem 1.125rem rgba(0, 0, 0, 0.35);  /* 0 6px 18px */
+}
+button.satyr-button:hover    { background-color: @sy_surface_hi; }
+button.satyr-button:active   { background-color: @sy_surface_lo;
+  box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.35); } /* 0 2px 6px */
+  button.satyr-button:disabled { background-color: @sy_disabled_bg;
+    color: @sy_disabled_fg;
+    box-shadow: none; }
+    button.satyr-button label    { color: inherit; }
+
+    /* --- круглые кнопки-иконки (стрелки панели, кнопка «…») ------------------- */
+
+    button.image-button {
+      min-width: 3rem;                  /* 48px */
+      min-height: 3rem;                 /* 48px */
+      padding: 0.625rem;                /* 10px */
+      border-radius: 999rem;            /* круг */
+    }
+
+    /* --- заголовок (.satyr-title) --------------------------------------------- */
+
+    label.satyr-title {
+      font-family: "Cinzel Decorative", sans-serif;
+      font-size: 8rem;                  /* 64px */
+      font-weight: 800;
+      color: @sy_surface;
+      text-shadow: 0 0.25rem 1.125rem rgba(0, 0, 0, 0.45);  /* 0 4px 18px */
+    }
+
+    /* --- картинки -------------------------------------------------------------- */
+
+    image.satyr-image { opacity: 0.9; }
+    image#satyr_qr    { opacity: 0.8; color: @sy_surface; }
+
+    /* --- плитки 4×4rem (64×64 при базе 16px) ---------------------------------- */
+
+    .satyr-tile,
+button.satyr-tile {
+  min-width: 4rem;                  /* 64px */
+  min-height: 4rem;                 /* 64px */
+  border-radius: 1.5rem;            /* 24px */
+  background-color: @sy_surface;
+  color: alpha(@sy_fg, 0.9);
+  padding: 0;
+}
+button.satyr-tile:hover  { background-color: @sy_surface_hi; }
+button.satyr-tile:active { background-color: @sy_surface_lo; }
+button.satyr-tile image  { color: inherit; }
+
+/* --- боковая панель (dms_page.ui) ------------------------------------------ */
+
+box#side_menu {
+  background-color: alpha(@sy_raised, 0.96);
+  border-radius: 1.625rem 0 0 1.625rem;  /* 26px 0 0 26px */
+  padding: 0.75rem;                 /* 12px */
+}
+
+/* вкладки нотбука — плитки */
+notebook                 { background-color: transparent; }
+notebook > header        { background-color: transparent;
+  border: none; box-shadow: none; }
+  notebook > header > tabs > tab {
+    margin: 0.375rem;                 /* 6px */
+    min-width: 3.5rem;                /* 56px */
+    min-height: 3.5rem;               /* 56px */
+    border: none;
+    border-radius: 1.25rem;           /* 20px */
+    background-color: transparent;
+    opacity: 0.45;
+    transition: all 160ms ease;
+  }
+  notebook > header > tabs > tab:hover {
+    opacity: 0.75;
+    background-color: alpha(@sy_surface, 0.10);
+  }
+  notebook > header > tabs > tab:checked {
+    background-color: @sy_surface;
+    opacity: 1;
+  }
+  notebook > header > tabs > tab          image { color: @sy_surface; }
+  notebook > header > tabs > tab:checked  image { color: @sy_fg; opacity: 0.9; }
+  notebook > stack { background-color: transparent; }
+
+  /* --- поповер (меню по кнопке «…») ------------------------------------------ */
+
+  popover.background {
+    background-color: @sy_popover;
+    color: @sy_surface;
+    border-radius: 1.25rem;           /* 20px */
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.5);  /* 0 12px 32px */
+  }
+  popover.background > contents { padding: 0.625rem; }  /* 10px */
+  popover button {
+    background-color: @sy_surface;
+    color: @sy_fg;
+    border-radius: 1rem;              /* 16px */
+    min-width: 2.875rem;              /* 46px */
+    min-height: 2.875rem;             /* 46px */
+    margin: 0.25rem;                  /* 4px */
+  }
+  popover button:hover  { background-color: @sy_surface_hi; }
+  popover button:active { background-color: @sy_surface_lo; }
+
+  /* --- прокрутка -------------------------------------------------------------- */
+
+  scrolledwindow { background-color: transparent; }
+  scrollbar      { background-color: transparent; }
+  scrollbar slider {
+    background-color: alpha(@sy_surface, 0.22);
+    border-radius: 99rem;             /* 99px */
+    border: 0.125rem solid transparent;  /* 2px */
+    min-width: 0.5rem;                /* 8px */
+    min-height: 0.5rem;               /* 8px */
+  }
+  scrollbar slider:hover { background-color: alpha(@sy_surface, 0.4); }
+
+  /* --- GL-область ------------------------------------------------------------- */
+
+  glarea { background-color: transparent; }
+
+  /* --- мелочи ------------------------------------------------------------------ */
+
+  selection { background-color: alpha(@sy_surface, 0.3); }
+
+  tooltip.background {
+    background-color: @sy_popover;
+    color: @sy_surface;
+    border-radius: 0.75rem;           /* 12px */
+  }
