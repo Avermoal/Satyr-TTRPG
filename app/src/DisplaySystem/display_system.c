@@ -1,21 +1,27 @@
 #include "DisplaySystem/display_system.h"
 
 #include <stdlib.h>
+#include<stdio.h>
 
 #include "Map/map.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
 {
+  printf("Q\n");
   /*Make area current*/
   gtk_gl_area_make_current(area);
   if(gtk_gl_area_get_error(area) != NULL){
     return;
   }
   /*Get map*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
+  struct map** m = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
   /*Create map or load map*/
-  m = (struct map*)malloc(sizeof(struct map));
-  createmap(m);
+  *m = (struct map*)malloc(sizeof(struct map));
+  if(!m){
+    g_print("Map memory allocation failed\n");
+  }
+  createmap(*m);
+  printf("A\n");
 }
 
 void onunrealize(GtkGLArea* area, gpointer userdata)
@@ -25,15 +31,17 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
     return;
   }
   /*Get map*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
+  struct map** m = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
   /*Uplaod map*/
-  uploadmap(m, "SOMEPATH");
+  uploadmap(*m, "SOMEPATH");
   /*Free*/
-  destroymap(m);
+  destroymap(*m);
+  printf("1\n");
 }
 
-gboolean onreder(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
+gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
 {
+  printf("0\n");
   /*Make area current*/
   gtk_gl_area_make_current(area);
   if(gtk_gl_area_get_error(area) != NULL){
@@ -46,10 +54,10 @@ gboolean onreder(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
     return FALSE;
   }
   /*Get map*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
+  struct map** m = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
   /*Render map*/
-  rendermap(m, width, height);
+  rendermap(*m, width, height);
   /*Update map*/
-  updatemap(m);
+  updatemap(*m);
   return TRUE;
 }

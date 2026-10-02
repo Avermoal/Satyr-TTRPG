@@ -6,6 +6,7 @@
 #include "UI/Menu_UI.h"
 #include "UI/DMs_UI.h"
 #include "UI/Players_UI.h"
+#include "DisplaySystem/display_system.h"
 
 #define MENU_SOURCES "res/gtk_resources_pages/menu_page.ui"
 #define DMS_SOURCES "res/gtk_resources_pages/dms_page.ui"
@@ -67,6 +68,7 @@ static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWind
                                          G_CALLBACK(on_side_menu_btn_clicked));
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_hide_btn_clicked",
                                          G_CALLBACK(on_side_hide_btn_clicked));
+
   gtk_builder_set_scope(builder, scope);
   gtk_builder_set_current_object(builder, G_OBJECT(win));
 }

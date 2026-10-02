@@ -1,4 +1,4 @@
-#version 460 core
+#version 320 es
 
 layout(location = 0) in vec2 a_pos;
 layout(location = 1) in vec2 a_uv;

@@ -13,7 +13,7 @@ void createscene(struct scene* scn, GtkWindow* win)
   /*Set map as nullptr*/
   scn->map = nullptr;
   /*Set map as userdata*/
-  g_object_set_data(G_OBJECT(win), "map", scn->map);
+  g_object_set_data(G_OBJECT(win), "map_p", &scn->map);
   /*Create UIs*/
   createUI(scn->ui, win);
 }
