@@ -9,4 +9,6 @@ struct gamestate{
 
 void save_game_state(struct gamestate* gstate);
 
+void makedir(const char* path);
+
 #endif/*GAMESTATE_GAME_STATE_H*/

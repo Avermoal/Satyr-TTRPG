@@ -1,6 +1,6 @@
 #include "Map/camera.h"
 
-#include <stdlib.h>
+#include <string.h>
 
 void zoom_at(struct camera* cam, float screen_x, float screen_y,
              float widget_width, float widget_height, float new_zoom)
@@ -18,7 +18,7 @@ void zoom_at(struct camera* cam, float screen_x, float screen_y,
   cam->cam_y = world_y - (screen_y - widget_height*0.5f)/cam->zoom;
 }
 
-void getortho(float ortho*, float l, float r, float b, float t, float n, float f)
+void getortho(float* ortho, float l, float r, float b, float t, float n, float f)
 {
   memset(ortho, 0, 16*sizeof(float));
 
@@ -29,4 +29,23 @@ void getortho(float ortho*, float l, float r, float b, float t, float n, float f
   ortho[13] = -(t + b) / (t - b);
   ortho[14] = -(f + n) / (f - n);
   ortho[15] = 1.0f;
+}
+
+void getviewport(struct camera* cam, float ww, float wh, float* l, float* r, float* b, float* t)
+{
+  float half_w = (ww*0.5f)/cam->zoom;
+  float half_h = (wh*0.5f)/cam->zoom;
+
+  if(l){
+    *l = cam->cam_x - half_w;
+  }
+  if(r){
+    *r = cam->cam_x + half_w;
+  }
+  if(t){
+    *t = cam->cam_y - half_h;
+  }
+  if(b){
+    *b = cam->cam_y + half_h;
+  }
 }

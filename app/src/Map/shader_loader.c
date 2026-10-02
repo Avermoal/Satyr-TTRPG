@@ -6,25 +6,32 @@
 #include <gtk/gtk.h>
 #include <epoxy/gl.h>
 
+#include "Map/map_data.h"
+
+#define MAIN_VSH_PATH "res/shaders/main.glslv"
+#define MAIN_FSH_PATH "res/shaders/main.glslf"
+#define GRID_VSH_PATH "res/shaders/grid.glslv"
+#define GRID_FSH_PATH "res/shaders/grid.glslf"
+
 static int64_t shaderlength(const char* path);
 static bool readshader(char* sh_txt, const char* path, const int64_t length);
+static void load_shp(const char* vsh_path, const char* fsh_path, sh_p* id);
 
-int load_shader_program(sh_p* id)
+
+int load_shader_program(sh_p* id, int type)
 {
   *id = 0;
   /*Create shader program*/
-  const char* vsh_path = "res/shaders/main.glslv";
-  const char* fsh_path = "res/shaders/main.glslf";
-  int64_t vsh_length = shaderlength(vsh_path);
-  int64_t fsh_length = shaderlength(fsh_path);
-    /*Read shaders text*/
-  char* vsh_txt = (char*)calloc(vsh_length + 1, sizeof(char));
-  char* fsh_txt = (char*)calloc(fsh_length + 1, sizeof(char));
-  if(readshader(vsh_txt, vsh_path, vsh_length) && readshader(fsh_txt, fsh_path, fsh_length)){
-    *id = create_shader_program(vsh_txt, fsh_txt);
+  switch(type){
+    case GRID:
+      load_shp(MAIN_VSH_PATH, MAIN_FSH_PATH, id);
+      break;
+    case IMG:
+      load_shp(GRID_VSH_PATH, GRID_FSH_PATH, id);
+      break;
+    default:
+      load_shp(MAIN_VSH_PATH, MAIN_FSH_PATH, id);
   }
-  free(vsh_txt);
-  free(fsh_txt);
   return 1;
 }
 
@@ -121,4 +128,18 @@ static bool readshader(char* sh_txt, const char* path, const int64_t length)
   /*Set null-terminator*/
   sh_txt[length] = '\0';
   return true;
+}
+
+static void load_shp(const char* vsh_path, const char* fsh_path, sh_p* id)
+{
+  int64_t vsh_length = shaderlength(vsh_path);
+  int64_t fsh_length = shaderlength(fsh_path);
+  /*Read shaders text*/
+  char* vsh_txt = (char*)calloc(vsh_length + 1, sizeof(char));
+  char* fsh_txt = (char*)calloc(fsh_length + 1, sizeof(char));
+  if(readshader(vsh_txt, vsh_path, vsh_length) && readshader(fsh_txt, fsh_path, fsh_length)){
+    *id = create_shader_program(vsh_txt, fsh_txt);
+  }
+  free(vsh_txt);
+  free(fsh_txt);
 }

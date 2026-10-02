@@ -5,7 +5,7 @@
 
 typedef uint32_t sh_p;
 
-int load_shader_program(sh_p* id);
+int load_shader_program(sh_p* id, int type);
 
 sh_p create_shader_program(const char* vsh_txt, const char* fsh_txt);
 void destroy_shader_program(const sh_p id);

@@ -55,7 +55,6 @@ void destroyUI(struct UI* ui)
   g_object_unref(ui->menu_builder);
   g_object_unref(ui->dms_builder);
   g_object_unref(ui->players_builder);
-  free(ui);
 }
 
 static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWindow* win)

@@ -8,10 +8,11 @@
       <object class="GtkBox">
         <child>
           <object class="GtkGLArea" id="gl_area">
-            <property name="halign">baseline-fill</property>
             <property name="hexpand">True</property>
-            <property name="valign">baseline-fill</property>
             <property name="vexpand">True</property>
+            <signal name="realize" handler="onrealize"/>
+            <signal name="render" handler="onrender"/>
+            <signal name="unrealize" handler="onunrealize"/>
           </object>
         </child>
       </object>
@@ -22,7 +23,9 @@
         <property name="row-homogeneous">True</property>
         <child>
           <object class="GtkBox">
+            <property name="hexpand">True</property>
             <property name="homogeneous">True</property>
+            <property name="vexpand">True</property>
             <child>
               <object class="GtkMenuButton">
                 <property name="child">
@@ -30,7 +33,7 @@
                     <property name="file">res/icons/dots.svg</property>
                   </object>
                 </property>
-                <property name="halign">baseline-center</property>
+                <property name="halign">center</property>
                 <property name="popover">
                   <object class="GtkPopover">
                     <property name="child">
@@ -67,10 +70,8 @@
               </object>
             </child>
             <layout>
-              <property name="column">0</property>
-              <property name="column-span">3</property>
+              <property name="column">1</property>
               <property name="row">0</property>
-              <property name="row-span">1</property>
             </layout>
           </object>
         </child>
@@ -172,8 +173,10 @@
                 </property>
                 <child type="overlay">
                   <object class="GtkBox" id="side_box_for_btn">
+                    <property name="hexpand">True</property>
                     <property name="homogeneous">True</property>
                     <property name="orientation">vertical</property>
+                    <property name="vexpand">True</property>
                     <child>
                       <object class="GtkButton" id="side_menu_btn">
                         <property name="child">
@@ -183,7 +186,7 @@
                           </object>
                         </property>
                         <property name="halign">end</property>
-                        <property name="valign">baseline-center</property>
+                        <property name="valign">center</property>
                         <signal name="clicked" handler="on_side_menu_btn_clicked"/>
                       </object>
                     </child>

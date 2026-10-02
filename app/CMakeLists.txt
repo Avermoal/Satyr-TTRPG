@@ -4,6 +4,7 @@ set(APP_NAME Satyr-TTRPG)
 
 file(GLOB INCLUDES
   "includes/AppCore/*.h"
+  "includes/DisplaySystem/*.h"
   "includes/EventsSystem/*.h"
   "includes/Map/*.h"
   "includes/NetworkLevel/*.h"
@@ -15,6 +16,7 @@ file(GLOB INCLUDES
 file(GLOB SOURCES
   "src/main.c"
   "src/AppCore/*.c"
+  "src/DisplaySystem/*.c"
   "src/EventsSystem/*.c"
   "src/Map/*.c"
   "src/NetworkLevel/*.c"
