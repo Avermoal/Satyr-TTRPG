@@ -12,7 +12,7 @@ uint32_t load_png(const char* path, int32_t* width, int32_t* height)
   int32_t channels = 0;
   uint32_t id = 0;
   /*Flip stbi loading image configure*/
-  stbi_set_flip_vertically_on_load(true);
+  stbi_set_flip_vertically_on_load(false);
   /*Load image*/
   uint8_t* img = stbi_load(path, width, height, &channels, 4);
   if(!img){
