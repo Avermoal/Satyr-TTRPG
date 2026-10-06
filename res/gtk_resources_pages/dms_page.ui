@@ -8,9 +8,9 @@
       <object class="GtkBox">
         <child>
           <object class="GtkGLArea" id="gl_area">
-            <property name="auto-render">False</property>
+            <property name="allowed-apis">gl</property>
+            <property name="has-depth-buffer">True</property>
             <property name="hexpand">True</property>
-            <property name="use-es">True</property>
             <property name="vexpand">True</property>
             <signal name="render" handler="onrender"/>
             <signal name="realize" handler="onrealize"/>

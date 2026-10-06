@@ -1,4 +1,4 @@
-#version 320 es
+#version 460 core
 
 uniform mat4 u_proj;
 
