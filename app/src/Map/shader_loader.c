@@ -24,10 +24,10 @@ int load_shader_program(sh_p* id, int type)
   /*Create shader program*/
   switch(type){
     case GRID:
-      load_shp(MAIN_VSH_PATH, MAIN_FSH_PATH, id);
+      load_shp(GRID_VSH_PATH, GRID_FSH_PATH, id);
       break;
     case IMG:
-      load_shp(GRID_VSH_PATH, GRID_FSH_PATH, id);
+      load_shp(MAIN_VSH_PATH, MAIN_FSH_PATH, id);
       break;
     default:
       load_shp(MAIN_VSH_PATH, MAIN_FSH_PATH, id);

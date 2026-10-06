@@ -17,7 +17,6 @@ struct UI{
   GtkBuilder* dms_builder;
   GtkWidget* players_page;
   GtkBuilder* players_builder;
-  short WHICHUI;
 };
 
 void createUI(struct UI* ui, GtkWindow* win);

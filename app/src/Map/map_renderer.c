@@ -1,5 +1,7 @@
 #include <Map/map_renderer.h>
 
+#include <math.h>
+
 #include "Map/map_data.h"
 #include "Map/shader_loader.h"
 #include "Map/texture.h"
@@ -7,7 +9,6 @@
 
 static void cr_grid(struct renderer* ren, struct layer* l);
 static void cr_img(struct renderer* ren, struct layer* l);
-static void cr_other(struct renderer* ren, struct layer* l);
 
 static void setup_vertex_attribs(void);
 static bool renderer_ensure_capacity(struct renderer* ren, int32_t rnum);
@@ -23,12 +24,8 @@ void createrenderer(struct renderer* ren, struct layer* l, uint32_t REN_TYPE)
       cr_img(ren, l);
       return;
 
-    case OTHER:
-      cr_other(ren, l);
-      return;
-
     default:
-      return;
+      cr_img(ren, l);
   }
 }
 
@@ -50,52 +47,84 @@ void destroyrenderer(struct renderer* ren)
     ren->prog = 0;
     ren->u_proj_loc = -1;
     ren->u_tex_loc = -1;
+    ren->u_grid_step_loc = -1;
+    ren->u_visible_half_x_loc = -1;
+    ren->u_visible_half_y_loc = -1;
+    ren->u_camera_pos_loc = -1;
   }
 }
 
-void renderlayer(struct renderer* ren, struct layer* l, float* ortho)
+void renderlayer(struct renderer* ren, struct layer* l, float* ortho, float ww, float wh, float cam_x, float cam_y)
 {
   if(!ren || !l || !ortho){
     return;
   }
-  if(ren->vao == 0 || ren->vbo == 0 || ren->ibo == 0){
-    return;
+
+  if(l->type != GRID){
+    if(ren->vao == 0 || ren->vbo == 0 || ren->ibo == 0){
+      return;
+    }
+    if(ren->prog == 0 || l->rnum == 0 || !l->rects){
+      return;
+    }
+    if(!renderer_ensure_capacity(ren, l->rnum)){
+      return;
+    }
+    /*Set usage*/
+    glUseProgram(ren->prog);
+    glBindVertexArray(ren->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, ren->vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)(sizeof(struct vertex)*VERTEX_PER_RECT*l->rnum), l->rects);
+    glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
+    /*DRAW*/
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, l->tex.id);
+    glUniform1i(ren->u_tex_loc, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren->ibo);
+    glDrawElements(GL_TRIANGLES, (GLsizei)(INDEX_PER_RECT * l->rnum), GL_UNSIGNED_INT, NULL);
+  }else{
+    if(ren->vao == 0){
+      return;
+    }
+    if(ren->prog == 0){
+      return;
+    }
+    float vhalf_x = ww / 2.0f;
+    float vhalf_y = wh / 2.0f;
+    int vhalf_lines_x = (int)ceil(vhalf_x / l->gridstep) + 1;
+    int vhalf_lines_y = (int)ceil(vhalf_y / l->gridstep) + 1;
+    int totalvert = ((vhalf_lines_x * 2 + 1) + (vhalf_lines_y) * 2 + 1) * 2;
+    /*Set usage*/
+    glUseProgram(ren->prog);
+    glBindVertexArray(ren->vao);
+    glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
+    glUniform1f(ren->u_grid_step_loc, l->gridstep);
+    glUniform1f(ren->u_visible_half_x_loc, vhalf_x);
+    glUniform1f(ren->u_visible_half_y_loc, vhalf_y);
+    glUniform2f(ren->u_camera_pos_loc, cam_x, cam_y);
+    /*DRAW*/
+    glBindVertexArray(ren->vao);
+    glDrawArrays(GL_LINES, 0, totalvert);
+    glBindVertexArray(0);
   }
-  if(ren->prog == 0 || l->rnum == 0 || !l->rects){
-    return;
-  }
-  if(!renderer_ensure_capacity(ren, l->rnum)){
-    return;
-  }
-  /*Set usage*/
-  glUseProgram(ren->prog);
-  glBindVertexArray(ren->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, ren->vbo);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)(sizeof(struct vertex)*VERTEX_PER_RECT*l->rnum), l->rects);
-  glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
-  /*DRAW*/
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, l->tex.id);
-  glUniform1i(ren->u_tex_loc, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren->ibo);
-  glDrawElements(GL_TRIANGLES, (GLsizei)(INDEX_PER_RECT * l->rnum), GL_UNSIGNED_INT, NULL);
 }
 
 static void cr_grid(struct renderer* ren, struct layer* l)
 {
-  load_shader_program(&ren->prog, IMG);/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+  load_shader_program(&ren->prog, GRID);
   ren->u_proj_loc = glGetUniformLocation(ren->prog, "u_proj");
-  ren->u_tex_loc = glGetUniformLocation(ren->prog, "u_tex");
+  ren->u_grid_step_loc = glGetUniformLocation(ren->prog, "u_grid_step");
+  ren->u_visible_half_x_loc = glGetUniformLocation(ren->prog, "u_visible_half_x");
+  ren->u_visible_half_y_loc = glGetUniformLocation(ren->prog, "u_visible_half_y");
+  ren->u_camera_pos_loc = glGetUniformLocation(ren->prog, "u_camera_pos");
   glGenVertexArrays(1, &ren->vao);
   glBindVertexArray(ren->vao);
   glGenBuffers(1, &ren->vbo);
   glBindBuffer(GL_ARRAY_BUFFER, ren->vbo);
-  /*Set buffer data*/
-  setup_vertex_attribs();
-  /*Gen indices buffer*/
-  glGenBuffers(1, &ren->ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren->ibo);
-  renderer_ensure_capacity(ren, l->rnum);
+  float dummydata = 0.0f;
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float), &dummydata, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, 0);
   /*Unbind vertex array*/
   glBindVertexArray(0);
 }
@@ -117,11 +146,6 @@ static void cr_img(struct renderer* ren, struct layer* l)
   renderer_ensure_capacity(ren, l->rnum);
   /*Unbind vertex array*/
   glBindVertexArray(0);
-}
-
-static void cr_other(struct renderer* ren, struct layer* l)
-{
-
 }
 
 static void setup_vertex_attribs(void)

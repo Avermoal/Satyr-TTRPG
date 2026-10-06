@@ -46,8 +46,10 @@ void createUI(struct UI* ui, GtkWindow* win)
     gtk_stack_add_named(interfacestack, ui->dms_page, "dms_page");
     gtk_stack_add_named(interfacestack, ui->players_page, "players_page");
     /*Present current UI*/
-    ui->WHICHUI = IS_MENU;
     gtk_stack_set_visible_child_name(interfacestack, "menu_page");
+    /*Set GtkOpenGLArea ticker*/
+    GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(ui->dms_builder, "gl_area"));
+    gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
   }
 }
 

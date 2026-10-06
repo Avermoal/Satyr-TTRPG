@@ -31,6 +31,7 @@ struct layer{
   int32_t rnum;
   int32_t cap;
   uint32_t type;
+  int32_t gridstep;
 
   struct texture tex; /*TEXTURE ATLAS*/
   struct rectangle* rects;

@@ -9,4 +9,6 @@ void onunrealize(GtkGLArea* area, gpointer userdata);
 
 gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata);
 
+gboolean ontick(GtkWidget* widget, GdkFrameClock* clock, gpointer userdata);
+
 #endif/*DISPLAYSYSTEM_DISPLAYSYSTEM_H*/

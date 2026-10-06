@@ -6,8 +6,6 @@
 #include "Map/map_renderer.h"
 #include "Map/texture_atlas.h"
 
-static void addgrid(struct layer* l);
-
 void createmap(struct map* m)
 {
   memset(m, 0, sizeof(struct map));
@@ -16,10 +14,10 @@ void createmap(struct map* m)
   /*View*/
   m->lrnum = 0;
   m->opos = -1;
-    /*Grid layer*/
+  /*Grid layer*/
   map_add_layer(m, GRID);
-  addgrid(m->l);
-    /*Renderer grid create*/
+  m->l[0].gridstep = 64;
+  /*Renderer grid create*/
   createrenderer(&m->ren[0], &m->l[0], GRID);
 }
 
@@ -50,7 +48,7 @@ void uploadmap(const struct map* m, const char* path)
 
 }
 
-void rendermap(const struct map* m, float ww, float wh)
+void rendermap(struct map* m, float ww, float wh)
 {
   /*Camera*/
   float l, r, b, t;
@@ -58,7 +56,7 @@ void rendermap(const struct map* m, float ww, float wh)
   getortho(m->cam.ortho, l, r, b, t, -1.0f, 1.0f);
   /*Render*/
   for(int32_t i = 0; i < m->lrnum; ++i){
-    renderlayer(&m->ren[i], &m->l[i], m->cam.ortho);
+    renderlayer(&m->ren[i], &m->l[i], m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y);
   }
 }
 
@@ -92,19 +90,3 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   return &m->l[index];
 }
 
-static void addgrid(struct layer* l)
-{
-  if(!l){
-    return;
-  }
-  /*Make grid atlas*/
-  char* grid_atlas_path = nullptr;
-  get_path_to_atlas("res/grid/", "saves/game1/presets/atlas/game_scene_1", 0, l, &grid_atlas_path);
-  /*Load atlas texture*/
-  if(!grid_atlas_path){
-    return;
-  }
-  l->tex.id = load_png(grid_atlas_path, &l->tex.width, &l->tex.height);
-  free(grid_atlas_path);
-  /*MAYBE NEED TO ADD POS SET TO GRID QUAD*/
-}
