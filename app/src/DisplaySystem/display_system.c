@@ -77,6 +77,9 @@ gboolean ontick(GtkWidget* widget, GdkFrameClock* clock, gpointer userdata)
 {
   /*Get map pointer*/
   struct map** m_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
+  if(!m_p || !(*m_p)){
+    return FALSE;
+  }
   /*Get time*/
   gint64 frametime = gdk_frame_clock_get_frame_time(clock);
   double currenttime = TO_CURRENT_TIME(frametime);
