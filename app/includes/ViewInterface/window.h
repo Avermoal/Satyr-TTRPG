@@ -12,7 +12,7 @@ struct window{
   struct scene* scn;
 };
 
-void createwindow(GtkApplication* app, struct window* win, struct gamestate* gstate);
+void createwindow(GtkApplication* app, struct window* win);
 
 void free_window_structure(struct window* win);
 

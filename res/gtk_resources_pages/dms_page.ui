@@ -8,7 +8,6 @@
       <object class="GtkBox">
         <child>
           <object class="GtkGLArea" id="gl_area">
-            <property name="allowed-apis">gl</property>
             <property name="has-depth-buffer">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
@@ -44,8 +43,99 @@
                       <object class="GtkGrid">
                         <child>
                           <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
                             <layout>
                               <property name="column">0</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <layout>
+                              <property name="column">2</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <layout>
+                              <property name="column">3</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <layout>
+                              <property name="column">4</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/dice.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <layout>
+                              <property name="column">5</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="scene_menu_btn">
+                            <property name="child">
+                              <object class="GtkImage">
+                                <property name="file">res/icons/download.svg</property>
+                                <property name="icon-size">large</property>
+                              </object>
+                            </property>
+                            <signal name="clicked" handler="on_scene_menu_btn_clicked"/>
+                            <layout>
+                              <property name="column">6</property>
                               <property name="row">0</property>
                             </layout>
                           </object>

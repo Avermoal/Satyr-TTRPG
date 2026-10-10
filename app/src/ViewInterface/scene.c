@@ -9,7 +9,6 @@ void createscene(struct scene* scn, GtkWindow* win)
 {
   /*Memory allocation*/
   scn->ui = (struct UI*)calloc(1, sizeof(struct UI));
-  scn->map = (struct map*)calloc(1, sizeof(struct map));
   /*Set map as nullptr*/
   scn->map = nullptr;
   /*Set map as userdata*/
@@ -21,10 +20,9 @@ void createscene(struct scene* scn, GtkWindow* win)
 void destroyscene(struct scene* scn)
 {
   destroyUI(scn->ui);
+  free(scn->map);
   scn->map = nullptr;
   free(scn->ui);
-  free(scn->map);
-  free(scn);
 }
 
 void updateUI(struct UI* ui)

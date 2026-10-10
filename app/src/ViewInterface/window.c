@@ -3,7 +3,7 @@
 #include "ViewInterface/scene.h"
 #include "GameState/game_state.h"
 
-void createwindow(GtkApplication* app, struct window* win, struct gamestate* gstate)
+void createwindow(GtkApplication* app, struct window* win)
 {
   /*GTK window create*/
   win->win = gtk_application_window_new(app);
@@ -25,7 +25,7 @@ void createwindow(GtkApplication* app, struct window* win, struct gamestate* gst
 void free_window_structure(struct window* win)
 {
   destroyscene(win->scn);
-  free(win);
+  free(win->scn);
 }
 
 void update_on_idle(struct window* win)

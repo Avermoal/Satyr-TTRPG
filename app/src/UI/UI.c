@@ -14,6 +14,7 @@
 
 static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWindow* win);
 static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win);
+static void destroy_UIs_builders(struct UI* ui);
 
 void createUI(struct UI* ui, GtkWindow* win)
 {
@@ -50,10 +51,17 @@ void createUI(struct UI* ui, GtkWindow* win)
     /*Set GtkOpenGLArea ticker*/
     GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(ui->dms_builder, "gl_area"));
     gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
+    /*Destroy builders*/
+    destroy_UIs_builders(ui);
   }
 }
 
 void destroyUI(struct UI* ui)
+{
+  g_free(ui->dms_ui);
+}
+
+static void destroy_UIs_builders(struct UI* ui)
 {
   g_object_unref(ui->menu_builder);
   g_object_unref(ui->dms_builder);
@@ -65,11 +73,15 @@ static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWind
   g_object_set_data(G_OBJECT(win), "dms_ui_data", dms_ui);
 
   GtkBuilderScope* scope = gtk_builder_cscope_new();
-
+  /*Side menu btn*/
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_menu_btn_clicked",
                                          G_CALLBACK(on_side_menu_btn_clicked));
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_hide_btn_clicked",
                                          G_CALLBACK(on_side_hide_btn_clicked));
+  /*Top menu btn*/
+  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_scene_menu_btn_clicked",
+                                         G_CALLBACK(on_scene_menu_btn_clicked));
+  /*RENDER*/
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "realize",
                                          G_CALLBACK(onrealize));
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "unrealize",
@@ -79,6 +91,7 @@ static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWind
 
   gtk_builder_set_scope(builder, scope);
   gtk_builder_set_current_object(builder, G_OBJECT(win));
+  g_object_unref(scope);
 }
 
 static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win)
@@ -95,4 +108,5 @@ static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win)
                                          G_CALLBACK(on_exit_btn_clicked));
   gtk_builder_set_scope(builder, scope);
   gtk_builder_set_current_object(builder, G_OBJECT(win));
+  g_object_unref(scope);
 }

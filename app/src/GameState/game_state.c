@@ -21,7 +21,22 @@ const char PATH_SEP = '/';
 
 #include "Map/map.h"
 
+void set_game_state(struct gamestate* gstate, struct map* m, const char* gamename)
+{
+  gstate->m = m;
+  size_t len = strlen(gamename);
+  gstate->gamename = (char*)calloc(len + 1, sizeof(char));
+  strncpy(gstate->gamename, gamename, len);
+  gstate->gamename[len - 1] = '\0';
+}
+
 void save_game_state(struct gamestate* gstate)
+{
+  
+  free(gstate->gamename);
+}
+
+struct gamestate* get_game_state(const char* path)
 {
 
 }

@@ -6,6 +6,7 @@
 #include "Map/camera.h"
 #include "Map/texture.h"
 #include "Map/map_data.h"
+#include "EventsSystem/event_data.h"
 
 struct renderer;
 
@@ -13,6 +14,7 @@ struct map{
   struct camera cam;
   int32_t lrnum;
   int32_t opos;         /*opos - other layers position*/
+  struct eventdata evdata;
   struct layer* l;
   struct renderer* ren;
 };
