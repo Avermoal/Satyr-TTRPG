@@ -186,12 +186,17 @@
                             <child>
                               <object class="GtkNotebook" id="notebook_menu">
                                 <property name="hexpand">True</property>
-                                <property name="page">4</property>
                                 <property name="vexpand">True</property>
                                 <child>
                                   <object class="GtkNotebookPage">
                                     <property name="child">
-                                      <object class="GtkScrolledWindow"/>
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox"/>
+                                        </child>
+                                      </object>
                                     </property>
                                     <property name="tab">
                                       <object class="GtkImage">
@@ -204,7 +209,13 @@
                                 <child>
                                   <object class="GtkNotebookPage">
                                     <property name="child">
-                                      <object class="GtkScrolledWindow"/>
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox"/>
+                                        </child>
+                                      </object>
                                     </property>
                                     <property name="tab">
                                       <object class="GtkImage">
@@ -218,8 +229,10 @@
                                   <object class="GtkNotebookPage">
                                     <property name="child">
                                       <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
                                         <child>
-                                          <object class="GtkButton"/>
+                                          <object class="GtkBox"/>
                                         </child>
                                       </object>
                                     </property>
@@ -234,7 +247,13 @@
                                 <child>
                                   <object class="GtkNotebookPage">
                                     <property name="child">
-                                      <object class="GtkScrolledWindow"/>
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox"/>
+                                        </child>
+                                      </object>
                                     </property>
                                     <property name="tab">
                                       <object class="GtkImage">
