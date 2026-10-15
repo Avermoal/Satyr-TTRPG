@@ -7,6 +7,7 @@
 #include "UI/DMs_UI.h"
 #include "UI/Players_UI.h"
 #include "DisplaySystem/display_system.h"
+#include "EventsSystem/file_dnd.h"
 
 #define MENU_SOURCES "res/gtk_resources_pages/menu_page.ui"
 #define DMS_SOURCES "res/gtk_resources_pages/dms_page.ui"
@@ -51,6 +52,13 @@ void createUI(struct UI* ui, GtkWindow* win)
     /*Set GtkOpenGLArea ticker*/
     GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(ui->dms_builder, "gl_area"));
     gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
+    g_object_set_data(G_OBJECT(win), "gl_area", gl_area);
+    /*Set Drag and Drop files target*/
+    GtkWidget* maingrid = GTK_WIDGET(gtk_builder_get_object(ui->dms_builder, "main_grid"));
+    GtkDropTarget* target = gtk_drop_target_new(GDK_TYPE_FILE_LIST, GDK_ACTION_COPY);
+    //gtk_drop_target_set_preload (target, TRUE);
+    g_signal_connect(target, "drop", G_CALLBACK(on_files_drop), win);
+    gtk_widget_add_controller(maingrid, GTK_EVENT_CONTROLLER(target));
     /*Destroy builders*/
     destroy_UIs_builders(ui);
   }

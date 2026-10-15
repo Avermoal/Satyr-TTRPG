@@ -6,9 +6,10 @@
   <object class="GtkOverlay" id="dms_page">
     <property name="child">
       <object class="GtkBox">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <child>
           <object class="GtkGLArea" id="gl_area">
-            <property name="has-depth-buffer">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <signal name="render" handler="onrender"/>

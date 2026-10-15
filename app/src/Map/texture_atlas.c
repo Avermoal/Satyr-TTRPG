@@ -48,6 +48,7 @@ static void blit_image_rgba(uint8_t* canvas, int32_t canvas_w,
                             int32_t w, int32_t h);
 
 static int32_t get_names_of_textures(const char* dir_path, char*** out_files);
+static void free_names_of_textures(char** filenames, int texcount);
 
 void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum, struct layer* l, char** atlas_path)
 {
@@ -64,7 +65,7 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
   rect* placed = (rect*)malloc(tex_count * sizeof(rect));
     /*Settings*/
   const int32_t padding = 2;
-  const int32_t max_atlas_size = 8192;
+  const int32_t max_atlas_size = 8192 * 4;
   int32_t tex_path_length = strlen(textures_path);
     /*Get images sizes*/
   for(int i = 0; i < tex_count; ++i){
@@ -134,6 +135,8 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
   if(!canvas){
     free(img);
     free(placed);
+    free_names_of_textures(filenames, tex_count);
+    free(filenames);
     return;
   }
     /*Loading image to atlas*/
@@ -153,6 +156,8 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
       free(canvas);
       free(img);
       free(placed);
+      free_names_of_textures(filenames, tex_count);
+      free(filenames);
       return;
     }
 
@@ -161,6 +166,8 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
       free(canvas);
       free(img);
       free(placed);
+      free_names_of_textures(filenames, tex_count);
+      free(filenames);
       return;
     }
 
@@ -181,6 +188,8 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
     free(canvas);
     free(img);
     free(placed);
+    free_names_of_textures(filenames, tex_count);
+    free(filenames);
     return;
   }
   printf("Atlas saved: %s (%dx%d)\n",
@@ -195,13 +204,15 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
     float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
     float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
 
-    rectset(&l->rects[i], 0, 0, (float)placed[i].w, (float)placed[i].h,
+    layer_add_quad(l, 0, 0, (float)placed[i].w, (float)placed[i].h,
             u0, v0, u1, v1, 1.0f, 1.0f, 1.0f, 1.0f);
   }
   /*Free*/
   free(canvas);
   free(img);
   free(placed);
+  free_names_of_textures(filenames, tex_count);
+  free(filenames);
 }
 
 static int32_t next_pow2_int(int32_t value)
@@ -548,4 +559,11 @@ static int32_t get_names_of_textures(const char* dir_path, char*** out_path)
   #endif
 
   return count;
+}
+
+static void free_names_of_textures(char** filenames, int texcount)
+{
+  for(int i = 0; i < texcount; ++i){
+    free(filenames[i]);
+  }
 }

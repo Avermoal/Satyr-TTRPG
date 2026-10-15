@@ -60,6 +60,9 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
   /*GL NEEDS*/
   glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  /*Alpha blending*/
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   /*Get area sizes*/
   int width = gtk_widget_get_width(GTK_WIDGET(area));
   int height = gtk_widget_get_height(GTK_WIDGET(area));

@@ -33,4 +33,6 @@ void updatemap(struct map* m);
 
 struct layer* map_add_layer(struct map* m, uint32_t type);
 
+void layer_update_texture_atlas(struct layer* l, const char* textures_path, const char* atlas_dir_path, int32_t lrnum);
+
 #endif/*MAP_MAP_H*/

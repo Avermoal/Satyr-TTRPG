@@ -19,6 +19,10 @@ void createmap(struct map* m)
   m->l[0].gridstep = 64;
   /*Renderer grid create*/
   createrenderer(&m->ren[0], &m->l[0], GRID);
+  /*Maps layer*/
+  map_add_layer(m, IMG);
+  /*Maps renderer*/
+  createrenderer(&m->ren[1], &m->l[1], IMG);
 }
 
 void destroymap(struct map* m)
@@ -55,7 +59,7 @@ void rendermap(struct map* m, float ww, float wh)
   getviewport(&m->cam, ww, wh, &l, &r, &b, &t);
   getortho(m->cam.ortho, l, r, b, t, -1.0f, 1.0f);
   /*Render*/
-  for(int32_t i = 0; i < m->lrnum; ++i){
+  for(int32_t i = m->lrnum - 1; i >= 0; --i){
     renderlayer(&m->ren[i], &m->l[i], m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y);
   }
 }
@@ -74,8 +78,8 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   if(!ltmp){
     return nullptr;
   }
-  layerinit(ltmp, type);
-  layer_add_empty(ltmp);
+  layerinit(&ltmp[m->lrnum], type);
+  layer_add_empty(&ltmp[m->lrnum]);
   m->l = ltmp;
   struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
   if(!rtmp){
@@ -90,3 +94,16 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   return &m->l[index];
 }
 
+void layer_update_texture_atlas(struct layer* l, const char* textures_path, const char* atlas_dir_path, int32_t lrnum)
+{
+  /*Create new texture atlas*/
+  char* atlas_path;
+  get_path_to_atlas(textures_path, atlas_dir_path, lrnum, l, &atlas_path);
+  /*Delete old texture atlas*/
+  deletetexture(&l->tex);
+  /*Set new texture atlas*/
+  int32_t w, h;
+  l->tex.id = load_png(atlas_path, &w, &h);
+  l->tex.width = w;
+  l->tex.height = h;
+}
