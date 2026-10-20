@@ -10,6 +10,7 @@
 
 #include "Map/map.h"
 #include "Map/map_data.h"
+#include "GameState/game_state.h"
 
 static void linear_resize_img(GFile* img);
 
@@ -20,9 +21,17 @@ gboolean on_files_drop(GtkDropTarget* target, const GValue* value,
     GdkFileList* filelist = g_value_get_boxed(value);
     if(filelist != nullptr){
       GSList* files = gdk_file_list_get_files(filelist);
-      /*Copy files into dir!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-      const char* dest_dir_path = "saves/game1/presets/textures/game_scene_1/1";
-      const char* future_atlas_path = "saves/game1/presets/atlas/game_scene_1";
+      /*Copy files into dir*/
+        /*Create paths*/
+      struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+      const char* saves = "saves";
+      const char* dest = "presets/textures/game_scene_1/1";
+      const char* atlas = "presets/atlas/game_scene_1";
+      char dest_dir_path[256];
+      char future_atlas_path[256];
+      snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s", saves, gstate->gamename, dest);
+      snprintf(future_atlas_path, sizeof(future_atlas_path), "%s/%s/%s", saves, gstate->gamename, atlas);
+        /*Copy*/
       GFile* destdir = g_file_new_for_path(dest_dir_path);
       for(GSList* l = files; l != nullptr; l = l->next){
         GFile* sourcefile = G_FILE(l->data);

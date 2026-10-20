@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 1.0.3 -->
+<interface>
+  <!-- interface-name new_campaign_window.ui -->
+  <requires lib="gtk" version="4.20"/>
+  <object class="GtkBox" id="new_campaign_page">
+    <property name="orientation">vertical</property>
+    <property name="valign">center</property>
+    <child>
+      <object class="GtkEntry">
+        <property name="buffer">
+          <object class="GtkEntryBuffer" id="campaign_name_buffer">
+            <property name="max-length">128</property>
+            <property name="text">Campaign</property>
+          </object>
+        </property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="letsgo_btn">
+        <property name="halign">center</property>
+        <property name="label">Let's go</property>
+        <property name="valign">center</property>
+        <signal name="clicked" handler="on_letsgo_btn_clicked"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="back_btn">
+        <property name="halign">center</property>
+        <property name="label">Back</property>
+        <property name="valign">center</property>
+        <signal name="clicked" handler="on_back_btn_clicked"/>
+      </object>
+    </child>
+  </object>
+</interface>

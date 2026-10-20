@@ -12,11 +12,9 @@ struct DMs_UI{
 struct UI{
   struct DMs_UI* dms_ui;
   GtkWidget* menu_page;
-  GtkBuilder* menu_builder;
   GtkWidget* dms_page;
-  GtkBuilder* dms_builder;
   GtkWidget* players_page;
-  GtkBuilder* players_builder;
+  GtkWidget* new_campaign_page;
 };
 
 void createUI(struct UI* ui, GtkWindow* win);

@@ -4,36 +4,32 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-
-#include <direct.h>
-#define MKDIR(path) _mkdir(path)
-const char PATH_SEP = '\\';
-
-#else
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#define MKDIR(path) mkdir(path, 0777)
-const char PATH_SEP = '/';
-
-#endif
-
 #include "Map/map.h"
+#include "Map/map_data.h"
+#include "Map/map_renderer.h"
+#include "Map/camera.h"
 
-void set_game_state(struct gamestate* gstate, struct map* m, const char* gamename)
-{
-  gstate->m = m;
-  size_t len = strlen(gamename);
-  gstate->gamename = (char*)calloc(len + 1, sizeof(char));
-  strncpy(gstate->gamename, gamename, len);
-  gstate->gamename[len - 1] = '\0';
-}
+static char* get_game_path(const char* name);
+static void save_game_scene(struct gamescene* gscn, FILE* state);
 
 void save_game_state(struct gamestate* gstate)
 {
-  
-  free(gstate->gamename);
+  char* path = get_game_path(gstate->gamename);
+  FILE* state = fopen(path, "wb");
+  fwrite(&gstate->m->cam, sizeof(struct camera), 1, state);
+  fwrite(&gstate->m->lrnum, sizeof(int32_t), 1, state);
+  fwrite(&gstate->m->opos, sizeof(int32_t), 1, state);
+  for(int i = 0; i < gstate->m->lrnum; ++i){
+    fwrite(&gstate->m->l[i].rnum, sizeof(int32_t), 1, state);
+    fwrite(&gstate->m->l[i].type, sizeof(uint32_t), 1, state);
+    fwrite(&gstate->m->l[i].gridstep, sizeof(int32_t), 1, state);
+    fwrite(gstate->m->l[i].rects, sizeof(struct rectangle), gstate->m->l[i].rnum, state);
+  }
+  for(int i = 0; i < gstate->snum; ++i){
+    save_game_scene(&gstate->gscns[i], state);
+  }
+  free(path);
+  fclose(state);
 }
 
 struct gamestate* get_game_state(const char* path)
@@ -41,29 +37,24 @@ struct gamestate* get_game_state(const char* path)
 
 }
 
-void makedir(const char* path)
+static char* get_game_path(const char* name)
 {
-  char tmp[256];
-  size_t len = 0;
-  /*Temporary copy path in the buffer tmp*/
-  snprintf(tmp, sizeof(tmp), "%s", path);
-  len = strlen(tmp);
-  for(int i = 0; i < len; ++i){
-    if(tmp[i] == '/' || tmp[i] == '\\'){
-      tmp[i] = PATH_SEP;
-    }
+  const char* saves = "saves";
+  int size = strlen(saves) + 1 + strlen(name) + 1 + strlen(name);
+  char* path = calloc(size + 1, sizeof(char));
+  snprintf(path, size + 1, "%s/%s/%s", saves, name, name);
+  return path;
+}
+
+static void save_game_scene(struct gamescene* gscn, FILE* state)
+{
+  fwrite(&gscn->cam, sizeof(struct camera), 1, state);
+  fwrite(&gscn->lrnum, sizeof(int32_t), 1, state);
+  fwrite(&gscn->opos, sizeof(int32_t), 1, state);
+  for(int i = 0; i < gscn->lrnum; ++i){
+    fwrite(&gscn->l[i].rnum, sizeof(int32_t), 1, state);
+    fwrite(&gscn->l[i].type, sizeof(uint32_t), 1, state);
+    fwrite(&gscn->l[i].gridstep, sizeof(int32_t), 1, state);
+    fwrite(gscn->l[i].rects, sizeof(struct rectangle), gscn->l[i].rnum, state);
   }
-  /*Delete trailing slash*/
-  if(tmp[len - 1] == PATH_SEP){
-    tmp[len - 1] = '\0';
-  }
-  /*Make dir*/
-  for(char* p = tmp + 1; *p; ++p){
-    if(*p == PATH_SEP){
-      *p = '\0';
-      MKDIR(tmp);
-      *p = PATH_SEP;
-    }
-  }
-  MKDIR(tmp);
 }

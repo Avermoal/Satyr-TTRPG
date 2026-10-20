@@ -6,6 +6,7 @@
 
 #include "Map/map.h"
 #include "GameState/game_state.h"
+#include "GameState/file_initialize.h"
 #include "EventsSystem/event_system.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
@@ -29,9 +30,10 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   }
   createmap(*m_p);
   /*Game state*/
-  struct gamestate* gstate = (struct gamestate*)calloc(1, sizeof(struct gamestate));
-  set_game_state(gstate, *m_p, "SOMEGAME");
-  g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  gstate->m = *m_p;
+  gstate->snum = 0;
+  campaign_dir_init(gstate->gamename);
 }
 
 void onunrealize(GtkGLArea* area, gpointer userdata)
@@ -47,7 +49,6 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   save_game_state(gstate);
   /*Free*/
   destroymap(*m_p);
-  free(gstate);
 }
 
 gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
@@ -58,7 +59,7 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
     return FALSE;
   }
   /*GL NEEDS*/
-  glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   /*Alpha blending*/
   glEnable(GL_BLEND);

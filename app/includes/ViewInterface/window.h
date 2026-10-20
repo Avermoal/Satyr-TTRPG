@@ -10,6 +10,7 @@ struct window{
   GtkWidget* win;
   GtkStack* interfacestack;
   struct scene* scn;
+  struct gamestate* gstate;
 };
 
 void createwindow(GtkApplication* app, struct window* win);

@@ -43,6 +43,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">0</property>
                       <property name="row">0</property>
@@ -57,6 +58,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">1</property>
                       <property name="row">0</property>
@@ -71,6 +73,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">2</property>
                       <property name="row">0</property>
@@ -85,6 +88,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">3</property>
                       <property name="row">0</property>
@@ -99,6 +103,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">4</property>
                       <property name="row">0</property>
@@ -113,6 +118,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <layout>
                       <property name="column">5</property>
                       <property name="row">0</property>
@@ -127,6 +133,7 @@
                         <property name="icon-size">large</property>
                       </object>
                     </property>
+                    <property name="focusable">False</property>
                     <signal name="clicked" handler="on_scene_menu_btn_clicked"/>
                     <layout>
                       <property name="column">6</property>
@@ -170,6 +177,7 @@
                                     <property name="icon-size">large</property>
                                   </object>
                                 </property>
+                                <property name="focusable">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
                                 <signal name="clicked" handler="on_side_hide_btn_clicked"/>
@@ -177,6 +185,7 @@
                             </child>
                             <child>
                               <object class="GtkNotebook" id="notebook_menu">
+                                <property name="focusable">False</property>
                                 <property name="hexpand">True</property>
                                 <property name="vexpand">True</property>
                                 <child>
@@ -277,6 +286,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="focusable">False</property>
                         <property name="halign">center</property>
                         <property name="valign">center</property>
                         <signal name="clicked" handler="on_side_menu_btn_clicked"/>
@@ -293,7 +303,20 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkCenterBox">
+            <property name="halign">start</property>
+            <property name="valign">start</property>
+            <child type="center">
+              <object class="GtkButton" id="layers_btn">
+                <property name="child">
+                  <object class="GtkImage">
+                    <property name="file">res/icons/gear.svg</property>
+                    <property name="icon-size">large</property>
+                  </object>
+                </property>
+                <property name="focusable">False</property>
+              </object>
+            </child>
             <layout>
               <property name="column">0</property>
               <property name="column-span">1</property>
