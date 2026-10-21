@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
   <!-- interface-name menu_page.ui -->
-  <requires lib="gtk" version="4.18"/>
+  <requires lib="gtk" version="4.12"/>
   <object class="GtkGrid" id="menu_page">
     <property name="orientation">vertical</property>
     <child>
@@ -23,7 +23,7 @@
             <property name="margin-bottom">16</property>
             <property name="margin-top">16</property>
             <property name="valign">center</property>
-            <signal name="clicked" handler="on_to_new_campaign_btn_clicked" object="win" swapped="no"/>
+            <signal name="clicked" handler="on_to_new_campaign_btn_clicked"/>
           </object>
         </child>
         <child>
@@ -54,7 +54,7 @@
             <property name="margin-bottom">16</property>
             <property name="margin-top">16</property>
             <property name="valign">center</property>
-            <signal name="clicked" handler="on_exit_btn_clicked" object="win" swapped="no"/>
+            <signal name="clicked" handler="on_exit_btn_clicked"/>
           </object>
         </child>
         <child>

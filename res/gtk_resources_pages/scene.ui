@@ -6,6 +6,8 @@
   <object class="GtkGrid" id="scene_list_element">
     <child>
       <object class="GtkPicture" id="scene_img">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <layout>
           <property name="column">1</property>
           <property name="column-span">1</property>

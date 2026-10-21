@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
   <!-- interface-name dms_page.ui -->
-  <requires lib="gtk" version="4.18"/>
+  <requires lib="gtk" version="4.12"/>
   <object class="GtkOverlay" id="dms_page">
     <property name="child">
       <object class="GtkBox">
@@ -97,7 +97,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="tokens_btn">
                     <property name="child">
                       <object class="GtkImage">
                         <property name="file">res/icons/dice.svg</property>
@@ -112,7 +112,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="maps_btn">
                     <property name="child">
                       <object class="GtkImage">
                         <property name="file">res/icons/dice.svg</property>
