@@ -28,6 +28,7 @@ void free_window_structure(struct window* win)
 {
   destroyscene(win->scn);
   free(win->gstate->gamename);
+  destroy_game_state(win->gstate);
   free(win->gstate);
   free(win->scn);
 }

@@ -20,7 +20,7 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#include "Map/map_data.h"
+#include "Tokens/tokens.h"
 
 static int32_t next_pow2_int(int32_t value);
 
@@ -50,7 +50,8 @@ static void blit_image_rgba(uint8_t* canvas, int32_t canvas_w,
 static int32_t get_names_of_textures(const char* dir_path, char*** out_files);
 static void free_names_of_textures(char** filenames, int texcount);
 
-void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum, struct layer* l, char** atlas_path)
+void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum,
+                       struct token* toks, int toktype, char** atlas_path)
 {
   /*atlas_path = atlas_dir_path + "/lrnum.png"*/
   *atlas_path = nullptr;
@@ -204,8 +205,7 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
     float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
     float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
 
-    layer_add_quad(l, 0, 0, (float)placed[i].w, (float)placed[i].h,
-            u0, v0, u1, v1, 1.0f, 1.0f, 1.0f, 1.0f);
+    set_token_UV(&toks[i], u0, v0, u1, v1);
   }
   /*Free*/
   free(canvas);

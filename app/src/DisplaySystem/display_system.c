@@ -29,10 +29,11 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     g_print("Map memory allocation failed\n");
   }
   createmap(*m_p);
-  /*Game state*/
+  /*Game state register map and make it current*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  gstate->m = *m_p;
   gstate->snum = 0;
+  gstate->gscns = make_game_scene_from_map(gstate, *m_p);
+  make_current(gstate, 1); /*Zero cuz it is a new campaign*/
   campaign_dir_init(gstate->gamename);
 }
 

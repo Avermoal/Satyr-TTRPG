@@ -11,6 +11,7 @@ file(GLOB INCLUDES
   "includes/ViewInterface/*.h"
   "includes/GameState/*.h"
   "includes/UI/*.h"
+  "includes/Tokens/*.h"
 )
 
 file(GLOB SOURCES
@@ -23,6 +24,7 @@ file(GLOB SOURCES
   "src/ViewInterface/*.c"
   "src/GameState/*.c"
   "src/UI/*.c"
+  "src/Tokens/*.c"
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

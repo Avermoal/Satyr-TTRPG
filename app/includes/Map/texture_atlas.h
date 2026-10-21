@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-struct layer;
+struct token;
 
 typedef struct{
   int32_t x, y, w, h;
@@ -24,6 +24,7 @@ typedef struct{
   int32_t maxsize;
 }shelfcontext;
 
-void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum, struct layer* l, char** atlas_path);
+void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum,
+                       struct token* toks, int toktype, char** atlas_path);
 
 #endif/*MAP_TEXTURE_ATLAS_H*/

@@ -8,56 +8,124 @@
 #include <stb_image_resize2.h>
 #include <stb_image_write.h>
 
-#include "Map/map.h"
-#include "Map/map_data.h"
 #include "GameState/game_state.h"
+#include "Tokens/tokens.h"
 
-static void linear_resize_img(GFile* img);
+typedef struct{
+  GdkFileList* filelist;
+  gpointer userdata;
+  int32_t toktype;
+}drop_task_data;
 
-gboolean on_files_drop(GtkDropTarget* target, const GValue* value,
+static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle);
+static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointer userdata);
+static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointer userdata);
+static void free_drop_task_data(gpointer data);
+static void linear_resize_img(GFile* img, int32_t toktype);
+
+gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
                        double x, double y, gpointer userdata)
 {
-  if(G_VALUE_HOLDS(value, GDK_TYPE_FILE_LIST)){
-    GdkFileList* filelist = g_value_get_boxed(value);
-    if(filelist != nullptr){
-      GSList* files = gdk_file_list_get_files(filelist);
-      /*Copy files into dir*/
-        /*Create paths*/
-      struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-      const char* saves = "saves";
-      const char* dest = "presets/textures/game_scene_1/1";
-      const char* atlas = "presets/atlas/game_scene_1";
-      char dest_dir_path[256];
-      char future_atlas_path[256];
-      snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s", saves, gstate->gamename, dest);
-      snprintf(future_atlas_path, sizeof(future_atlas_path), "%s/%s/%s", saves, gstate->gamename, atlas);
-        /*Copy*/
-      GFile* destdir = g_file_new_for_path(dest_dir_path);
-      for(GSList* l = files; l != nullptr; l = l->next){
-        GFile* sourcefile = G_FILE(l->data);
-        char* basename = g_file_get_basename(sourcefile);
-        GFile* destfile = g_file_get_child(destdir, basename);
-        g_file_copy(sourcefile, destfile, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, nullptr);
-        linear_resize_img(destfile);
-        /*Free*/
-        g_free(basename);
-        g_object_unref(destfile);
-      }
-      /*Set current gl area*/
-      GtkGLArea* area = GTK_GL_AREA(g_object_get_data(G_OBJECT(userdata), "gl_area"));
-      gtk_gl_area_make_current(area);
-      /*Call layer set texture atlas*/
-      struct map** map_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
-      layer_update_texture_atlas(&(*map_p)->l[IMG], dest_dir_path, future_atlas_path, IMG);
-      return TRUE;
-    }
-  }
-  return FALSE;
+  gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
+                            nullptr, on_value_read_ready_toks, userdata);
+  return TRUE;
 }
 
-static void linear_resize_img(GFile* img)
+gboolean on_maps_drop(GtkDropTargetAsync* target, GdkDrop* drop,
+                       double x, double y, gpointer userdata)
 {
-  const int percentage = 50;
+  gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
+                            nullptr, on_value_read_ready_maps, userdata);
+  return TRUE;
+}
+
+static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle)
+{
+  drop_task_data* data = (drop_task_data*)taskdata;
+  GdkDrop* drop = GDK_DROP(source);
+  GSList* files = gdk_file_list_get_files(data->filelist);
+  /*Copy files into dir*/
+    /*Create paths*/
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
+  const char* saves = "saves";
+  const char* dest = "presets/textures";
+  char dest_dir_path[256];
+  if(data->toktype == TOKEN){
+    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/tokens", saves, gstate->gamename, dest);
+  }else{
+    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/maps", saves, gstate->gamename, dest);
+  }
+    /*Copy*/
+  GFile* destdir = g_file_new_for_path(dest_dir_path);
+  for(GSList* l = files; l != nullptr; l = l->next){
+    GFile* sourcefile = G_FILE(l->data);
+    char* basename = g_file_get_basename(sourcefile);
+    size_t len = strlen(basename);
+    if(basename[len - 4] != '.' || !(basename[len - 3] == 'j' || basename[len - 3] == 'p')){
+      g_free(basename);
+      continue;
+    }
+    GFile* destfile = g_file_get_child(destdir, basename);
+    g_file_copy(sourcefile, destfile, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, nullptr);
+    linear_resize_img(destfile, data->toktype);
+    /*Gstate register token*/
+    char* path_to_img = g_file_get_path(destfile);
+    game_state_register_token(gstate, data->toktype, path_to_img);
+    /*Free*/
+    g_free(path_to_img);
+    g_free(basename);
+    g_object_unref(destfile);
+  }
+  /*Free*/
+  g_slist_free(files);
+  g_object_unref(destdir);
+  gdk_drop_finish(drop, GDK_ACTION_COPY);
+}
+
+static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointer userdata)
+{
+  GdkDrop* drop = GDK_DROP(source);
+  const GValue* value = gdk_drop_read_value_finish(drop, res, nullptr);
+  /*To drop_task_data*/
+  drop_task_data* data = g_new0(drop_task_data, 1);
+  data->filelist = g_value_dup_boxed(value);
+  data->userdata = userdata;
+  data->toktype = TOKEN;
+  /*New THREAD*/
+  GTask* task = g_task_new(drop, nullptr, nullptr, nullptr);
+  g_task_set_task_data(task, data, free_drop_task_data);
+  g_task_run_in_thread(task, work_with_files);
+  /*Free*/
+  g_object_unref(task);
+}
+
+static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointer userdata)
+{
+  GdkDrop* drop = GDK_DROP(source);
+  const GValue* value = gdk_drop_read_value_finish(drop, res, nullptr);
+  /*To drop_task_data*/
+  drop_task_data* data = g_new0(drop_task_data, 1);
+  data->filelist = g_value_dup_boxed(value);
+  data->userdata = userdata;
+  data->toktype = MAP;
+  /*New THREAD*/
+  GTask* task = g_task_new(drop, nullptr, nullptr, nullptr);
+  g_task_set_task_data(task, data, free_drop_task_data);
+  g_task_run_in_thread(task, work_with_files);
+  /*Free*/
+  g_object_unref(task);
+}
+
+static void free_drop_task_data(gpointer data)
+{
+  drop_task_data* subdata = (drop_task_data*)data;
+  g_boxed_free(GDK_TYPE_FILE_LIST, subdata->filelist);
+  g_free(subdata);
+}
+
+static void linear_resize_img(GFile* img, int32_t toktype)
+{
+  int percentage = 100 - 50 * toktype;
   /*Get file path*/
   char* file = g_file_get_path(img);
   char* filename = g_file_get_basename(img);

@@ -68,10 +68,17 @@ void createUI(struct UI* ui, GtkWindow* win)
   gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
   g_object_set_data(G_OBJECT(win), "gl_area", gl_area);
   /*Set Drag and Drop files target*/
-  GtkWidget* maingrid = GTK_WIDGET(gtk_builder_get_object(dms_builder, "main_grid"));
-  GtkDropTarget* target = gtk_drop_target_new(GDK_TYPE_FILE_LIST, GDK_ACTION_COPY);
-  g_signal_connect(target, "drop", G_CALLBACK(on_files_drop), win);
-  gtk_widget_add_controller(maingrid, GTK_EVENT_CONTROLLER(target));
+  GtkWidget* side_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box"));
+  GtkWidget* side_box_other = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box_other"));
+    /*Contetn formats*/
+  GtkDropTargetAsync* targettoks = gtk_drop_target_async_new(
+    gdk_content_formats_new((const char *[]){"text/uri-list"}, 1), GDK_ACTION_COPY);
+  GtkDropTargetAsync* targetmaps = gtk_drop_target_async_new(
+    gdk_content_formats_new((const char *[]){"text/uri-list"}, 1), GDK_ACTION_COPY);
+  g_signal_connect(targettoks, "drop", G_CALLBACK(on_toks_drop), win);
+  g_signal_connect(targetmaps, "drop", G_CALLBACK(on_maps_drop), win);
+  gtk_widget_add_controller(side_box_other, GTK_EVENT_CONTROLLER(targetmaps));
+  gtk_widget_add_controller(side_box, GTK_EVENT_CONTROLLER(targettoks));
   /*Destroy builders*/
   g_object_unref(menu_builder);
   g_object_unref(dms_builder);

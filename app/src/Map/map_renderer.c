@@ -51,10 +51,11 @@ void destroyrenderer(struct renderer* ren)
     ren->u_visible_half_x_loc = -1;
     ren->u_visible_half_y_loc = -1;
     ren->u_camera_pos_loc = -1;
+    ren->u_lrnum_loc = -1;
   }
 }
 
-void renderlayer(struct renderer* ren, struct layer* l, float* ortho, float ww, float wh, float cam_x, float cam_y)
+void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho, float ww, float wh, float cam_x, float cam_y)
 {
   if(!ren || !l || !ortho){
     return;
@@ -76,6 +77,7 @@ void renderlayer(struct renderer* ren, struct layer* l, float* ortho, float ww, 
     glBindBuffer(GL_ARRAY_BUFFER, ren->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)(sizeof(struct vertex)*VERTEX_PER_RECT*l->rnum), l->rects);
     glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
+    glUniform1f(ren->u_lrnum_loc, lrnum);
     /*DRAW*/
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, l->tex.id);
@@ -134,6 +136,7 @@ static void cr_img(struct renderer* ren, struct layer* l)
   load_shader_program(&ren->prog, IMG);
   ren->u_proj_loc = glGetUniformLocation(ren->prog, "u_proj");
   ren->u_tex_loc = glGetUniformLocation(ren->prog, "u_tex");
+  ren->u_lrnum_loc = glGetUniformLocation(ren->prog, "u_lrnum");
   glGenVertexArrays(1, &ren->vao);
   glBindVertexArray(ren->vao);
   glGenBuffers(1, &ren->vbo);

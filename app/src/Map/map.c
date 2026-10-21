@@ -27,19 +27,19 @@ void createmap(struct map* m)
 
 void destroymap(struct map* m)
 {
-  if(!m || !m->l || !m->ren){
+  destroy_map_renderer(m);
+}
+
+void destroy_map_renderer(struct map* m)
+{
+  if(!m || !m->ren){
     return;
   }
   for(int32_t i = 0; i < m->lrnum; ++i){
-    layerfree(&m->l[i]);
     destroyrenderer(&m->ren[i]);
   }
-  free(m->l);
   free(m->ren);
-  m->l = NULL;
-  m->ren = NULL;
-  m->lrnum = 0;
-  m->opos = 0;
+  m->ren = nullptr;
 }
 
 void loadmap(struct map* m, const char* path)
@@ -57,16 +57,31 @@ void rendermap(struct map* m, float ww, float wh)
   /*Camera*/
   float l, r, b, t;
   getviewport(&m->cam, ww, wh, &l, &r, &b, &t);
-  getortho(m->cam.ortho, l, r, b, t, -1.0f, 1.0f);
+  getortho(m->cam.ortho, l, r, b, t, -10.0f, 10.0f);
   /*Render*/
   for(int32_t i = m->lrnum - 1; i >= 0; --i){
-    renderlayer(&m->ren[i], &m->l[i], m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y);
+    renderlayer(&m->ren[i], &m->l[i], (float)i, m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y);
   }
 }
 
 void updatemap(struct map* m)
 {
 
+}
+
+void create_map_from_data(struct map* m, struct camera cam, int32_t lrnum, int32_t opos, struct layer* l)
+{
+  memset(m, 0, sizeof(struct map));
+  /*Camera*/
+  m->cam = cam;
+  /*View*/
+  m->lrnum = lrnum;
+  m->opos = opos;
+  m->l = l;
+    /*Renderer*/
+  for(int32_t i = 0; i < lrnum; ++i){
+    createrenderer(&m->ren[i], &m->l[i], m->l[i].type);
+  }
 }
 
 struct layer* map_add_layer(struct map* m, uint32_t type)
@@ -94,11 +109,11 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   return &m->l[index];
 }
 
-void layer_update_texture_atlas(struct layer* l, const char* textures_path, const char* atlas_dir_path, int32_t lrnum)
+void layer_update_texture_atlas(struct layer* l, const char* atlas_dir_path, int32_t lrnum)
 {
   /*Create new texture atlas*/
   char* atlas_path;
-  get_path_to_atlas(textures_path, atlas_dir_path, lrnum, l, &atlas_path);
+  //get_path_to_atlas(textures_path, atlas_dir_path, lrnum, l, &atlas_path);
   /*Delete old texture atlas*/
   deletetexture(&l->tex);
   /*Set new texture atlas*/

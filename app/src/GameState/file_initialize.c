@@ -49,18 +49,27 @@ void makedir(const char* path)
 void campaign_dir_init(const char* name)
 {
   const char* saves = "saves";
-  const char* atlas = "presets/atlas/game_scene_1";
-  const char* textures = "presets/textures/game_scene_1/1";
+  const char* atlas = "presets/atlas/1";
+  const char* maps = "presets/textures/maps";
+  const char* toks = "presets/textures/tokens";
   /*Make it finish*/
   char atlasdir[256];
-  char texturesdir[256];
-  int sizesaves = strlen(saves);
-  int sizeatlas = strlen(atlas);
-  int sizetextures = strlen(textures);
-  int sizename = strlen(name);
+  char mapsdir[256];
+  char toksdir[256];
   snprintf(atlasdir, sizeof(atlasdir), "%s/%s/%s", saves, name, atlas);
-  snprintf(texturesdir, sizeof(texturesdir), "%s/%s/%s", saves, name, textures);
+  snprintf(mapsdir, sizeof(mapsdir), "%s/%s/%s", saves, name, maps);
+  snprintf(toksdir, sizeof(toksdir), "%s/%s/%s", saves, name, toks);
   /*Create*/
   makedir(atlasdir);
-  makedir(texturesdir);
+  makedir(mapsdir);
+  makedir(toksdir);
+}
+
+void make_scene_dir(const char* name, int snum)
+{
+  const char* saves = "saves";
+  const char* scene = "presets/atlas";
+  char dir[256];
+  snprintf(dir, sizeof(dir), "%s/%s/%s/%d", saves, name, scene, snum);
+  makedir(dir);
 }

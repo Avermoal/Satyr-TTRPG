@@ -7,14 +7,14 @@
 #include <limits.h>
 
 #include "Map/texture.h"
+#include "Tokens/tokens.h"
 
 #define VERTEX_PER_RECT 4
 #define INDEX_PER_RECT 6
 
 enum{
   GRID = 0,
-  IMG = 1,
-  OTHER = 2
+  IMG = 1
 };
 
 struct vertex{
@@ -32,9 +32,10 @@ struct layer{
   int32_t cap;
   uint32_t type;
   int32_t gridstep;
-
-  struct texture tex; /*TEXTURE ATLAS*/
+  struct texture tex;         /*TEXTURE ATLAS*/
   struct rectangle* rects;
+  int32_t* tokid;             /*Slave*/
+  int32_t toktype;
 };
 
 static inline void layerinit(struct layer* l, uint32_t type)
@@ -48,7 +49,9 @@ static inline void layerinit(struct layer* l, uint32_t type)
   l->tex.id = 0;
   l->tex.width = 0;
   l->tex.height = 0;
+  l->toktype = -1;
   l->rects = nullptr;
+  l->tokid = nullptr;
 }
 
 static inline void layerfree(struct layer* l)
@@ -57,10 +60,12 @@ static inline void layerfree(struct layer* l)
     return;
   }
   free(l->rects);
+  free(l->tokid);
   if(l->tex.id != 0){
     deletetexture(&l->tex);
   }
   l->rects = nullptr;
+  l->tokid = nullptr;
   l->rnum = 0;
   l->cap = 0;
 }
@@ -84,11 +89,13 @@ static inline void layer_reserve_rects(struct layer* l, int32_t need)
   if(newcap < need){
     newcap = need;
   }
-  struct rectangle* tmp = realloc(l->rects, (size_t)(newcap * sizeof(*tmp)));
-  if(!tmp){
+  struct rectangle* tmpr = (struct rectangle*)realloc(l->rects, (size_t)(newcap * sizeof(*tmpr)));
+  int32_t* tmptokid = (int32_t*)realloc(l->tokid, (size_t)(newcap * sizeof(*tmptokid)));
+  if(!tmpr || !tmptokid){
     return;
   }
-  l->rects = tmp;
+  l->rects = tmpr;
+  l->tokid = tmptokid;
   l->cap = newcap;
 }
 
@@ -125,14 +132,11 @@ static inline void layer_add_rect(struct layer* l, const struct rectangle* rect)
   *dst = *rect;
 }
 
-static inline void rectset(struct rectangle* rect, float x, float y, float w, float h,
-                                                   float u0, float v0, float u1, float v1,
-                                                   float cr, float cg, float cb, float ca)
+static inline void rect_set_XYWH(struct rectangle* rect, float x, float y, float w, float h)
 {
   if(!rect){
     return;
   }
-  /*Position*/
   rect->vert[0].x = x;
   rect->vert[0].y = y;
   rect->vert[1].x = x;
@@ -141,7 +145,13 @@ static inline void rectset(struct rectangle* rect, float x, float y, float w, fl
   rect->vert[2].y = y + h;
   rect->vert[3].x = x + w;
   rect->vert[3].y = y;
-  /*UV coordinats*/
+}
+
+static inline void rect_set_UV(struct rectangle* rect, float u0, float v0, float u1, float v1)
+{
+  if(!rect){
+    return;
+  }
   rect->vert[0].u = u0;
   rect->vert[0].v = v0;
   rect->vert[1].u = u0;
@@ -150,13 +160,31 @@ static inline void rectset(struct rectangle* rect, float x, float y, float w, fl
   rect->vert[2].v = v1;
   rect->vert[3].u = u1;
   rect->vert[3].v = v0;
-  /*Color*/
+}
+
+static inline void rect_set_RGBA(struct rectangle* rect, float cr, float cg, float cb, float ca)
+{
+  if(!rect){
+    return;
+  }
   for(int32_t i = 0; i < VERTEX_PER_RECT; ++i){
     rect->vert[i].r = cr;
     rect->vert[i].g = cg;
     rect->vert[i].b = cb;
     rect->vert[i].a = ca;
   }
+}
+
+static inline void rectset(struct rectangle* rect, float x, float y, float w, float h,
+                                                   float u0, float v0, float u1, float v1,
+                                                   float cr, float cg, float cb, float ca)
+{
+  /*Position*/
+  rect_set_XYWH(rect, x, y, w, h);
+  /*UV coordinats*/
+  rect_set_UV(rect, u0, v0, u1, v1);
+  /*Color*/
+  rect_set_RGBA(rect, cr, cg, cb ,ca);
 }
 
 static inline void layer_add_quad(struct layer* l, float x, float y, float w, float h,
@@ -168,6 +196,15 @@ static inline void layer_add_quad(struct layer* l, float x, float y, float w, fl
     return;
   }
   rectset(rect, x, y, w, h, u0, v0, u1, v1, cr, cg, cb, ca);
+}
+
+static inline void layer_link_last_rect_with_token(struct layer* l, struct token* tok)
+{
+  if(l->toktype == tok->type){
+    return;
+  }
+  l->tokid[l->rnum - 1] = tok->id;
+  rect_set_UV(&l->rects[l->rnum - 1], tok->u0, tok->v0, tok->u1, tok->v1);
 }
 
 #endif/*MAP_MAP_DATA_H*/
