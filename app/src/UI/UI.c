@@ -102,8 +102,6 @@ static void set_dms_page_callbacks(GtkBuilder* builder, gpointer dms_ui, GtkWind
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_hide_btn_clicked",
                                          G_CALLBACK(on_side_hide_btn_clicked));
   /*Top menu btn*/
-  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_scene_menu_btn_clicked",
-                                         G_CALLBACK(on_scene_menu_btn_clicked));
   /*RENDER*/
   gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "realize",
                                          G_CALLBACK(onrealize));

@@ -99,12 +99,49 @@
                 <child>
                   <object class="GtkButton" id="tokens_btn">
                     <property name="child">
+                      <object class="GtkPopover">
+                        <property name="default-widget">
+                          <object class="GtkScrolledWindow">
+                            <property name="child">
+                              <object class="GtkBox">
+                                <child>
+                                  <object class="GtkImage">
+                                    <property name="file">res/icons/dice.svg</property>
+                                    <property name="icon-size">large</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkImage">
+                                    <property name="file">res/icons/dice.svg</property>
+                                    <property name="icon-size">large</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkImage">
+                                    <property name="file">res/icons/dice.svg</property>
+                                    <property name="icon-size">large</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkImage">
+                                    <property name="file">res/icons/dice.svg</property>
+                                    <property name="icon-size">large</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                            <property name="vscrollbar-policy">never</property>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                    <property name="focusable">False</property>
+                    <child>
                       <object class="GtkImage">
                         <property name="file">res/icons/dice.svg</property>
                         <property name="icon-size">large</property>
                       </object>
-                    </property>
-                    <property name="focusable">False</property>
+                    </child>
                     <layout>
                       <property name="column">4</property>
                       <property name="row">0</property>
