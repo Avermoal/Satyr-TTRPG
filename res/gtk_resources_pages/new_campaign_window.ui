@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
   <!-- interface-name new_campaign_window.ui -->
-  <requires lib="gtk" version="4.12"/>
+  <requires lib="gtk" version="4.22"/>
   <object class="GtkBox" id="new_campaign_page">
     <property name="orientation">vertical</property>
     <property name="valign">center</property>

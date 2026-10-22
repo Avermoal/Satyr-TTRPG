@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
   <!-- interface-name menu_page.ui -->
-  <requires lib="gtk" version="4.12"/>
+  <requires lib="gtk" version="4.22"/>
   <object class="GtkGrid" id="menu_page">
     <property name="orientation">vertical</property>
     <child>

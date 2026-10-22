@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
   <!-- interface-name dms_page.ui -->
-  <requires lib="gtk" version="4.12"/>
+  <requires lib="gtk" version="4.22"/>
   <object class="GtkOverlay" id="dms_page">
     <property name="child">
       <object class="GtkBox">
