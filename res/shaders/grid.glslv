@@ -1,5 +1,4 @@
-#version 320 es
-precision mediump float;
+#version 460 core
 
 uniform mat4 u_proj;
 

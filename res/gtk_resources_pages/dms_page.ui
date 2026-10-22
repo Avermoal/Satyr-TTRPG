@@ -10,6 +10,7 @@
         <property name="vexpand">True</property>
         <child>
           <object class="GtkGLArea" id="gl_area">
+            <property name="allowed-apis">gl</property>
             <property name="has-depth-buffer">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
