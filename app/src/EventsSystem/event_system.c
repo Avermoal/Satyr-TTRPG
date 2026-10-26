@@ -9,22 +9,37 @@ gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map** m = g_object_get_data(G_OBJECT(userdata), "map_p");
+  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   if(!m){
     return GDK_EVENT_STOP;
   }
+  GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
+  GdkKeymapKey* keys = nullptr;
+  guint* keyvals = nullptr;
+  int nentries = 0;
+  guint latin_keyval = 0;
+  /*Get final key*/
+  if(gdk_display_map_keycode(display, keycode, &keys, &keyvals, &nentries)){
+    for(int i = 0; i < nentries; ++i){
+      if(keys[i].group == 0 && keys[i].level == 0){
+        latin_keyval = keyvals[i];
+        break;
+      }
+    }
+  }
+  guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
-  if(GDK_KEY_W == keyval || GDK_KEY_w == keyval){
-    (*m)->evdata.key_w = true;
+  if(GDK_KEY_w == final_keyval){
+    m->evdata.key_w = true;
   }
-  if(GDK_KEY_S == keyval || GDK_KEY_s == keyval){
-    (*m)->evdata.key_s = true;
+  if(GDK_KEY_s == final_keyval){
+    m->evdata.key_s = true;
   }
-  if(GDK_KEY_A == keyval || GDK_KEY_a == keyval){
-    (*m)->evdata.key_a = true;
+  if(GDK_KEY_a == final_keyval){
+    m->evdata.key_a = true;
   }
-  if(GDK_KEY_D == keyval || GDK_KEY_d == keyval){
-    (*m)->evdata.key_d = true;
+  if(GDK_KEY_d == final_keyval){
+    m->evdata.key_d = true;
   }
   return GDK_EVENT_PROPAGATE;
 }
@@ -33,22 +48,37 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map** m = g_object_get_data(G_OBJECT(userdata), "map_p");
+  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   if(!m){
     return GDK_EVENT_STOP;
   }
+  GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
+  GdkKeymapKey* keys = nullptr;
+  guint* keyvals = nullptr;
+  int nentries = 0;
+  guint latin_keyval = 0;
+  /*Get final key*/
+  if(gdk_display_map_keycode(display, keycode, &keys, &keyvals, &nentries)){
+    for(int i = 0; i < nentries; ++i){
+      if(keys[i].group == 0 && keys[i].level == 0){
+        latin_keyval = keyvals[i];
+        break;
+      }
+    }
+  }
+  guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
-  if(GDK_KEY_W == keyval || GDK_KEY_w == keyval){
-    (*m)->evdata.key_w = false;
+  if(GDK_KEY_w == final_keyval){
+    m->evdata.key_w = false;
   }
-  if(GDK_KEY_S == keyval || GDK_KEY_s == keyval){
-    (*m)->evdata.key_s = false;
+  if(GDK_KEY_s == final_keyval){
+    m->evdata.key_s = false;
   }
-  if(GDK_KEY_A == keyval || GDK_KEY_a == keyval){
-    (*m)->evdata.key_a = false;
+  if(GDK_KEY_a == final_keyval){
+    m->evdata.key_a = false;
   }
-  if(GDK_KEY_D == keyval || GDK_KEY_d == keyval){
-    (*m)->evdata.key_d = false;
+  if(GDK_KEY_d == final_keyval){
+    m->evdata.key_d = false;
   }
   return GDK_EVENT_PROPAGATE;
 }

@@ -5,7 +5,6 @@
 #include <pango/pangocairo.h>
 
 #include "ViewInterface/window.h"
-#include "GameState/game_state.h"
 
 #define PATH_TO_CUSTOM_CSS_THEME_MENU "res/themes/satyr.css"
 #define CINZEL_PATH "res/fonts/CinzelDecorative-Bold.ttf"

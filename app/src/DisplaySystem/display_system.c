@@ -8,6 +8,7 @@
 #include "GameState/game_state.h"
 #include "GameState/file_initialize.h"
 #include "EventsSystem/event_system.h"
+#include "UI/DMs_UI.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
 {
@@ -16,25 +17,38 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   if(gtk_gl_area_get_error(area) != NULL){
     return;
   }
+  /*Prevent double realize*/
+  struct gamestate* gamestate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(gamestate){
+    return;
+  }
   /*Set controllers*/
   GtkEventController* keycontroller = gtk_event_controller_key_new();
   g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_key_pressed), userdata);
   g_signal_connect(keycontroller, "key-released", G_CALLBACK(on_key_released), userdata);
+  g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_escape_pressed), userdata);
   gtk_widget_add_controller(GTK_WIDGET(userdata), keycontroller);
-  /*Get map*/
-  struct map** m_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
-  /*Create map or load map*/
-  *m_p = (struct map*)malloc(sizeof(struct map));
-  if(!(*m_p)){
-    g_print("Map memory allocation failed\n");
+  /*Create or load game state and map*/
+  int ISNEW = 1; // *(int*)g_object_get_data(G_OBJECT(userdata), "ISNEW_p");
+  if(ISNEW){
+    /*Allocation*/
+    struct gamestate* gstate = (struct gamestate*)calloc(1, sizeof(struct gamestate));
+    init_game_state(gstate);
+    struct map* m = (struct map*)calloc(1, sizeof(struct map));
+    createmap(m);
+    /*Make game scene from map*/
+    gstate->gscns = make_game_scene_from_map_once(gstate, m);
+    /*Get game name*/
+    GtkEntryBuffer* entrybuffer = g_object_get_data(G_OBJECT(userdata), "entrybuffer");
+    gstate->gamename = strdup(gtk_entry_buffer_get_text(entrybuffer));
+    /*Campaign dir init*/
+    campaign_dir_init(gstate->gamename);
+    /*Set data*/
+    g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
+    g_object_set_data(G_OBJECT(userdata), "map", m);
+  }else{
+
   }
-  createmap(*m_p);
-  /*Game state register map and make it current*/
-  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  gstate->snum = 0;
-  gstate->gscns = make_game_scene_from_map(gstate, *m_p);
-  make_current(gstate, 1); /*Zero cuz it is a new campaign*/
-  campaign_dir_init(gstate->gamename);
 }
 
 void onunrealize(GtkGLArea* area, gpointer userdata)
@@ -43,13 +57,23 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   if(gtk_gl_area_get_error(area) != NULL){
     return;
   }
-  /*Get map and state*/
-  struct map** m_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
+  /*Prevent double unrealize*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate){
+    return;
+  }
+  /*Get map*/
+  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   /*Save game*/
   save_game_state(gstate);
   /*Free*/
-  destroymap(*m_p);
+  destroymap(m);
+  free(m);
+  m = nullptr;
+  destroy_game_state(gstate);
+  free(gstate);
+  gstate = nullptr;
+  g_object_set_data(G_OBJECT(userdata), "gstate", nullptr);
 }
 
 gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
@@ -72,30 +96,30 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
     return FALSE;
   }
   /*Get map*/
-  struct map** m_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
+  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   /*Render map*/
-  rendermap(*m_p, width, height);
+  rendermap(m, width, height);
   return TRUE;
 }
 
 gboolean ontick(GtkWidget* widget, GdkFrameClock* clock, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map** m_p = (struct map**)g_object_get_data(G_OBJECT(userdata), "map_p");
-  if(!m_p || !(*m_p)){
+  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
+  if(!m){
     return FALSE;
   }
   /*Get time*/
   gint64 frametime = gdk_frame_clock_get_frame_time(clock);
   double currenttime = TO_CURRENT_TIME(frametime);
-  if((*m_p)->evdata.last_frame_time == 0.0){
-    (*m_p)->evdata.last_frame_time = currenttime;
+  if(m->evdata.last_frame_time == 0.0){
+    m->evdata.last_frame_time = currenttime;
   }
-  (*m_p)->evdata.deltatime = currenttime - (*m_p)->evdata.last_frame_time;
-  (*m_p)->evdata.last_frame_time = currenttime;
+  m->evdata.deltatime = currenttime - m->evdata.last_frame_time;
+  m->evdata.last_frame_time = currenttime;
   /*Update*/
-  updatemap(*m_p);
-  eventpoll(*m_p);
+  updatemap(m);
+  eventpoll(m);
   /*Let's DRAW*/
   gtk_widget_queue_draw(widget);
   return TRUE;

@@ -3,14 +3,12 @@
 
 #include <gtk/gtk.h>
 
-struct scene;
-struct gamestate;
+struct UI;
 
 struct window{
   GtkWidget* win;
   GtkStack* interfacestack;
-  struct scene* scn;
-  struct gamestate* gstate;
+  struct UI* ui;
 };
 
 void createwindow(GtkApplication* app, struct window* win);

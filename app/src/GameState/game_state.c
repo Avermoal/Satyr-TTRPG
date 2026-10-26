@@ -15,6 +15,9 @@ static void save_game_scene(struct gamescene* gscn, FILE* state);
 
 void save_game_state(struct gamestate* gstate)/*!!!!!!!!!!!!!!!!TOKENS!!!!!!!!!!!!!!!*/
 {
+  if(!gstate->gamename){
+    return;
+  }
   char* path = get_game_path(gstate->gamename);
   FILE* state = fopen(path, "wb");
   fwrite(&gstate->current_map_id, sizeof(int32_t), 1, state);
@@ -28,6 +31,9 @@ void save_game_state(struct gamestate* gstate)/*!!!!!!!!!!!!!!!!TOKENS!!!!!!!!!!
 
 void destroy_game_state(struct gamestate* gstate)
 {
+  if(!gstate->gamename){
+    return;
+  }
   for(int32_t i = 0; i < gstate->snum; ++i){
     for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
       layerfree(&gstate->gscns[i].l[j]);
@@ -43,6 +49,10 @@ void destroy_game_state(struct gamestate* gstate)
   }
   free(gstate->tokens);
   free(gstate->maps);
+  free(gstate->gamename);
+  gstate->tokens = nullptr;
+  gstate->maps = nullptr;
+  gstate->gamename = nullptr;
 }
 
 struct gamestate* get_game_state(const char* path)
@@ -83,11 +93,12 @@ void make_current(struct gamestate* gstate, int32_t snum)
   create_map_from_data(newmap, gstate->gscns[snum].cam, gstate->gscns[snum].lrnum,
                        gstate->gscns[snum].opos, gstate->gscns[snum].l);
   destroy_map_renderer(curmap);
+  free(curmap);
   gstate->m = newmap;
   gstate->current_map_id = snum;
 }
 
-struct gamescene* make_game_scene_from_map(struct gamestate* gstate, struct map* m)
+struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct map* m)
 {
   struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
   gscn->l = m->l;

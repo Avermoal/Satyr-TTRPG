@@ -28,6 +28,22 @@ struct gamestate{
   int32_t mnum;
 };
 
+static inline void init_game_state(struct gamestate* gstate)
+{
+  if(!gstate){
+    return;
+  }
+  gstate->gamename = nullptr;
+  gstate->m = nullptr;
+  gstate->gscns = nullptr;
+  gstate->tokens = nullptr;
+  gstate->maps = nullptr;
+  gstate->snum = 0;
+  gstate->current_map_id = 0;
+  gstate->tnum = 0;
+  gstate->mnum = 0;
+}
+
 void save_game_state(struct gamestate* gstate);
 
 void destroy_game_state(struct gamestate* gstate);
@@ -40,7 +56,7 @@ struct gamescene* get_game_scene(const char* path, int32_t snum);
 
 void make_current(struct gamestate* gstate, int32_t snum);
 
-struct gamescene* make_game_scene_from_map(struct gamestate* gstate, struct map* m);
+struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct map* m);
 
 struct gamescene* add_clear_game_scene(struct gamestate* gstate);
 
