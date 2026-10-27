@@ -1,4 +1,5 @@
-#version 460 core
+#version 310 es
+precision highp float;
 
 layout(location = 0) in vec2 a_pos;
 layout(location = 1) in vec2 a_uv;

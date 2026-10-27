@@ -1,4 +1,5 @@
-#version 460 core
+#version 310 es
+precision mediump float;
 
 in vec2 v_uv;
 in vec4 v_color;
