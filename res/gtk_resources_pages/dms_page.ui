@@ -13,9 +13,6 @@
             <property name="has-depth-buffer">True</property>
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
-            <signal name="render" handler="onrender"/>
-            <signal name="realize" handler="onrealize"/>
-            <signal name="unrealize" handler="onunrealize"/>
           </object>
         </child>
       </object>
@@ -53,7 +50,6 @@
                                 <property name="focusable">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
-                                <signal name="clicked" handler="on_side_hide_btn_clicked"/>
                               </object>
                             </child>
                             <child>
@@ -162,7 +158,6 @@
                         <property name="focusable">False</property>
                         <property name="halign">center</property>
                         <property name="valign">center</property>
-                        <signal name="clicked" handler="on_side_menu_btn_clicked"/>
                       </object>
                     </child>
                   </object>

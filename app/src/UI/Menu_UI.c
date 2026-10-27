@@ -9,8 +9,6 @@
 #include "DisplaySystem/display_system.h"
 #include "EventsSystem/file_dnd.h"
 
-static void set_dms_page_callbacks(GtkBuilder* builder, GtkWindow* win);
-
 void on_to_new_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
 {
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
@@ -40,7 +38,6 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   struct DMs_UI* dms_ui = (struct DMs_UI*)calloc(1, sizeof(struct DMs_UI));
     /*DMs*/
   GtkBuilder* dms_builder = gtk_builder_new();
-  set_dms_page_callbacks(dms_builder, win);
   gtk_builder_add_from_file(dms_builder, DMS_SOURCES, nullptr);
   /*Set DMs UI widgets*/
   dms_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(dms_builder, "side_menu_revealer"));
@@ -51,10 +48,14 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
   gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
   g_object_set_data(G_OBJECT(win), "gl_area", gl_area);
-  /*Manualy set GtkGLArea signals*/
-  g_signal_connect(gl_area, "realize", G_CALLBACK(onrealize), win);
-  g_signal_connect(gl_area, "unrealize", G_CALLBACK(onunrealize), win);
-  g_signal_connect(gl_area, "render", G_CALLBACK(onrender), win);
+  /*Manualy set signals*/
+  g_signal_connect(gl_area, "realize", G_CALLBACK(onrealize), userdata);
+  g_signal_connect(gl_area, "unrealize", G_CALLBACK(onunrealize), userdata);
+  g_signal_connect(gl_area, "render", G_CALLBACK(onrender), userdata);
+  GtkWidget* side_menu_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_menu_btn"));
+  g_signal_connect(side_menu_btn, "clicked", G_CALLBACK(on_side_menu_btn_clicked), userdata);
+  GtkWidget* side_hide_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_hide_btn"));
+  g_signal_connect(side_hide_btn, "clicked", G_CALLBACK(on_side_hide_btn_clicked), userdata);
   /*Set Drag and Drop files target*/
   GtkWidget* side_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box"));
   GtkWidget* side_box_other = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box_other"));
@@ -83,17 +84,4 @@ void on_back_btn_clicked(GtkButton* btn, gpointer userdata)
 {
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
   gtk_stack_set_visible_child_name(interfacestack, "menu_page");
-}
-
-static void set_dms_page_callbacks(GtkBuilder* builder, GtkWindow* win)
-{
-  GtkBuilderScope* scope = gtk_builder_cscope_new();
-  /*Side menu btn*/
-  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_menu_btn_clicked",
-                                         G_CALLBACK(on_side_menu_btn_clicked));
-  gtk_builder_cscope_add_callback_symbol(GTK_BUILDER_CSCOPE(scope), "on_side_hide_btn_clicked",
-                                         G_CALLBACK(on_side_hide_btn_clicked));
-  gtk_builder_set_scope(builder, scope);
-  gtk_builder_set_current_object(builder, G_OBJECT(win));
-  g_object_unref(scope);
 }
