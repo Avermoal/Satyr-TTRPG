@@ -56,18 +56,25 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   g_signal_connect(side_menu_btn, "clicked", G_CALLBACK(on_side_menu_btn_clicked), userdata);
   GtkWidget* side_hide_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_hide_btn"));
   g_signal_connect(side_hide_btn, "clicked", G_CALLBACK(on_side_hide_btn_clicked), userdata);
+  GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
+  g_signal_connect(tokens_box, "map", G_CALLBACK(on_tokens_box_map), userdata);
+  g_signal_connect(tokens_box, "unmap", G_CALLBACK(on_tokens_box_unmap), userdata);
   /*Set Drag and Drop files target*/
-  GtkWidget* side_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box"));
-  GtkWidget* side_box_other = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_box_other"));
     /*Content formats*/
-  GtkDropTargetAsync* targettoks = gtk_drop_target_async_new(
-    gdk_content_formats_new((const char *[]){"text/uri-list"}, 1), GDK_ACTION_COPY);
-  GtkDropTargetAsync* targetmaps = gtk_drop_target_async_new(
-    gdk_content_formats_new((const char *[]){"text/uri-list"}, 1), GDK_ACTION_COPY);
-  g_signal_connect(targettoks, "drop", G_CALLBACK(on_toks_drop), win);
-  g_signal_connect(targetmaps, "drop", G_CALLBACK(on_maps_drop), win);
-  gtk_widget_add_controller(side_box_other, GTK_EVENT_CONTROLLER(targetmaps));
-  gtk_widget_add_controller(side_box, GTK_EVENT_CONTROLLER(targettoks));
+  GdkContentFormatsBuilder* formatsbuilder = gdk_content_formats_builder_new();
+  gdk_content_formats_builder_add_mime_type(formatsbuilder, "text/uri-list");
+  GdkContentFormats* formats = gdk_content_formats_builder_free_to_formats(formatsbuilder);
+    /*Set*/
+  GtkWidget* overlay = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
+  GtkDropTargetAsync* target = gtk_drop_target_async_new(
+    gdk_content_formats_new((const char* []){"text/uri-list", "text/plain"}, 2), GDK_ACTION_COPY);
+  g_signal_connect(target, "drop", G_CALLBACK(on_toks_drop), userdata);
+  g_signal_connect(target, "drag-enter", G_CALLBACK(on_toks_drag_enter), userdata);
+  g_signal_connect(target, "drag-leave", G_CALLBACK(on_toks_drag_leave), userdata);
+  gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(target), GTK_PHASE_CAPTURE);
+  gtk_widget_add_controller(overlay, GTK_EVENT_CONTROLLER(target));
+    /*Free formats*/
+  gdk_content_formats_unref(formats);
   /*Get entrybuffer with game name*/
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
   g_object_set_data(G_OBJECT(userdata), "entrybuffer", entrybuffer);

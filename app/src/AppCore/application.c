@@ -65,6 +65,9 @@ static void on_window_destroy(GtkWidget* win, GtkApplication* app)
     free(*win_p);
     *win_p = nullptr;
   }
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(win), "dms_ui_data");
+  free(dms_ui);
+  dms_ui = nullptr;
   /*Pango font map unref (ONLY ONCE CUZ IT'S DEFAULT FONT MAP!)*/
   g_object_unref(g_object_get_data(G_OBJECT(app), MANROPE_PATH));
 }

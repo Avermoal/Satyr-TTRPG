@@ -17,4 +17,9 @@ void on_side_hide_btn_clicked(GtkButton* btn, gpointer userdata);
 void on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
                        guint keycode, GdkModifierType state, gpointer userdata);
 
+/*Top menu*/
+void on_tokens_box_map(GtkWidget* box, gpointer userdata);
+
+void on_tokens_box_unmap(GtkWidget* box, gpointer userdata);
+
 #endif/*UI_DMS_UI_H*/

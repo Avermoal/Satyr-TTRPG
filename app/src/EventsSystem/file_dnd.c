@@ -17,26 +17,76 @@ typedef struct{
   int32_t toktype;
 }drop_task_data;
 
+static void remove_drag_overlay(GtkDropTargetAsync* target);
 static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle);
 static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointer userdata);
 static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointer userdata);
 static void free_drop_task_data(gpointer data);
 static void linear_resize_img(GFile* img, int32_t toktype);
 
-gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
-                       double x, double y, gpointer userdata)
+gboolean on_toks_drag_enter(GtkDropTargetAsync* target, GdkDrop* drop, double x, double y, gpointer userdata)
 {
-  gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
-                            nullptr, on_value_read_ready_toks, userdata);
+  GdkContentFormats* formats = gdk_drop_get_formats(drop);
+  if(formats && gdk_content_formats_contain_mime_type(formats, "text/plain")){
+    return TRUE;
+  }
+  GtkWidget* overlay = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(target));
+  /*Add labels to the overlay*/
+  GtkWidget* mainbox = gtk_center_box_new();
+  gtk_widget_set_halign(mainbox, GTK_ALIGN_CENTER);
+  GtkWidget* toksbox = gtk_center_box_new();
+  GtkWidget* mapsbox = gtk_center_box_new();
+  GtkWidget* tokslabel = GTK_WIDGET(gtk_label_new("TOKENS"));
+  GtkWidget* mapslabel = GTK_WIDGET(gtk_label_new("MAPS"));
+  gtk_center_box_set_center_widget(GTK_CENTER_BOX(toksbox), tokslabel);
+  gtk_center_box_set_center_widget(GTK_CENTER_BOX(mapsbox), mapslabel);
+  gtk_center_box_set_start_widget(GTK_CENTER_BOX(mainbox), GTK_WIDGET(mapsbox));
+  gtk_center_box_set_end_widget(GTK_CENTER_BOX(mainbox), GTK_WIDGET(toksbox));
+  gtk_overlay_add_overlay(GTK_OVERLAY(overlay), mainbox);
+  g_object_set_data(G_OBJECT(target), "drag_overlay_widget", mainbox);
   return TRUE;
 }
 
-gboolean on_maps_drop(GtkDropTargetAsync* target, GdkDrop* drop,
+void on_toks_drag_leave(GtkDropTargetAsync* target, gpointer userdata)
+{
+  remove_drag_overlay(target);
+}
+
+gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
                        double x, double y, gpointer userdata)
 {
-  gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
+  GdkContentFormats* formats = gdk_drop_get_formats(drop);
+  if(formats && gdk_content_formats_contain_mime_type(formats, "text/plain")){
+    /*НЕЗАБЫТЬ что при перетаскивании токена надо кидать на слой токенов а карты на слой карты*/
+
+    return TRUE;
+  }
+  remove_drag_overlay(target);
+  /*Get window width*/
+  GtkWidget* overlay = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(target));
+  GdkSurface* surface = gtk_native_get_surface(gtk_widget_get_native(overlay));
+  double width = 0;
+  if(surface){
+    width = (double)gdk_surface_get_width(surface);
+  }
+  if(x >= (width / 2.0)){
+    gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
+                            nullptr, on_value_read_ready_toks, userdata);
+  }else{
+    gdk_drop_read_value_async(drop, GDK_TYPE_FILE_LIST, G_PRIORITY_DEFAULT,
                             nullptr, on_value_read_ready_maps, userdata);
+  }
   return TRUE;
+}
+
+static void remove_drag_overlay(GtkDropTargetAsync* target)
+{
+  GtkWidget* mainbox = GTK_WIDGET(g_object_get_data(G_OBJECT(target), "drag_overlay_widget"));
+  if(mainbox){
+    GtkWidget* overlay = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(target));
+    gtk_overlay_remove_overlay(GTK_OVERLAY(overlay), mainbox);
+    g_object_set_data(G_OBJECT(target), "drag_overlay_widget", nullptr);
+  }
 }
 
 static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle)

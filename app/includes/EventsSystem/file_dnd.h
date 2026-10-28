@@ -3,10 +3,11 @@
 
 #include <gtk/gtk.h>
 
-gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
-                       double x, double y, gpointer userdata);
+gboolean on_toks_drag_enter(GtkDropTargetAsync* target, GdkDrop* drop, double x, double y, gpointer userdata);
 
-gboolean on_maps_drop(GtkDropTargetAsync* target, GdkDrop* drop,
+void on_toks_drag_leave(GtkDropTargetAsync* target, gpointer userdata);
+
+gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
                        double x, double y, gpointer userdata);
 
 #endif/*EVENTSSYSTEM_FILE_DND_H*/
