@@ -5,6 +5,7 @@
 
 #include "Map/map_renderer.h"
 #include "Map/texture_atlas.h"
+#include "Tokens/tokens.h"
 
 void createmap(struct map* m)
 {
@@ -15,12 +16,12 @@ void createmap(struct map* m)
   m->lrnum = 0;
   m->opos = -1;
   /*Grid layer*/
-  map_add_layer(m, GRID);
+  map_add_layer(m, GRID, -1);
   m->l[0].gridstep = 64;
   /*Renderer grid create*/
   createrenderer(&m->ren[0], &m->l[0], GRID);
   /*Maps layer*/
-  map_add_layer(m, IMG);
+  map_add_layer(m, IMG, MAP);
   /*Maps renderer*/
   createrenderer(&m->ren[1], &m->l[1], IMG);
 }
@@ -84,7 +85,7 @@ void create_map_from_data(struct map* m, struct camera cam, int32_t lrnum, int32
   }
 }
 
-struct layer* map_add_layer(struct map* m, uint32_t type)
+struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
 {
   if(!m){
     return nullptr;
@@ -93,7 +94,7 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   if(!ltmp){
     return nullptr;
   }
-  layerinit(&ltmp[m->lrnum], type);
+  layerinit(&ltmp[m->lrnum], type, toktype);
   layer_add_empty(&ltmp[m->lrnum]);
   m->l = ltmp;
   struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
@@ -109,11 +110,8 @@ struct layer* map_add_layer(struct map* m, uint32_t type)
   return &m->l[index];
 }
 
-void layer_update_texture_atlas(struct layer* l, const char* atlas_dir_path, int32_t lrnum)
+void layer_update_texture_atlas(struct layer* l, const char* atlas_path)
 {
-  /*Create new texture atlas*/
-  char* atlas_path;
-  //get_path_to_atlas(textures_path, atlas_dir_path, lrnum, l, &atlas_path);
   /*Delete old texture atlas*/
   deletetexture(&l->tex);
   /*Set new texture atlas*/

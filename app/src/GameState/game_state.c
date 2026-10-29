@@ -105,6 +105,7 @@ struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct
   gscn->cam = m->cam;
   gscn->lrnum = m->lrnum;
   gscn->opos = m->opos;
+  gstate->m = m;
   gstate->snum++;
   gstate->current_map_id = gstate->snum;
   return gscn;

@@ -38,7 +38,7 @@ struct layer{
   int32_t toktype;
 };
 
-static inline void layerinit(struct layer* l, uint32_t type)
+static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
 {
   if(!l){
     return;
@@ -49,7 +49,7 @@ static inline void layerinit(struct layer* l, uint32_t type)
   l->tex.id = 0;
   l->tex.width = 0;
   l->tex.height = 0;
-  l->toktype = -1;
+  l->toktype = toktype;
   l->rects = nullptr;
   l->tokid = nullptr;
 }

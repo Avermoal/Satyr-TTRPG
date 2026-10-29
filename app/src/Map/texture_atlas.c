@@ -47,49 +47,36 @@ static void blit_image_rgba(uint8_t* canvas, int32_t canvas_w,
                             const uint8_t* pixels,
                             int32_t w, int32_t h);
 
-static int32_t get_names_of_textures(const char* dir_path, char*** out_files);
-static void free_names_of_textures(char** filenames, int texcount);
-
-void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, int32_t lrnum,
-                       struct token* toks, int toktype, char** atlas_path)
+void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
+                       struct token* toks, int32_t tnum, float* w, float* h, char** atlas_path)
 {
   /*atlas_path = atlas_dir_path + "/lrnum.png"*/
-  *atlas_path = nullptr;
-  char** full_path = nullptr;
-  int path_len = snprintf(NULL, 0 , "%s/%d.png", atlas_dir_path, lrnum);
+  int path_len = snprintf(NULL, 0, "%s/%d.png", atlas_dir_path, lrnum);
   *atlas_path = (char*)malloc((size_t)path_len + 1);
   snprintf(*atlas_path, (size_t)path_len + 1, "%s/%d.png", atlas_dir_path, lrnum);
   /*Get atlas*/
-  char** filenames = nullptr;
-  int32_t tex_count = get_names_of_textures(textures_path, &filenames);
-  img_info* img = (img_info*)malloc(tex_count * sizeof(img_info));
-  rect* placed = (rect*)malloc(tex_count * sizeof(rect));
+  img_info* img = (img_info*)malloc(tnum * sizeof(img_info));
+  rect* placed = (rect*)malloc(tnum * sizeof(rect));
     /*Settings*/
   const int32_t padding = 2;
   const int32_t max_atlas_size = 8192 * 4;
-  int32_t tex_path_length = strlen(textures_path);
     /*Get images sizes*/
-  for(int i = 0; i < tex_count; ++i){
+  for(int i = 0; i < tnum; ++i){
     int w = 0;
     int h = 0;
     int channels = 0;
-    char path_to_tex[PATH_MAX];
-    strncat(path_to_tex, textures_path, tex_path_length);
-    path_to_tex[tex_path_length] = '/';
-    path_to_tex[tex_path_length + 1] = '\0';
-    strncat(path_to_tex, filenames[i], strlen(filenames[i]));
-    stbi_info(path_to_tex, &w, &h, &channels);
-    img[i].path = path_to_tex;/*WARRNING*/
+    stbi_info(toks[i].path, &w, &h, &channels);
+    img[i].path = toks[i].path;/*WARRNING*/
     img[i].w = w;
     img[i].h = h;
     img[i].originalindex = i;
   }
     /*Sort*/
-  qsort(img, tex_count, sizeof(img_info), compare_by_height_desc);
+  qsort(img, tnum, sizeof(img_info), compare_by_height_desc);
     /*Prepare start atlas sizes*/
-  uint64_t estimated_area = estimatearea(img, tex_count, padding);
+  uint64_t estimated_area = estimatearea(img, tnum, padding);
   int side = estimate_initial_side(estimated_area, 256, max_atlas_size);
-  int required_width = max_required_width(img, tex_count, padding);
+  int required_width = max_required_width(img, tnum, padding);
   int start_width = side;
   if(start_width < required_width){
     start_width = required_width;
@@ -107,7 +94,7 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
   }
     /*Packaing*/
   shelfcontext finalctx;
-  pack_all(img, tex_count, padding, max_atlas_size, start_width, start_height, &finalctx, placed);
+  pack_all(img, tnum, padding, max_atlas_size, start_width, start_height, &finalctx, placed);
   int tight_width = next_pow2_int(finalctx.used_w);
   int tight_height = next_pow2_int(finalctx.used_h);
   if(tight_width < 1){
@@ -136,29 +123,19 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
   if(!canvas){
     free(img);
     free(placed);
-    free_names_of_textures(filenames, tex_count);
-    free(filenames);
     return;
   }
     /*Loading image to atlas*/
-  for(int i = 0; i < tex_count; i++){
+  for(int i = 0; i < tnum; i++){
     int w = 0;
     int h = 0;
     int channels = 0;
-    
-    char path_to_tex[PATH_MAX];
-    strncat(path_to_tex, textures_path, tex_path_length);
-    path_to_tex[tex_path_length] = '/';
-    path_to_tex[tex_path_length + 1] = '\0';
-    strncat(path_to_tex, filenames[i], strlen(filenames[i]));
 
-    uint8_t* pixels = stbi_load(path_to_tex, &w, &h, &channels, 4);
+    uint8_t* pixels = stbi_load(toks[i].path, &w, &h, &channels, 4);
     if(!pixels){
       free(canvas);
       free(img);
       free(placed);
-      free_names_of_textures(filenames, tex_count);
-      free(filenames);
       return;
     }
 
@@ -167,8 +144,6 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
       free(canvas);
       free(img);
       free(placed);
-      free_names_of_textures(filenames, tex_count);
-      free(filenames);
       return;
     }
 
@@ -189,8 +164,6 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
     free(canvas);
     free(img);
     free(placed);
-    free_names_of_textures(filenames, tex_count);
-    free(filenames);
     return;
   }
   printf("Atlas saved: %s (%dx%d)\n",
@@ -198,21 +171,21 @@ void get_path_to_atlas(const char* textures_path, const char* atlas_dir_path, in
            finalctx.w,
            finalctx.h);
     /*UV, sizes, and world coord*/
-  for(int i = 0; i < tex_count; i++){
+  for(int i = 0; i < tnum; i++){
     float u0 = (float)placed[i].x / (float)finalctx.w;
     float v0 = (float)placed[i].y / (float)finalctx.h;
 
     float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
     float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
-
+    /*Set tokens data*/
+    *w = finalctx.w;
+    *h = finalctx.h;
     set_token_UV(&toks[i], u0, v0, u1, v1);
   }
   /*Free*/
   free(canvas);
   free(img);
   free(placed);
-  free_names_of_textures(filenames, tex_count);
-  free(filenames);
 }
 
 static int32_t next_pow2_int(int32_t value)
@@ -450,120 +423,5 @@ static void blit_image_rgba(uint8_t* canvas, int32_t canvas_w,
     size_t dst_offset = ((size_t)(desty + y) * (size_t)canvas_w + (size_t)destx) * 4;
     size_t src_offset = (size_t)y * (size_t)w * 4;
     memcpy(canvas + dst_offset, pixels + src_offset, (size_t)w * 4);
-  }
-}
-
-static int32_t get_names_of_textures(const char* dir_path, char*** out_path)
-{
-  int32_t count = 0;
-
-  #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
-
-  DIR* dir = opendir(dir_path);
-  if(!dir){
-    perror("CAN NOT OPEN DIR WITH TEXTURES\n");
-    return -1;
-  }
-  int capacity = 10;
-
-  *out_path = (char **)malloc(capacity * sizeof(char *));
-  if(!*out_path){
-    closedir(dir);
-    return -1;
-  }
-
-  struct dirent* entry;
-  while((entry = readdir(dir)) != NULL){
-    if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
-      continue;
-    }
-
-    char full_path[PATH_MAX];
-    snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
-
-    struct stat st;
-    if(stat(full_path, &st) == 0 && S_ISREG(st.st_mode)){
-      if(count >= capacity){
-        capacity *= 2;
-        char **temp = (char **)realloc(*out_path, capacity * sizeof(char *));
-        if(!temp){
-          for(int i = 0; i < count; i++){
-            free((*out_path)[i]);
-          }
-          free(*out_path);
-          *out_path = NULL;
-          closedir(dir);
-          return -1;
-        }
-        *out_path = temp;
-      }
-      (*out_path)[count] = strdup(entry->d_name);
-      count++;
-    }
-  }
-  closedir(dir);
-
-  #elif defined(_WIN32)
-
-  char search_path[MAX_PATH];
-  size_t len = strlen(dir_path);
-
-  if(len > 0 && (dir_path[len - 1] == '\\' || dir_path[len - 1] == '/')){
-    snprintf(search_path, MAX_PATH, "%s*", dir_path);
-  }else{
-    snprintf(search_path, MAX_PATH, "%s\\*", dir_path);
-  }
-
-  WIN32_FIND_DATAA find_data;
-  HANDLE hFind = FindFirstFileA(search_path, &find_data);
-
-  if(hFind == INVALID_HANDLE_VALUE){
-    printf("CAN NOT OPEN TEXTURES DIR: %lu\n", GetLastError());
-    return -1;
-  }
-
-  int capacity = 10;
-
-  *out_path = (char **)malloc(capacity * sizeof(char *));
-  if(!*out_path){
-    FindClose(hFind);
-    return -1;
-  }
-  do{
-    if(strcmp(find_data.cFileName, ".") == 0 || strcmp(find_data.cFileName, "..") == 0){
-      continue;
-    }
-    if(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-      continue;
-    }
-    if(count >= capacity){
-      capacity *= 2;
-      char **temp = (char **)realloc(*out_path, capacity * sizeof(char *));
-      if(!temp){
-        for(int i = 0; i < count; i++){
-          free((*out_path)[i]);
-        }
-          free(*out_path);
-          *out_path = NULL;
-          FindClose(hFind);
-          return -1;
-      }
-      *out_path = temp;
-    }
-    (*out_path)[count] = strdup(find_data.cFileName);
-    count++;
-  }while(FindNextFileA(hFind, &find_data) != 0);
-
-  FindClose(hFind);
-
-  #endif
-
-  return count;
-}
-
-static void free_names_of_textures(char** filenames, int texcount)
-{
-  for(int i = 0; i < texcount; ++i){
-    free(filenames[i]);
   }
 }

@@ -35,8 +35,8 @@ void updatemap(struct map* m);
 
 void create_map_from_data(struct map* m, struct camera cam, int32_t lrnum, int32_t opos, struct layer* l);
 
-struct layer* map_add_layer(struct map* m, uint32_t type);
+struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype);
 
-void layer_update_texture_atlas(struct layer* l, const char* atlas_dir_path, int32_t lrnum);
+void layer_update_texture_atlas(struct layer* l, const char* atlas_path);
 
 #endif/*MAP_MAP_H*/
