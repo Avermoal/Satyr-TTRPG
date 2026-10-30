@@ -10,7 +10,6 @@ struct layer;
 struct token;
 
 struct gamescene{
-  struct camera cam;
   int32_t lrnum;
   int32_t opos;
   struct layer* l;          /*Slave*/
@@ -53,6 +52,8 @@ struct gamestate* get_game_state(const char* path);
 void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath);
 
 struct gamescene* get_game_scene(const char* path, int32_t snum);
+
+struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layertype, int32_t toktype);
 
 void make_current(struct gamestate* gstate, int32_t snum);
 

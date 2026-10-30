@@ -133,6 +133,7 @@ void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
 
     uint8_t* pixels = stbi_load(toks[i].path, &w, &h, &channels, 4);
     if(!pixels){
+      fprintf(stderr, "Image: %s, not load\n", toks[i].path);
       free(canvas);
       free(img);
       free(placed);
@@ -140,6 +141,8 @@ void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
     }
 
     if(w != placed[i].w || h != placed[i].h){
+      fprintf(stderr, "Image: %s, have wrong sizes (%d x %d) != (%d x %d)\n",
+              toks[i].path, w, h, placed[i].w, placed[i].h);
       stbi_image_free(pixels);
       free(canvas);
       free(img);
@@ -170,7 +173,7 @@ void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
            *atlas_path,
            finalctx.w,
            finalctx.h);
-    /*UV, sizes, and world coord*/
+    /*UV, sizes*/
   for(int i = 0; i < tnum; i++){
     float u0 = (float)placed[i].x / (float)finalctx.w;
     float v0 = (float)placed[i].y / (float)finalctx.h;
@@ -200,7 +203,7 @@ static int32_t next_pow2_int(int32_t value)
   v |= v >> 4;
   v |= v >> 8;
   v |= v >> 16;
-  return (int32_t)v;
+  return (int32_t)(v + 1);
 }
 
 static uint64_t estimatearea(const img_info* images, int32_t count, int32_t padding)

@@ -83,6 +83,15 @@ struct gamescene* get_game_scene(const char* path, int32_t snum)
   return nullptr;
 }
 
+struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layertype, int32_t toktype)
+{
+  struct layer* ls = map_add_layer(gstate->m, layertype, toktype);
+  gstate->gscns[gstate->current_map_id - 1].l = ls;
+  /*Update gscn data*/
+  gstate->gscns[gstate->current_map_id - 1].lrnum = gstate->m->lrnum;
+  return ls;
+}
+
 void make_current(struct gamestate* gstate, int32_t snum)
 {
   if(gstate->current_map_id == snum){
@@ -90,7 +99,7 @@ void make_current(struct gamestate* gstate, int32_t snum)
   }
   struct map* curmap = gstate->m;
   struct map* newmap = malloc(sizeof(struct map));
-  create_map_from_data(newmap, gstate->gscns[snum].cam, gstate->gscns[snum].lrnum,
+  create_map_from_data(newmap, gstate->gscns[snum].lrnum,
                        gstate->gscns[snum].opos, gstate->gscns[snum].l);
   destroy_map_renderer(curmap);
   free(curmap);
@@ -102,7 +111,6 @@ struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct
 {
   struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
   gscn->l = m->l;
-  gscn->cam = m->cam;
   gscn->lrnum = m->lrnum;
   gscn->opos = m->opos;
   gstate->m = m;
@@ -127,7 +135,6 @@ static char* get_game_path(const char* name)
 
 static void save_game_scene(struct gamescene* gscn, FILE* state)
 {
-  fwrite(&gscn->cam, sizeof(struct camera), 1, state);
   fwrite(&gscn->lrnum, sizeof(int32_t), 1, state);
   fwrite(&gscn->opos, sizeof(int32_t), 1, state);
   for(int i = 0; i < gscn->lrnum; ++i){

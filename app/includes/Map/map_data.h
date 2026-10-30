@@ -90,12 +90,20 @@ static inline void layer_reserve_rects(struct layer* l, int32_t need)
     newcap = need;
   }
   struct rectangle* tmpr = (struct rectangle*)realloc(l->rects, (size_t)(newcap * sizeof(*tmpr)));
+  if(!tmpr){
+    return;
+  }
   int32_t* tmptokid = (int32_t*)realloc(l->tokid, (size_t)(newcap * sizeof(*tmptokid)));
-  if(!tmpr || !tmptokid){
+  if(!tmptokid){
+    free(tmpr);
     return;
   }
   l->rects = tmpr;
   l->tokid = tmptokid;
+  /*Set not registerred tokid to -1*/
+  for(int32_t i = l->rnum; i < newcap; ++i){
+    l->tokid[i] = -1;
+  }
   l->cap = newcap;
 }
 
@@ -200,7 +208,7 @@ static inline void layer_add_quad(struct layer* l, float x, float y, float w, fl
 
 static inline void layer_link_last_rect_with_token(struct layer* l, struct token* tok)
 {
-  if(l->toktype == tok->type){
+  if(l->toktype != tok->type){
     return;
   }
   l->tokid[l->rnum - 1] = tok->id;

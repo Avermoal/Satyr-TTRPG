@@ -27,6 +27,10 @@ gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
       }
     }
   }
+  /*Free*/
+  g_free(keyvals);
+  g_free(keys);
+  /*Get final*/
   guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
   if(GDK_KEY_w == final_keyval){
@@ -66,6 +70,10 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
       }
     }
   }
+  /*Free*/
+  g_free(keyvals);
+  g_free(keys);
+  /*Get final*/
   guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
   if(GDK_KEY_w == final_keyval){

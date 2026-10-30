@@ -70,11 +70,9 @@ void updatemap(struct map* m)
 
 }
 
-void create_map_from_data(struct map* m, struct camera cam, int32_t lrnum, int32_t opos, struct layer* l)
+void create_map_from_data(struct map* m, int32_t lrnum, int32_t opos, struct layer* l)
 {
   memset(m, 0, sizeof(struct map));
-  /*Camera*/
-  m->cam = cam;
   /*View*/
   m->lrnum = lrnum;
   m->opos = opos;
@@ -95,7 +93,7 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
     return nullptr;
   }
   layerinit(&ltmp[m->lrnum], type, toktype);
-  layer_add_empty(&ltmp[m->lrnum]);
+  //layer_add_empty(&ltmp[m->lrnum]);
   m->l = ltmp;
   struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
   if(!rtmp){
@@ -107,7 +105,7 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
   memset(&m->ren[index], 0, sizeof(struct renderer));
   m->ren[index].u_proj_loc = -1;
   m->ren[index].u_tex_loc = -1;
-  return &m->l[index];
+  return m->l;
 }
 
 void layer_update_texture_atlas(struct layer* l, const char* atlas_path)
