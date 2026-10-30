@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 project(Main-Satyr-TTRPG)
 
 set(CMAKE_C_STANDARD 23)
-set(CMAKE_C_STANDARD_REQUIRED NO)
+set(CMAKE_C_STANDARD_REQUIRED YES)
 
 add_subdirectory(app)
 

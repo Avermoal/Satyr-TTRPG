@@ -7,6 +7,7 @@
 #include "UI/DMs_UI.h"
 #include "GameState/game_state.h"
 #include "DisplaySystem/display_system.h"
+#include "EventsSystem/event_system.h"
 #include "EventsSystem/file_dnd.h"
 
 void on_to_new_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
@@ -59,7 +60,7 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
   g_signal_connect(tokens_box, "map", G_CALLBACK(on_tokens_box_map), userdata);
   g_signal_connect(tokens_box, "unmap", G_CALLBACK(on_tokens_box_unmap), userdata);
-  /*Set Drag and Drop files target*/
+  /*Set Drag and Drop target*/
     /*Content formats*/
   GdkContentFormatsBuilder* formatsbuilder = gdk_content_formats_builder_new();
   gdk_content_formats_builder_add_mime_type(formatsbuilder, "text/uri-list");
@@ -75,6 +76,13 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   gtk_widget_add_controller(overlay, GTK_EVENT_CONTROLLER(target));
     /*Free formats*/
   gdk_content_formats_unref(formats);
+  /*Set scroll controller*/
+  GtkEventController* scroll = gtk_event_controller_scroll_new(
+    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL |
+    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
+  );
+  g_signal_connect(scroll, "scroll", G_CALLBACK(onscroll), userdata);
+  gtk_widget_add_controller(overlay, GTK_EVENT_CONTROLLER(scroll));
   /*Get entrybuffer with game name*/
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
   g_object_set_data(G_OBJECT(userdata), "entrybuffer", entrybuffer);

@@ -17,7 +17,7 @@ void createmap(struct map* m)
   m->opos = -1;
   /*Grid layer*/
   map_add_layer(m, GRID, -1);
-  m->l[0].gridstep = 64;
+  m->l[0].gridstep = 96;
   /*Renderer grid create*/
   createrenderer(&m->ren[0], &m->l[0], GRID);
   /*Maps layer*/
@@ -58,10 +58,14 @@ void rendermap(struct map* m, float ww, float wh)
   /*Camera*/
   float l, r, b, t;
   getviewport(&m->cam, ww, wh, &l, &r, &b, &t);
-  getortho(m->cam.ortho, l, r, b, t, -10.0f, 10.0f);
+  getortho(m->cam.ortho, l, r, b, t, -100.0f, 100.0f);
   /*Render*/
-  for(int32_t i = m->lrnum - 1; i >= 0; --i){
-    renderlayer(&m->ren[i], &m->l[i], (float)i, m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y);
+  for(int32_t i = 0; i < m->lrnum; ++i){
+    if(m->l[i].toktype == TOKEN){
+      renderlayer(&m->ren[i], &m->l[i], (float)(-i), m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
+    }else{
+      renderlayer(&m->ren[i], &m->l[i], (float)i, m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
+    }
   }
 }
 

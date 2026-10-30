@@ -19,4 +19,6 @@ void settoken(struct token* tok, int32_t type, int32_t id, const char* path);
 
 void set_token_UV(struct token* tok, float u0, float v0, float u1, float v1);
 
+void set_token_UV_from_token(struct token* dst, struct token* src);
+
 #endif/*TOKENS_TOKENS_H*/

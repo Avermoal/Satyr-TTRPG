@@ -1,5 +1,6 @@
 #include "EventsSystem/event_system.h"
 
+#include "GameState/game_state.h"
 #include "Map/map.h"
 #include "Map/camera.h"
 
@@ -89,6 +90,14 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
     m->evdata.key_d = false;
   }
   return GDK_EVENT_PROPAGATE;
+}
+
+gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpointer userdata)
+{
+  /*Get gstate*/
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  zoomat(&gstate->m->cam, (float)dy);
+  return TRUE;
 }
 
 void eventpoll(struct map* m)

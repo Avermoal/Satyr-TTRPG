@@ -283,7 +283,7 @@ static void linear_resize_img(GFile* img, int32_t toktype)
   /*Output stride*/
   int inputstride = w * ch;
   int outputstride = outw * ch;
-  stbir_pixel_layout layout = (ch == 4) ? STBIR_RGBA : STBIR_RGBA;
+  stbir_pixel_layout layout = (ch == 4) ? STBIR_RGBA : STBIR_RGB;
   if(filename[file_name_length - 3] == 'p'){
     stbir_resize_uint8_linear(i, w, h, inputstride, outi, outw, outh, outputstride, layout);
     stbi_write_png(file, outw, outh, ch, outi, outputstride);
@@ -438,10 +438,38 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
   snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas/%d", gstate->gamename, gstate->current_map_id);
     /*Create atlas dir*/
   makedir(atlas_dir_path);
+    /*Get only unique tokens*/
+  struct token* uniques = (struct token*)calloc(data->tnum, sizeof(struct token));
+  for(int32_t i = 0; i < data->tnum; ++i){
+    uniques[i].id = -1;
+  }
+  int32_t unum = 0;
+  for(int32_t i = 0; i < data->tnum; ++i){
+    bool exist = false;
+    for(int32_t j = 0; j < unum; ++j){
+      if(data->righttoks[i].id == uniques[j].id){
+        exist = true;
+        break;
+      }
+    }
+    if(!exist){
+      uniques[unum++] = data->righttoks[i];
+    }
+  }
     /*Create atlas*/
   float w, h;
-  get_path_to_atlas(atlas_dir_path, data->lrnum, data->righttoks, data->tnum, &w, &h, &atlas_path);
-    /*Free atlas dir path*/
+  get_path_to_atlas(atlas_dir_path, data->lrnum, uniques, unum, &w, &h, &atlas_path);
+  /*Asociate uniques UV with righttoks UV*/
+  for(int32_t i = 0; i < data->tnum; ++i){
+    for(int32_t j = 0; j < unum; ++j){
+      if(uniques[j].id == data->righttoks[i].id){
+        set_token_UV_from_token(&data->righttoks[i], &uniques[j]);
+        break;
+      }
+    }
+  }
+  /*Free*/
+  free(uniques);
   free(atlas_dir_path);
   /*Set for layer data*/
   forlayer* fl = (forlayer*)calloc(1, sizeof(forlayer));

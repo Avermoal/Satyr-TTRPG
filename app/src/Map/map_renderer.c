@@ -55,7 +55,8 @@ void destroyrenderer(struct renderer* ren)
   }
 }
 
-void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho, float ww, float wh, float cam_x, float cam_y)
+void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho,
+                 float ww, float wh, float cam_x, float cam_y, float zoom)
 {
   if(!ren || !l || !ortho){
     return;
@@ -91,8 +92,8 @@ void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* orth
     if(ren->prog == 0){
       return;
     }
-    float vhalf_x = ww / 2.0f;
-    float vhalf_y = wh / 2.0f;
+    float vhalf_x = ww / (2.0f * zoom);
+    float vhalf_y = wh / (2.0f * zoom);
     int vhalf_lines_x = (int)ceil(vhalf_x / l->gridstep) + 1;
     int vhalf_lines_y = (int)ceil(vhalf_y / l->gridstep) + 1;
     int totalvert = ((vhalf_lines_x * 2 + 1) + (vhalf_lines_y) * 2 + 1) * 2;

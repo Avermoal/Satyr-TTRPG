@@ -27,6 +27,7 @@ void createrenderer(struct renderer* ren, struct layer* l, uint32_t REN_TYPE);
 
 void destroyrenderer(struct renderer* ren);
 
-void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho, float ww, float wh, float cam_x, float cam_y);
+void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho,
+                 float ww, float wh, float cam_x, float cam_y, float zoom);
 
 #endif/*MAP_MAP_RENDERER_H*/
