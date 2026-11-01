@@ -1,5 +1,6 @@
 #include "EventsSystem/event_system.h"
 
+#include "UI/DMs_UI.h"
 #include "GameState/game_state.h"
 #include "Map/map.h"
 #include "Map/camera.h"
@@ -98,6 +99,34 @@ gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpoint
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
   zoomat(&gstate->m->cam, (float)dy);
   return TRUE;
+}
+
+void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer userdata)
+{
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate){
+    return;
+  }
+  /*Gets*/
+  GtkWidget* gl_area = GTK_WIDGET(g_object_get_data(G_OBJECT(userdata), "gl_area"));
+  GtkWidget* widget  = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(motion));
+  /*Computes*/
+  double lx = x, ly = y;
+  if(gl_area && widget && widget != gl_area){
+    graphene_point_t in  = GRAPHENE_POINT_INIT((float)x, (float)y);
+    graphene_point_t out;
+    if(gtk_widget_compute_point(widget, gl_area, &in, &out)){
+      lx = out.x;
+      ly = out.y;
+    }
+  }
+  /*Get widget width and height*/
+  float ww = (float)gtk_widget_get_width(gl_area ? gl_area : widget);
+  float wh = (float)gtk_widget_get_height(gl_area ? gl_area : widget);
+  struct camera* cam = &gstate->m->cam;
+  /*Calc mouse pos in world coord*/
+  gstate->m->evdata.mousex = cam->cam_x + ((float)lx - ww * 0.5f) / cam->zoom;
+  gstate->m->evdata.mousey = cam->cam_y + ((float)ly - wh * 0.5f) / cam->zoom;
 }
 
 void eventpoll(struct map* m)

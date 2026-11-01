@@ -7,6 +7,7 @@ struct DMs_UI{
   GtkRevealer* side_menu_revealer;
   GtkBox* side_box_for_btn;
   GtkButton* side_menu_btn;
+  GtkWidget* overlay;
 };
 
 void on_side_menu_btn_clicked(GtkButton* btn, gpointer userdata);

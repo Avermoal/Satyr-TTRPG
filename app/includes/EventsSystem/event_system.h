@@ -13,6 +13,8 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
 
 gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpointer userdata);
 
+void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer userdata);
+
 void eventpoll(struct map* m);
 
 #endif/*EVENTSYSTEM_EVENT_SYSTEM_H*/

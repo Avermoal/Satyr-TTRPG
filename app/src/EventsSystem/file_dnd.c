@@ -96,6 +96,24 @@ gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
   /*Get content provider*/
   GdkDrag* drag = gdk_drop_get_drag(drop);
   if(formats && gdk_content_formats_contain_mime_type(formats, "text/plain")){
+    /*Update mouse pos while dnd*/
+    struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+    if(gstate){
+      GtkWidget* gl_area = GTK_WIDGET(g_object_get_data(G_OBJECT(userdata), "gl_area"));
+      GtkWidget* widget  = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(target));
+
+      double lx = x, ly = y;
+      if(gl_area && widget && widget != gl_area){
+        graphene_point_t in = GRAPHENE_POINT_INIT((float)x, (float)y), out;
+        if(gtk_widget_compute_point(widget, gl_area, &in, &out)){ lx = out.x; ly = out.y; }
+      }
+      float ww = (float)gtk_widget_get_width (gl_area ? gl_area : widget);
+      float wh = (float)gtk_widget_get_height(gl_area ? gl_area : widget);
+      struct camera* cam = &gstate->m->cam;
+      gstate->m->evdata.mousex = cam->cam_x + ((float)lx - ww * 0.5f) / cam->zoom;
+      gstate->m->evdata.mousey = cam->cam_y + ((float)ly - wh * 0.5f) / cam->zoom;
+    }
+    /*Async*/
     g_object_ref(drop);
     g_object_set_data(G_OBJECT(userdata), "drop", drop);
     const char* mimes[] = {"text/plain", nullptr};
@@ -513,7 +531,8 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     struct token* t = fl->not_link_tok;
     /*Put token into layer*/
     struct rectangle rect;
-    rect_set_XYWH(&rect, gstate->m->cam.cam_x, gstate->m->cam.cam_y,
+    rect_set_XYWH(&rect, gstate->m->evdata.mousex - current->l[0].gridstep / 2.0f,
+                  gstate->m->evdata.mousey - current->l[0].gridstep / 2.0f,
                   current->l[0].gridstep, current->l[0].gridstep);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, t->u0, t->v0, t->u1, t->v1);
@@ -524,7 +543,8 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     struct token* m = fl->not_link_tok;
     /*Put token into layer*/
     struct rectangle rect;
-    rect_set_XYWH(&rect, gstate->m->cam.cam_x, gstate->m->cam.cam_y, fl->w, fl->h);
+    rect_set_XYWH(&rect, gstate->m->cam.cam_x,
+                  gstate->m->cam.cam_y, fl->w, fl->h);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, m->u0, m->v0, m->u1, m->v1);
     layer_add_rect(L, &rect);

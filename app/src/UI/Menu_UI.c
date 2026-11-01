@@ -44,6 +44,7 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   dms_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(dms_builder, "side_menu_revealer"));
   dms_ui->side_box_for_btn = GTK_BOX(gtk_builder_get_object(dms_builder, "side_box_for_btn"));
   dms_ui->side_menu_btn = GTK_BUTTON(gtk_builder_get_object(dms_builder, "side_menu_btn"));
+  dms_ui->overlay = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
   /*Set GtkOpenGLArea ticker*/
   GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
@@ -66,14 +67,13 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   gdk_content_formats_builder_add_mime_type(formatsbuilder, "text/uri-list");
   GdkContentFormats* formats = gdk_content_formats_builder_free_to_formats(formatsbuilder);
     /*Set*/
-  GtkWidget* overlay = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
   GtkDropTargetAsync* target = gtk_drop_target_async_new(
     gdk_content_formats_new((const char* []){"text/uri-list", "text/plain"}, 2), GDK_ACTION_COPY);
   g_signal_connect(target, "drop", G_CALLBACK(on_toks_drop), userdata);
   g_signal_connect(target, "drag-enter", G_CALLBACK(on_toks_drag_enter), userdata);
   g_signal_connect(target, "drag-leave", G_CALLBACK(on_toks_drag_leave), userdata);
   gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(target), GTK_PHASE_CAPTURE);
-  gtk_widget_add_controller(overlay, GTK_EVENT_CONTROLLER(target));
+  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(target));
     /*Free formats*/
   gdk_content_formats_unref(formats);
   /*Set scroll controller*/
@@ -82,7 +82,11 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
     GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
   );
   g_signal_connect(scroll, "scroll", G_CALLBACK(onscroll), userdata);
-  gtk_widget_add_controller(overlay, GTK_EVENT_CONTROLLER(scroll));
+  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(scroll));
+  /*Motion controller*/
+  GtkEventController* motion = gtk_event_controller_motion_new();
+  g_signal_connect(motion, "motion", G_CALLBACK(onmotion), userdata);
+  gtk_widget_add_controller(dms_ui->overlay, motion);
   /*Get entrybuffer with game name*/
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
   g_object_set_data(G_OBJECT(userdata), "entrybuffer", entrybuffer);
