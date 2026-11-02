@@ -49,7 +49,7 @@ void destroy_game_state(struct gamestate* gstate);
 
 struct gamestate* get_game_state(const char* path);
 
-void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath);
+void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath, const char* cache);
 
 struct gamescene* get_game_scene(const char* path, int32_t snum);
 

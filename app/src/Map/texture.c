@@ -1,6 +1,5 @@
 #include "Map/texture.h"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <gtk/gtk.h>
 #include <epoxy/gl.h>
@@ -16,7 +15,7 @@ uint32_t load_png(const char* path, int32_t* width, int32_t* height)
   /*Load image*/
   uint8_t* img = stbi_load(path, width, height, &channels, 4);
   if(!img){
-    g_printerr("LOAD_TEXTURE: Texture by path: %s, can't loading", path);
+    g_printerr("LOAD_TEXTURE: Texture by path: %s, can't loading\n", path);
     return id;
   }
   /*Texture in GL context*/

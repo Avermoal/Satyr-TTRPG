@@ -46,6 +46,7 @@ void destroy_game_state(struct gamestate* gstate)
   }
   for(int32_t i = 0; i < gstate->mnum; ++i){
     free(gstate->maps[i].path);
+    free(gstate->maps[i].cache);
   }
   free(gstate->tokens);
   free(gstate->maps);
@@ -60,21 +61,23 @@ struct gamestate* get_game_state(const char* path)
   return nullptr;
 }
 
-void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath)
+void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath, const char* cache)
 {
   switch(toktype){
     case TOKEN:
-      gstate->tokens = (struct token*)realloc(gstate->tokens, (gstate->tnum + 1) * sizeof(struct token));
-      settoken(&gstate->tokens[gstate->tnum], toktype, gstate->tnum, tokpath);
+      gstate->tokens = realloc(gstate->tokens,
+                               (gstate->tnum + 1) * sizeof(struct token));
+      memset(&gstate->tokens[gstate->tnum], 0, sizeof(struct token));
+      settoken(&gstate->tokens[gstate->tnum], TOKEN, gstate->tnum, tokpath, NULL);
       gstate->tnum++;
       break;
     case MAP:
-      gstate->maps = (struct token*)realloc(gstate->maps, (gstate->mnum + 1) * sizeof(struct token));
-      settoken(&gstate->maps[gstate->mnum], toktype, gstate->mnum, tokpath);
+      gstate->maps = realloc(gstate->maps,
+                             (gstate->mnum + 1) * sizeof(struct token));
+      memset(&gstate->maps[gstate->mnum], 0, sizeof(struct token));
+      settoken(&gstate->maps[gstate->mnum], MAP, gstate->mnum, tokpath, cache);
       gstate->mnum++;
       break;
-    default:
-      return;
   }
 }
 

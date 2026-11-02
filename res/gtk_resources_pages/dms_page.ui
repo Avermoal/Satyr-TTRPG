@@ -186,125 +186,127 @@
         <child type="center">
           <object class="GtkCenterBox">
             <child type="center">
-              <object class="GtkGrid">
-                <property name="halign">center</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
                 <property name="valign">start</property>
-                <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="column-span">1</property>
-                      <property name="row">0</property>
-                      <property name="row-span">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <layout>
-                      <property name="column">2</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <layout>
-                      <property name="column">3</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton" id="tokens_btn">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <property name="popover">
-                      <object class="GtkPopover">
+                <child type="center">
+                  <object class="GtkGrid">
+                    <property name="halign">center</property>
+                    <property name="valign">start</property>
+                    <child>
+                      <object class="GtkToggleButton">
                         <property name="child">
-                          <object class="GtkScrolledWindow">
-                            <property name="child">
-                              <object class="GtkBox" id="tokens_box">
-                                <property name="spacing">8</property>
-                              </object>
-                            </property>
-                            <property name="min-content-height">128</property>
-                            <property name="min-content-width">512</property>
-                            <property name="propagate-natural-height">True</property>
-                            <property name="propagate-natural-width">True</property>
-                            <property name="vscrollbar-policy">never</property>
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
                       </object>
-                    </property>
-                    <layout>
-                      <property name="column">4</property>
-                      <property name="row">0</property>
-                    </layout>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">3</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">4</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="tokens_btn">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">5</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="maps_btn">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <layout>
+                          <property name="column">6</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
+                  <object class="GtkBox">
+                    <property name="hexpand">True</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="vscrollbar-policy">never</property>
+                        <child>
+                          <object class="GtkBox" id="tokens_box">
+                            <property name="spacing">4</property>
+                          </object>
+                        </child>
                       </object>
-                    </property>
-                    <layout>
-                      <property name="column">5</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton">
-                    <property name="child">
-                      <object class="GtkImage">
-                        <property name="file">res/icons/dice.svg</property>
-                        <property name="icon-size">large</property>
-                      </object>
-                    </property>
-                    <layout>
-                      <property name="column">6</property>
-                      <property name="row">0</property>
-                    </layout>
+                    </child>
                   </object>
                 </child>
               </object>

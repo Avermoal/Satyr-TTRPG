@@ -20,6 +20,8 @@
 #include <stb_image.h>
 #include <stb_image_write.h>
 
+#include "epoxy/gl.h"
+
 #include "Tokens/tokens.h"
 
 static int32_t next_pow2_int(int32_t value);
@@ -47,19 +49,24 @@ static void blit_image_rgba(uint8_t* canvas, int32_t canvas_w,
                             const uint8_t* pixels,
                             int32_t w, int32_t h);
 
-void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
-                       struct token* toks, int32_t tnum, float* w, float* h, char** atlas_path)
+void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path, int32_t lrnum,
+                       struct token* toks, int32_t tnum, float* ws, float* hs, char** atlas_path)
 {
-  /*atlas_path = atlas_dir_path + "/lrnum.png"*/
-  int path_len = snprintf(NULL, 0, "%s/%d.png", atlas_dir_path, lrnum);
-  *atlas_path = (char*)malloc((size_t)path_len + 1);
-  snprintf(*atlas_path, (size_t)path_len + 1, "%s/%d.png", atlas_dir_path, lrnum);
+  if(toks[0].type == MAP){
+    /*atlas_path = atlas_dir_path + "/lrnum.png"*/
+    int path_len = snprintf(nullptr, 0, "%s/%d.png", atlas_dir_path, lrnum);
+    *atlas_path = (char*)malloc((size_t)(path_len + 1) * sizeof(char));
+    snprintf(*atlas_path, (size_t)path_len + 1, "%s/%d.png", atlas_dir_path, lrnum);
+  }else if(toks[0].type == TOKEN){
+    int path_len = snprintf(nullptr, 0, "%s/tokens_atlas.png", atlas_dir_path);
+    *atlas_path = (char*)malloc((size_t)(path_len + 1) * sizeof(char));
+    snprintf(*atlas_path, (size_t)path_len + 1, "%s/tokens_atlas.png", atlas_dir_path);
+  }
   /*Get atlas*/
   img_info* img = (img_info*)malloc(tnum * sizeof(img_info));
   rect* placed = (rect*)malloc(tnum * sizeof(rect));
-    /*Settings*/
+    /*Sets*/
   const int32_t padding = 2;
-  const int32_t max_atlas_size = 8192 * 4;
     /*Get images sizes*/
   for(int i = 0; i < tnum; ++i){
     int w = 0;
@@ -70,6 +77,11 @@ void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
     img[i].w = w;
     img[i].h = h;
     img[i].originalindex = i;
+    /*Set tokens sizes*/
+    if(toks[0].type == MAP && ws && hs){
+      ws[i] = w;
+      hs[i] = h;
+    }
   }
     /*Sort*/
   qsort(img, tnum, sizeof(img_info), compare_by_height_desc);
@@ -181,8 +193,6 @@ void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
     float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
     float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
     /*Set tokens data*/
-    *w = finalctx.w;
-    *h = finalctx.h;
     set_token_UV(&toks[i], u0, v0, u1, v1);
   }
   /*Free*/
@@ -219,7 +229,7 @@ static uint64_t estimatearea(const img_info* images, int32_t count, int32_t padd
 
 static int32_t estimate_initial_side(uint64_t area, int32_t min_size, int32_t max_size)
 {
-  uint64_t target = area + area / 4; // запас 25%
+  uint64_t target = area + area / 4;
   uint64_t side = (uint64_t)min_size;
 
   while (side * side < target) {

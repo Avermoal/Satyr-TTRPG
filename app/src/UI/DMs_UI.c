@@ -32,11 +32,6 @@ void on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
   if(keyval != GDK_KEY_Escape){
     return;
   }
-  /*Get dms_ui pointer*/
-  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
-  /*Free*/
-  free(dms_ui);
-  dms_ui = nullptr;
   /*Get interfacestack*/
   GtkStack* interfacestack = GTK_STACK(g_object_get_data(G_OBJECT(userdata), "interfacestack"));
   /*Set visible menu*/
@@ -49,32 +44,79 @@ void on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
 }
 
 /*Top menu*/
-void on_tokens_box_map(GtkWidget* box, gpointer userdata)
+void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata)
 {
-  /*Get gstate*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  /*Add tokens to box*/
-  for(int32_t i = 0; i < gstate->tnum; ++i){
-    /*Create widget*/
-    GdkTexture* texture = gdk_texture_new_from_filename(gstate->tokens[i].path, nullptr);
-    GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
-    /*Add tokens image to box*/
-    gtk_box_append(GTK_BOX(box), image);
-    /*Drag and drop prepare settings*/
-    GtkDragSource* drag_source = gtk_drag_source_new();
-    g_signal_connect(drag_source, "prepare", G_CALLBACK(on_token_drag_prepare), &gstate->tokens[i]);
-    g_signal_connect(drag_source, "drag-begin", G_CALLBACK(on_token_drag_begin), image);
-    /*Set dnd controller*/
-    gtk_widget_add_controller(image, GTK_EVENT_CONTROLLER(drag_source));
-    /*Free*/
-    g_object_unref(texture);
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
+  /*Fill/clear tokens box*/
+  if(gtk_toggle_button_get_active(btn)){
+    /*Add tokens to box*/
+      /*Switch maps btn to FALSE*/
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn), FALSE);
+    if(gstate->tnum == 0){
+      return;
+    }
+    for(int32_t i = 0; i < gstate->tnum; ++i){
+      /*Create widget*/
+      GdkTexture* texture = gdk_texture_new_from_filename(gstate->tokens[i].path, nullptr);
+      GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
+      /*Add tokens image to box*/
+      gtk_box_append(GTK_BOX(dms_ui->tokens_box), image);
+      /*Drag and drop prepare settings*/
+      GtkDragSource* drag_source = gtk_drag_source_new();
+      g_signal_connect(drag_source, "prepare", G_CALLBACK(on_token_drag_prepare), &gstate->tokens[i]);
+      g_signal_connect(drag_source, "drag-begin", G_CALLBACK(on_token_drag_begin), image);
+      /*Set dnd controller*/
+      gtk_widget_add_controller(image, GTK_EVENT_CONTROLLER(drag_source));
+      /*Free*/
+      g_object_unref(texture);
+    }
+    gtk_widget_set_visible(dms_ui->tokens_box, TRUE);
+  }else{
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
+    }
+    gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
   }
 }
 
-void on_tokens_box_unmap(GtkWidget* box, gpointer userdata)
+void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
 {
-  GtkWidget* child;
-  while((child = gtk_widget_get_first_child(box))){
-    gtk_box_remove(GTK_BOX(box), child);
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
+  /*Fill/clear tokens box*/
+  if(gtk_toggle_button_get_active(btn)){
+    /*Add tokens to box*/
+      /*Switch tokens btn to FALSE*/
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn), FALSE);
+    if(gstate->mnum == 0){
+      return;
+    }
+    for(int32_t i = 0; i < gstate->mnum; ++i){
+      /*Create widget*/
+      GdkTexture* texture = gdk_texture_new_from_filename(gstate->maps[i].path, nullptr);
+      GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
+      /*Add tokens image to box*/
+      gtk_box_append(GTK_BOX(dms_ui->tokens_box), image);
+      /*Drag and drop prepare settings*/
+      GtkDragSource* drag_source = gtk_drag_source_new();
+      g_signal_connect(drag_source, "prepare", G_CALLBACK(on_token_drag_prepare), &gstate->maps[i]);
+      g_signal_connect(drag_source, "drag-begin", G_CALLBACK(on_token_drag_begin), image);
+      /*Set dnd controller*/
+      gtk_widget_add_controller(image, GTK_EVENT_CONTROLLER(drag_source));
+      /*Free*/
+      g_object_unref(texture);
+    }
+    gtk_widget_set_visible(dms_ui->tokens_box, TRUE);
+  }else{
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
+    }
+    gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
   }
 }
+

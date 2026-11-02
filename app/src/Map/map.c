@@ -58,13 +58,27 @@ void rendermap(struct map* m, float ww, float wh)
   /*Camera*/
   float l, r, b, t;
   getviewport(&m->cam, ww, wh, &l, &r, &b, &t);
-  getortho(m->cam.ortho, l, r, b, t, -100.0f, 100.0f);
-  /*Render*/
+  getortho(m->cam.ortho, l, r, b, t, -1.0f, 1.0f);
+
+  /*Maps*/
+  for(int32_t i = m->lrnum - 1; i >= 0; --i){
+    if(m->l[i].type != GRID && m->l[i].toktype != TOKEN){
+      renderlayer(&m->ren[i], &m->l[i], (float)(-i), m->cam.ortho,
+                  ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
+    }
+  }
+  /*Grid*/
+  for(int32_t i = m->lrnum - 1; i >= 0; --i){
+    if(m->l[i].type == GRID){
+      renderlayer(&m->ren[i], &m->l[i], (float)(-i), m->cam.ortho,
+                  ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
+    }
+  }
+  /*Tokens*/
   for(int32_t i = 0; i < m->lrnum; ++i){
     if(m->l[i].toktype == TOKEN){
-      renderlayer(&m->ren[i], &m->l[i], (float)(-i), m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
-    }else{
-      renderlayer(&m->ren[i], &m->l[i], (float)i, m->cam.ortho, ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
+      renderlayer(&m->ren[i], &m->l[i], (float)(i), m->cam.ortho,
+                  ww, wh, m->cam.cam_x, m->cam.cam_y, m->cam.zoom);
     }
   }
 }
@@ -81,7 +95,11 @@ void create_map_from_data(struct map* m, int32_t lrnum, int32_t opos, struct lay
   m->lrnum = lrnum;
   m->opos = opos;
   m->l = l;
-    /*Renderer*/
+  /*Renderer*/
+  m->ren = (struct renderer*)calloc((size_t)lrnum, sizeof(struct renderer));
+  if(m->ren){
+    return;
+  }
   for(int32_t i = 0; i < lrnum; ++i){
     createrenderer(&m->ren[i], &m->l[i], m->l[i].type);
   }

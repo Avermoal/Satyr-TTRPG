@@ -22,11 +22,28 @@ typedef struct{
   GdkFileList* filelist;
   gpointer userdata;
   int32_t toktype;
+  int32_t max_atlas_size;
+  /*SNAPSHOT*/
+  char* gamename;
+  int32_t tnum;
+  struct token* tokens;
+  int32_t mnum;
+  struct token* maps;
 }drop_task_data;
 
 typedef struct{
   gpointer userdata;
+  GdkDrop* drop;
+  char buffer[64];
+}mime_read_ctx;
+
+typedef struct{
+  gpointer userdata;
   char** path;
+  char** cache;
+  char* atlas_path;                 /*Atlas path not need to be free*/
+  struct token* ts;                 /*Fictive token*/
+  int32_t tnum;
   int32_t pnum;
   int32_t toktype;
 }drop_task_data_final;
@@ -37,6 +54,10 @@ typedef struct{
   int32_t lrnum;
   int32_t tnum;
   bool is_new_layer;
+  /*SNAPSHOT*/
+  char* gamename;
+  int32_t current_map_id;
+  int32_t max_atlas_size;
 }foratlas;
 
 typedef struct{
@@ -53,10 +74,11 @@ static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointe
 static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointer userdata);
 static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpointer userdata);
 static void free_drop_task_data(gpointer data);
-static void linear_resize_img(GFile* img, int32_t toktype);
+static void linear_resize_img(GFile* img, int iscache);
 
 static void on_mime_type_read_toks_done(GObject* source, GAsyncResult* res, gpointer userdata);
 static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpointer userdata);
+static void mime_read_ctx_free(mime_read_ctx* ctx);
 
 static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle);
 static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer userdata);
@@ -114,12 +136,13 @@ gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
       gstate->m->evdata.mousey = cam->cam_y + ((float)ly - wh * 0.5f) / cam->zoom;
     }
     /*Async*/
-    g_object_ref(drop);
-    g_object_set_data(G_OBJECT(userdata), "drop", drop);
+    mime_read_ctx* ctx = g_new0(mime_read_ctx, 1);
+    ctx->drop = g_object_ref(drop);
+    ctx->userdata = userdata;
     const char* mimes[] = {"text/plain", nullptr};
     gdk_drop_read_async(drop, mimes,
                         G_PRIORITY_DEFAULT, nullptr,
-                        on_mime_type_read_toks_done, userdata);
+                        on_mime_type_read_toks_done, ctx);
     return TRUE;
   }
   remove_drag_overlay(target);
@@ -157,45 +180,104 @@ static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCa
   GSList* files = gdk_file_list_get_files(data->filelist);
   /*Copy files into dir*/
     /*Create paths*/
-  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
   const char* saves = "saves";
   const char* dest = "presets/textures";
+  const char* cachedest = "presets/texture/cache";
   char dest_dir_path[256];
+  char dest_dir_cache[256];
   if(data->toktype == TOKEN){
-    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/tokens", saves, gstate->gamename, dest);
-  }else{
-    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/maps", saves, gstate->gamename, dest);
+    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/tokens", saves, data->gamename, dest);
+  }else if(data->toktype == MAP){
+    snprintf(dest_dir_path, sizeof(dest_dir_path), "%s/%s/%s/maps", saves, data->gamename, dest);
+    snprintf(dest_dir_cache, sizeof(dest_dir_cache), "%s/%s/%s", saves, data->gamename, cachedest);
   }
     /*Copy*/
   GFile* destdir = g_file_new_for_path(dest_dir_path);
+  GFile* cachedir = nullptr;
+  if(data->toktype == MAP){
+    cachedir = g_file_new_for_path(dest_dir_cache);
+  }
   drop_task_data_final* datafinal = (drop_task_data_final*)malloc(sizeof(drop_task_data_final));
   datafinal->userdata = data->userdata;
   datafinal->path = (char**)calloc(g_slist_length(files), sizeof(char*));
+  datafinal->cache = (char**)calloc(g_slist_length(files), sizeof(char*));
+  datafinal->ts = nullptr;
+  datafinal->tnum = data->tnum;
   datafinal->toktype = data->toktype;
   datafinal->pnum = 0;
   for(GSList* l = files; l != nullptr; l = l->next){
     GFile* sourcefile = G_FILE(l->data);
     char* basename = g_file_get_basename(sourcefile);
-    size_t len = strlen(basename);
-    if(basename[len - 4] != '.' || !(basename[len - 3] == 'j' || basename[len - 3] == 'p')){
-      datafinal->path[datafinal->pnum++] = nullptr;
-      g_free(basename);
-      continue;
+    bool is_registered_token = false;
+    if(data->toktype == TOKEN){
+      for(int32_t i = 0; i < data->tnum; ++i){
+        if(data->tokens[i].path && strstr(data->tokens[i].path, basename) != nullptr){
+          is_registered_token = true;
+        }
+      }
+    }else{
+      for(int32_t i = 0; i < data->mnum; ++i){
+        if(data->maps[i].path && strstr(data->maps[i].path, basename) != nullptr){
+          is_registered_token = true;
+        }
+      }
     }
-    GFile* destfile = g_file_get_child(destdir, basename);
-    g_file_copy(sourcefile, destfile, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, nullptr);
-    linear_resize_img(destfile, data->toktype);
-    /*Set return pointer*/
-    datafinal->path[datafinal->pnum++] = g_file_get_path(destfile);
+    if(!is_registered_token){
+      size_t len = strlen(basename);
+      if(basename[len - 4] != '.' || !(basename[len - 3] == 'j' || basename[len - 3] == 'p')){
+        g_free(basename);
+        continue;
+      }
+      GFile* destfile = g_file_get_child(destdir, basename);
+      g_file_copy(sourcefile, destfile, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, nullptr);
+      GFile* destcache = nullptr;
+      if(data->toktype == MAP){
+        destcache = g_file_get_child(cachedir, basename);
+        g_file_copy(sourcefile, destcache, G_FILE_COPY_OVERWRITE, nullptr, nullptr, nullptr, nullptr);
+        linear_resize_img(destfile, 0);
+        linear_resize_img(destcache, 1);
+      }
+      /*Set return pointer*/
+      datafinal->path[datafinal->pnum] = g_file_get_path(destfile);
+      if(data->toktype == MAP){
+        datafinal->cache[datafinal->pnum++] = g_file_get_path(destcache);
+      }else{
+        datafinal->cache[datafinal->pnum++] = nullptr;
+      }
+      /*Free*/
+      if(destcache){
+        g_object_unref(destcache);
+      }
+      g_object_unref(destfile);
+    }
     /*Free*/
     g_free(basename);
-    g_object_unref(destfile);
   }
+  /*Create new texture atlas for tokens*/
+  if(data->toktype == TOKEN){
+    /*Get copy of tokens*/
+    datafinal->ts = (struct token*)calloc(datafinal->tnum + datafinal->pnum, sizeof(struct token));
+    for(int32_t i = 0; i < datafinal->tnum; ++i){
+      copytoken(&datafinal->ts[i], &data->tokens[i]);
+    }
+    /*Not registered tokens*/
+    for(int32_t i = 0; i < datafinal->pnum; ++i){
+      settoken(&datafinal->ts[i + datafinal->tnum], datafinal->toktype, -1, datafinal->path[i], nullptr);
+    }
+    char* atlas_dir_path = (char*)calloc(512, sizeof(char));
+    snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas", data->gamename);
+    get_path_to_atlas(data->max_atlas_size, atlas_dir_path, -1, datafinal->ts,
+                      datafinal->tnum + datafinal->pnum, nullptr, nullptr, &datafinal->atlas_path);
+    free(atlas_dir_path);
+  }
+  /*Return pointer*/
   g_task_return_pointer(task, datafinal, drop_final_data_free);
   /*Free*/
   g_slist_free(files);
+  if(cachedir){
+    g_object_unref(cachedir);
+  }
   g_object_unref(destdir);
-  gdk_drop_finish(drop, GDK_ACTION_COPY);
 }
 
 static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointer userdata)
@@ -203,10 +285,21 @@ static void on_value_read_ready_toks(GObject* source, GAsyncResult* res, gpointe
   GdkDrop* drop = GDK_DROP(source);
   const GValue* value = gdk_drop_read_value_finish(drop, res, nullptr);
   /*To drop_task_data*/
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
   drop_task_data* data = g_new0(drop_task_data, 1);
   data->filelist = g_value_dup_boxed(value);
   data->userdata = userdata;
   data->toktype = TOKEN;
+    /*Deep copy tokens*/
+  data->tnum = gstate->tnum;
+  data->tokens = (struct token*)calloc(data->tnum, sizeof(struct token));
+  for(int32_t i = 0; i < data->tnum; ++i){
+    copytoken(&data->tokens[i], &gstate->tokens[i]);
+  }
+  data->mnum = 0;
+  data->maps = nullptr;
+  data->max_atlas_size = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "max_atlas_size"));
+  data->gamename = strdup(gstate->gamename);
   /*New THREAD*/
   GTask* task = g_task_new(drop, nullptr, on_work_with_files_completed, nullptr);
   g_task_set_task_data(task, data, free_drop_task_data);
@@ -220,10 +313,21 @@ static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointe
   GdkDrop* drop = GDK_DROP(source);
   const GValue* value = gdk_drop_read_value_finish(drop, res, nullptr);
   /*To drop_task_data*/
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
   drop_task_data* data = g_new0(drop_task_data, 1);
   data->filelist = g_value_dup_boxed(value);
   data->userdata = userdata;
   data->toktype = MAP;
+    /*Deep copy maps*/
+  data->mnum = gstate->mnum;
+  data->maps = (struct token*)calloc(data->mnum, sizeof(struct token));
+  for(int32_t i = 0; i < data->mnum; ++i){
+    copytoken(&data->maps[i], &gstate->maps[i]);
+  }
+  data->tnum = 0;
+  data->tokens = nullptr;
+  data->max_atlas_size = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "max_atlas_size"));
+  data->gamename = strdup(gstate->gamename);
   /*New THREAD*/
   GTask* task = g_task_new(drop, nullptr, on_work_with_files_completed, nullptr);
   g_task_set_task_data(task, data, free_drop_task_data);
@@ -235,6 +339,8 @@ static void on_value_read_ready_maps(GObject* source, GAsyncResult* res, gpointe
 static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpointer userdata)
 {
   GTask* task = G_TASK(res);
+  GdkDrop* drop = GDK_DROP(source);
+  gdk_drop_finish(drop, GDK_ACTION_COPY);
   GError* err = nullptr;
   /*Read pointer*/
   drop_task_data_final* data = (drop_task_data_final*)g_task_propagate_pointer(task, &err);
@@ -250,7 +356,42 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
     /*Register tokens in main thread*/
     for(int32_t i = 0; i < data->pnum; ++i){
       if(data->path[i]){
-        game_state_register_token(gstate, data->toktype, data->path[i]);
+        if(data->cache != nullptr){
+          game_state_register_token(gstate, data->toktype, data->path[i], data->cache[i]);
+        }else{
+          game_state_register_token(gstate, data->toktype, data->path[i], nullptr);
+        }
+      }
+    }
+    /*Update layers tokens texture atlas in current scene*/
+    if(data->toktype == TOKEN){
+      GtkGLArea* gl_area = GTK_GL_AREA(g_object_get_data(G_OBJECT(data->userdata), "gl_area"));
+      gtk_gl_area_make_current(gl_area);
+      if(gtk_gl_area_get_error(gl_area) != nullptr){
+        drop_final_data_free(data);
+        return;
+      }
+      /*Update registered tokens UV (old + new)*/
+      for(int32_t i = 0; i < data->tnum + data->pnum && i < gstate->tnum; ++i){
+        set_token_UV_from_token(&gstate->tokens[i], &data->ts[i]);
+      }
+      /*Update current map layers texture atlas for tokens*/
+      struct layer* L = nullptr;
+      for(int32_t i = 0; i < gstate->gscns[gstate->current_map_id - 1].lrnum; ++i){
+        L = &gstate->gscns[gstate->current_map_id - 1].l[i];
+        if(L->toktype != TOKEN){
+          continue;
+        }
+        /*Reset exists rects UV*/
+        for(int32_t j = 0; j < L->rnum; ++j){
+          int32_t tid = L->tokid[j];
+          if(tid < 0 || tid >= gstate->tnum){
+            continue;
+          }
+          struct token* T = &gstate->tokens[tid];
+          rect_set_UV(&L->rects[j], T->u0, T->v0, T->u1, T->v1);
+        }
+        layer_update_texture_atlas(L, data->atlas_path);
       }
     }
     /*Free*/
@@ -263,11 +404,28 @@ static void drop_final_data_free(gpointer data)
   drop_task_data_final* datafinal = (drop_task_data_final*)data;
   for(int32_t i = 0; i < datafinal->pnum; ++i){
     /*path[i] can be nullptr*/
-    free(datafinal->path[i]);
+    g_free(datafinal->path[i]);
     datafinal->path[i] = nullptr;
+    if(datafinal->toktype == MAP){
+      free(datafinal->cache[i]);
+    }
   }
-  free(datafinal->path);
+  if(datafinal->toktype == TOKEN){
+    for(int32_t i = 0; i < datafinal->tnum + datafinal->pnum; ++i){
+      g_free(datafinal->ts[i].path);
+      datafinal->ts[i].path = nullptr;
+      free(datafinal->ts[i].cache);
+      datafinal->ts[i].cache = nullptr;
+    }
+    free(datafinal->atlas_path);
+    datafinal->atlas_path = nullptr;
+  }
+  free(datafinal->ts);
+  datafinal->ts = nullptr;
+  g_free(datafinal->path);
   datafinal->path = nullptr;
+  g_free(datafinal->cache);
+  datafinal->cache = nullptr;
   free(datafinal);
   datafinal = nullptr;
 }
@@ -276,18 +434,27 @@ static void free_drop_task_data(gpointer data)
 {
   drop_task_data* subdata = (drop_task_data*)data;
   g_boxed_free(GDK_TYPE_FILE_LIST, subdata->filelist);
+  for(int32_t i = 0; i < subdata->tnum; ++i){
+    free(subdata->tokens[i].path);
+  }
+  for(int32_t i = 0; i < subdata->mnum; ++i){
+    free(subdata->maps[i].path);
+    free(subdata->maps[i].cache);
+  }
+  free(subdata->tokens);
+  free(subdata->maps);
+  free(subdata->gamename);
   g_free(subdata);
 }
 
-static void linear_resize_img(GFile* img, int32_t toktype)
+static void linear_resize_img(GFile* img, int iscache)
 {
-  int percentage = 100 - 50 * toktype;
+  int percentage = 45 - 40 * iscache;
   /*Get file path*/
   char* file = g_file_get_path(img);
   char* filename = g_file_get_basename(img);
   int file_name_length = strlen(filename);
   /*Get file*/
-  stbi_set_flip_vertically_on_load(false);
   int w, h, ch;
   uint8_t* i = stbi_load(file, &w, &h, &ch, 0);
   if(strlen(filename) < 4 || !i){
@@ -303,25 +470,26 @@ static void linear_resize_img(GFile* img, int32_t toktype)
   int outputstride = outw * ch;
   stbir_pixel_layout layout = (ch == 4) ? STBIR_RGBA : STBIR_RGB;
   if(filename[file_name_length - 3] == 'p'){
-    stbir_resize_uint8_linear(i, w, h, inputstride, outi, outw, outh, outputstride, layout);
+    stbir_resize_uint8_srgb(i, w, h, inputstride, outi, outw, outh, outputstride, layout);
     stbi_write_png(file, outw, outh, ch, outi, outputstride);
   }else{
-    stbir_resize_uint8_linear(i, w, h, inputstride, outi, outw, outh, outputstride, layout);
+    stbir_resize_uint8_srgb(i, w, h, inputstride, outi, outw, outh, outputstride, layout);
     stbi_write_jpg(file, outw, outh, ch, outi, 100);
   }
   /*Free*/
-  stbi_image_free(outi);
+  free(outi);
   stbi_image_free(i);
 half_free:
   g_free(filename);
   g_free(file);
 }
 
-/*-------------------TOKENS WORK ----------------------*/
+/*-------------------TOKENS (MAP) WORK ----------------------*/
 
 static void on_mime_type_read_toks_done(GObject* source, GAsyncResult* res, gpointer userdata)
 {
-  GdkDrop* drop = GDK_DROP(source);
+  mime_read_ctx* ctx = (mime_read_ctx*)userdata;
+  GdkDrop* drop = ctx->drop;
   GError* err = nullptr;
   const char* out_mime = nullptr;
   GInputStream* stream = gdk_drop_read_finish(drop, res, &out_mime, &err);
@@ -329,21 +497,19 @@ static void on_mime_type_read_toks_done(GObject* source, GAsyncResult* res, gpoi
     g_warning("Read error: %s\n", err ? err->message : "unknown");
     g_clear_error(&err);
     gdk_drop_finish(drop, 0);
-    g_object_unref(drop);
+    mime_read_ctx_free(ctx);
     return;
   }
-  char* buffer = g_malloc0(64);
-  g_object_set_data_full(G_OBJECT(stream), "buffer", buffer, g_free);
-  g_object_set_data(G_OBJECT(userdata), "drop_mime", drop);
-  g_input_stream_read_all_async(stream, buffer, 63, G_PRIORITY_DEFAULT,
+  g_input_stream_read_all_async(stream, ctx->buffer, sizeof(ctx->buffer) - 1, G_PRIORITY_DEFAULT,
                                 nullptr, on_stream_read_done, userdata);
   g_object_unref(stream);
 }
 
 static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpointer userdata)
 {
+  mime_read_ctx* ctx = (mime_read_ctx*)userdata;
+  GdkDrop* drop = ctx->drop;
   GInputStream* stream = G_INPUT_STREAM(sourcestream);
-  GdkDrop* drop = GDK_DROP(g_object_get_data(G_OBJECT(userdata), "drop_mime"));
   gsize bytesread = 0;
   GError* err = nullptr;
   /*Read*/
@@ -351,14 +517,13 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
     g_warning("Read error: %s\n", err ? err->message : "unknown");
     g_clear_error(&err);
     gdk_drop_finish(drop, 0);
-    g_object_unref(drop);
+    mime_read_ctx_free(ctx);
     return;
   }
-  char* type_id = (char*)g_object_get_data(G_OBJECT(stream), "buffer");
-  type_id[bytesread] = '\0';
-  /*Free and drop finish*/
+  ctx->buffer[bytesread] = '\0';
+  char* type_id = ctx->buffer;
+  /*Drop finish*/
   gdk_drop_finish(drop, GDK_ACTION_COPY);
-  g_object_unref(drop);
   /*Parsing "<type>-<id>"*/
   char* _id = nullptr;
   int32_t type = strtol(type_id, &_id, 10);
@@ -366,10 +531,24 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   if(_id && *_id){
     sscanf(&_id[1], "%d", &id);
   }
+  /*Get userdata*/
+  gpointer userdata_ = ctx->userdata;
+  mime_read_ctx_free(ctx);
+  /*Get game state*/
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata_), "gstate");
+  if(type == TOKEN){
+    if(id >= gstate->tnum){
+      g_print("Token id is out of range: %d\n", id);
+      return;
+    }
+  }else if(type == MAP){
+    if(id >= gstate->mnum){
+      g_print("Map id is out of range: %d\n", id);
+      return;
+    }
+  }
   /*Allocate memory for foratlas data*/
   foratlas* data = g_new0(foratlas, 1);
-  /*Get game state*/
-  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
   /*Get right tokens, lrnum and tnum*/
   int32_t lrnum = -1;
   int32_t tnum = 0;
@@ -389,6 +568,7 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
     g_print("Layer with type %d not exist\n-Create new layer!\n", type);
     if(!current_scene_add_layer(gstate, IMG, type)){
       g_print("ALLERT! Layer not created!\n");
+      g_free(data);
       return;
     }
     is_new_layer = true;
@@ -398,65 +578,109 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   if(is_new_layer){
     tnum = 1;
   }else{
-    tnum = rightlayer->rnum + 1;
+    if(type == MAP){
+      tnum = rightlayer->rnum + 1;
+    }else if(type == TOKEN){
+      tnum = 1;
+    }
   }
   struct token* rts = (struct token*)calloc(tnum, sizeof(struct token));
   if(type == TOKEN){
-      /*Get right linking tokens*/
-    if(!is_new_layer){
-      for(int32_t i = 0; i < rightlayer->rnum; ++i){
-        for(int32_t j = 0; j < gstate->tnum; ++j){
-          if(rightlayer->tokid[i] == gstate->tokens[j].id){
-            rts[i] = gstate->tokens[j];
-          }
-        }
-      }
-    }
       /*Set not linking token*/
-    rts[tnum - 1] = gstate->tokens[id];
+    copytoken(&rts[tnum - 1], &gstate->tokens[id]);
   }else if(type == MAP){
       /*Get right register tokens*/
     if(!is_new_layer){
       for(int32_t i = 0; i < rightlayer->rnum; ++i){
         for(int32_t j = 0; j < gstate->mnum; ++j){
           if(rightlayer->tokid[i] == gstate->maps[j].id){
-            rts[i] = gstate->maps[j];
+            copytoken(&rts[i], &gstate->maps[j]);
           }
         }
       }
     }
     /*Set not linking token*/
-    rts[tnum - 1] = gstate->maps[id];
+    copytoken(&rts[tnum - 1], &gstate->maps[id]);
   }else{
+    free(rts);
+    g_free(data);
     g_print("Invalid tokens type: %d\n", type);
     return;
   }
   /*Set data*/
-  data->userdata = userdata;
-  data->righttoks = rts;
+  data->userdata = userdata_;
+  data->righttoks = (struct token*)calloc(tnum, sizeof(struct token));
+  if(!data->righttoks){
+    g_print("Error of memory allocation for righttoks\n");
+    for(int32_t i = 0; i < tnum; ++i){
+      free(rts[i].path);
+      free(rts[i].cache);
+    }
+    free(rts);
+    g_free(data);
+    return;
+  }
+  for(int32_t i = 0; i < tnum; ++i){
+    copytoken(&data->righttoks[i], &rts[i]);
+  }
   data->lrnum = lrnum;
   data->tnum = tnum;
   data->is_new_layer = is_new_layer;
+  data->current_map_id = gstate->current_map_id;
+  data->max_atlas_size = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata_), "max_atlas_size"));
+  data->gamename = strdup(gstate->gamename);
   /*Create new task*/
   GTask* task = g_task_new(nullptr, nullptr, set_layer_texture_atlas, data);
   g_task_set_task_data(task, data, nullptr);
   g_task_run_in_thread(task, work_with_atlas);
+  /*Free*/
+  for(int32_t i = 0; i < tnum; ++i){
+    free(rts[i].path);
+    rts[i].path = nullptr;
+    free(rts[i].cache);
+    rts[i].cache = nullptr;
+  }
+  free(rts);
   g_object_unref(task);
+}
+
+static void mime_read_ctx_free(mime_read_ctx* ctx)
+{
+  if(!ctx){
+    return;
+  }
+  g_clear_object(&ctx->drop);
+  g_free(ctx);
 }
 
 static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCancellable* cancelablle)
 {
   foratlas* data = (foratlas*)taskdata;
-  /*Get game state*/
-  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
   /*Made atlas*/
   char* atlas_path = nullptr;
     /*Define atlas_dir_path*/
   char* atlas_dir_path = (char*)calloc(512, sizeof(char));
-  snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas/%d", gstate->gamename, gstate->current_map_id);
+  if(data->righttoks[0].type == MAP){
+    snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas/%d", data->gamename, data->current_map_id);
+  }else if(data->righttoks[0].type == TOKEN){
+    atlas_path = (char*)calloc(512, sizeof(char));
+    snprintf(atlas_path, 512, "saves/%s/presets/atlas/tokens_atlas.png", data->gamename);
+    snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas", data->gamename);
+    makedir(atlas_dir_path);
+    /*Set for layer data*/
+    forlayer* fl = (forlayer*)calloc(1, sizeof(forlayer));
+    fl->atlas_path = atlas_path;
+    fl->w = 0;
+    fl->h = 0;
+    fl->not_link_tok = &data->righttoks[data->tnum - 1];
+    g_task_return_pointer(task, fl, free);
+    /*Free*/
+    free(atlas_dir_path);
+    return;
+  }
     /*Create atlas dir*/
   makedir(atlas_dir_path);
-    /*Get only unique tokens*/
+    /*Get only unique tokens (MAP)*/
   struct token* uniques = (struct token*)calloc(data->tnum, sizeof(struct token));
   for(int32_t i = 0; i < data->tnum; ++i){
     uniques[i].id = -1;
@@ -475,8 +699,9 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
     }
   }
     /*Create atlas*/
-  float w, h;
-  get_path_to_atlas(atlas_dir_path, data->lrnum, uniques, unum, &w, &h, &atlas_path);
+  float* w = (float*)calloc(unum, sizeof(float));
+  float* h = (float*)calloc(unum, sizeof(float));
+  get_path_to_atlas(data->max_atlas_size, atlas_dir_path, data->lrnum, uniques, unum, w, h, &atlas_path);
   /*Asociate uniques UV with righttoks UV*/
   for(int32_t i = 0; i < data->tnum; ++i){
     for(int32_t j = 0; j < unum; ++j){
@@ -498,9 +723,12 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
   }
   fl->atlas_path = atlas_path;
   fl->not_link_tok = &data->righttoks[data->tnum - 1];
-  fl->w = w;
-  fl->h = h;
+  fl->w = w[unum - 1];
+  fl->h = h[unum - 1];
   g_task_return_pointer(task, fl, free);
+  /*Free*/
+  free(w);
+  free(h);
 }
 
 static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer userdata)
@@ -513,6 +741,12 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   if(err){
     g_warning("Something gone wrong, forlayer structure not recived: %s\n", err->message);
     g_error_free(err);
+    for(int32_t i = 0; i < data->tnum; ++i){
+      free(data->righttoks[i].path);
+      free(data->righttoks[i].cache);
+    }
+    free(data->righttoks);
+    free(data->gamename);
     g_free(data);
     free(fl);
     return;
@@ -543,8 +777,8 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     struct token* m = fl->not_link_tok;
     /*Put token into layer*/
     struct rectangle rect;
-    rect_set_XYWH(&rect, gstate->m->cam.cam_x,
-                  gstate->m->cam.cam_y, fl->w, fl->h);
+    rect_set_XYWH(&rect, gstate->m->cam.cam_x - fl->w * 0.5f,
+                  gstate->m->cam.cam_y - fl->h * 0.5, fl->w, fl->h);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, m->u0, m->v0, m->u1, m->v1);
     layer_add_rect(L, &rect);
@@ -553,17 +787,32 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   /*Create new renderer*/
   if(data->is_new_layer){
     createrenderer(R, L, IMG);
+    layer_update_texture_atlas(L, fl->atlas_path);
   }
-  /*Layer update texture atlas*/
-  layer_update_texture_atlas(&current->l[current->lrnum - 1], fl->atlas_path);
-  int32_t n = L->rnum < data->tnum ? L->rnum : data->tnum;
-  for(int32_t i = 0; i < n; ++i){
-    rect_set_UV(&L->rects[i],
-                data->righttoks[i].u0, data->righttoks[i].v0,
-                data->righttoks[i].u1, data->righttoks[i].v1);
+  if(data->righttoks[0].type == MAP){
+    /*Layer update texture atlas for MAP and rects set UV*/
+    int32_t n = L->rnum < data->tnum ? L->rnum : data->tnum;
+    if(data->righttoks[0].type == MAP){
+      layer_update_texture_atlas(L, fl->atlas_path);
+      /*Rect set UV*/
+      for(int32_t i = 0; i < n; ++i){
+        rect_set_UV(&L->rects[i],
+                    data->righttoks[i].u0, data->righttoks[i].v0,
+                    data->righttoks[i].u1, data->righttoks[i].v1);
+      }
+    }else{
+      rect_set_UV(&L->rects[n - 1],
+                  data->righttoks[n - 1].u0, data->righttoks[n - 1].v0,
+                  data->righttoks[n - 1].u1, data->righttoks[n - 1].v1);
+    }
   }
   /*Free*/
+  for(int32_t i = 0; i < data->tnum; ++i){
+    free(data->righttoks[i].path);
+    free(data->righttoks[i].cache);
+  }
   free(data->righttoks);
+  free(data->gamename);
   g_free(data);
   free(fl->atlas_path);
   free(fl);

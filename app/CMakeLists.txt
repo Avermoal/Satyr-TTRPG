@@ -59,9 +59,17 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # ONLY ON/OFF
+    option(ASAN "Enable address sanitizer" OFF)
+    option(TSAN "Enable thread sanitizer" OFF)
     message(STATUS "Building with ASan and LSan.")
-    target_compile_options(${APP_NAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-    target_link_options(${APP_NAME} PRIVATE -fsanitize=address)
+    if(ASAN)
+      target_compile_options(${APP_NAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+      target_link_options(${APP_NAME} PRIVATE -fsanitize=address)
+    elseif(TSAN)
+      target_compile_options(${APP_NAME} PRIVATE -fsanitize=thread)
+      target_link_options(${APP_NAME} PRIVATE -fsanitize=thread)
+    endif()
   endif()
 
   add_custom_command(

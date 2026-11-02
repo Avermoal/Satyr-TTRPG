@@ -24,7 +24,7 @@ typedef struct{
   int32_t maxsize;
 }shelfcontext;
 
-void get_path_to_atlas(const char* atlas_dir_path, int32_t lrnum,
-                       struct token* toks, int32_t tnum, float* w, float* h, char** atlas_path);
+void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path, int32_t lrnum,
+                       struct token* toks, int32_t tnum, float* ws, float* hs, char** atlas_path);
 
 #endif/*MAP_TEXTURE_ATLAS_H*/

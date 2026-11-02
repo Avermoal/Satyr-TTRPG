@@ -4,6 +4,9 @@
 
 #include <epoxy/gl.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "Map/map.h"
 #include "GameState/game_state.h"
 #include "GameState/file_initialize.h"
@@ -15,9 +18,17 @@ void onrealize(GtkGLArea* area, gpointer userdata)
 {
   /*Make area current*/
   gtk_gl_area_make_current(area);
-  if(gtk_gl_area_get_error(area) != NULL){
+  if(gtk_gl_area_get_error(area) != nullptr){
     return;
   }
+  /*Set max texture atlas*/
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  int max_atlas_size = 0;
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_atlas_size);
+  g_object_set_data(G_OBJECT(userdata), "max_atlas_size", GINT_TO_POINTER(max_atlas_size));
+  /*Set flip*/
+  stbi_set_flip_vertically_on_load(false);
   /*Prevent double realize*/
   struct gamestate* gamestate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
   if(gamestate){
@@ -75,6 +86,7 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   free(gstate);
   gstate = nullptr;
   g_object_set_data(G_OBJECT(userdata), "gstate", nullptr);
+  g_object_set_data(G_OBJECT(userdata), "max_atlas_size", nullptr);
 }
 
 gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)

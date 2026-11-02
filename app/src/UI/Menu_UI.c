@@ -45,6 +45,9 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   dms_ui->side_box_for_btn = GTK_BOX(gtk_builder_get_object(dms_builder, "side_box_for_btn"));
   dms_ui->side_menu_btn = GTK_BUTTON(gtk_builder_get_object(dms_builder, "side_menu_btn"));
   dms_ui->overlay = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
+  dms_ui->tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
+  dms_ui->tokens_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_btn"));
+  dms_ui->maps_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "maps_btn"));
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
   /*Set GtkOpenGLArea ticker*/
   GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
@@ -59,8 +62,8 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* side_hide_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_hide_btn"));
   g_signal_connect(side_hide_btn, "clicked", G_CALLBACK(on_side_hide_btn_clicked), userdata);
   GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
-  g_signal_connect(tokens_box, "map", G_CALLBACK(on_tokens_box_map), userdata);
-  g_signal_connect(tokens_box, "unmap", G_CALLBACK(on_tokens_box_unmap), userdata);
+  g_signal_connect(dms_ui->tokens_btn, "toggled", G_CALLBACK(on_tokens_btn_toggled), userdata);
+  g_signal_connect(dms_ui->maps_btn, "toggled", G_CALLBACK(on_maps_btn_toggled), userdata);
   /*Set Drag and Drop target*/
     /*Content formats*/
   GdkContentFormatsBuilder* formatsbuilder = gdk_content_formats_builder_new();
