@@ -16,6 +16,11 @@ struct token{
   char* cache;
 };
 
+typedef struct{
+  int32_t id;
+  int32_t type;
+}tokensdata;
+
 void settoken(struct token* tok, int32_t type, int32_t id, const char* path, const char* cache);
 
 void set_token_UV(struct token* tok, float u0, float v0, float u1, float v1);

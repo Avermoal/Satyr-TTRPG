@@ -6,10 +6,10 @@
 
 GdkContentProvider* on_token_drag_prepare(GtkDragSource* source, double x, double y, gpointer userdata)
 {
-  struct token* tok = (struct token*)userdata;
+  tokensdata* tdata = (tokensdata*)userdata;
   int lenstr = 16;
-  char* str = calloc(1, sizeof(char) * lenstr);
-  snprintf(str, lenstr, "%d-%d", tok->type, tok->id);
+  char* str = (char*)calloc(1, sizeof(char) * lenstr);
+  snprintf(str, lenstr, "%d-%d", tdata->type, tdata->id);
   GBytes* bytes = g_bytes_new(str, strlen(str));
   free(str);
   GdkContentProvider* provider = gdk_content_provider_new_for_bytes("text/plain", bytes);

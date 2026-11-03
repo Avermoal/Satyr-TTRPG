@@ -11,7 +11,6 @@ struct token;
 
 struct gamescene{
   int32_t lrnum;
-  int32_t opos;
   struct layer* l;          /*Slave*/
 };
 

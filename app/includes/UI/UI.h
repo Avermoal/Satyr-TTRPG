@@ -5,7 +5,6 @@
 
 struct UI{
   GtkWidget* menu_page;
-  GtkWidget* players_page;
   GtkWidget* new_campaign_page;
 };
 

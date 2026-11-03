@@ -18,7 +18,7 @@ void on_side_menu_btn_clicked(GtkButton* btn, gpointer userdata);
 void on_side_hide_btn_clicked(GtkButton* btn, gpointer userdata);
 
 /*ESCAPE*/
-void on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
+gboolean on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
                        guint keycode, GdkModifierType state, gpointer userdata);
 
 /*Top menu*/

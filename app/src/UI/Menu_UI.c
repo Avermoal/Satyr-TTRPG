@@ -38,8 +38,14 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
     /*Allocation memory*/
   struct DMs_UI* dms_ui = (struct DMs_UI*)calloc(1, sizeof(struct DMs_UI));
     /*DMs*/
+  GError* err = nullptr;
   GtkBuilder* dms_builder = gtk_builder_new();
-  gtk_builder_add_from_file(dms_builder, DMS_SOURCES, nullptr);
+  gtk_builder_add_from_file(dms_builder, DMS_SOURCES, &err);
+  if(err){
+    g_print("DMs page builder error: %s\n", err->message);
+    g_object_unref(dms_builder);
+    g_error_free(err);
+  }
   /*Set DMs UI widgets*/
   dms_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(dms_builder, "side_menu_revealer"));
   dms_ui->side_box_for_btn = GTK_BOX(gtk_builder_get_object(dms_builder, "side_box_for_btn"));

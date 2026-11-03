@@ -36,6 +36,7 @@ struct layer{
   struct rectangle* rects;
   int32_t* tokid;             /*Slave*/
   int32_t toktype;
+  bool isdirty;
 };
 
 static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
@@ -52,6 +53,7 @@ static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
   l->toktype = toktype;
   l->rects = nullptr;
   l->tokid = nullptr;
+  l->isdirty = true;
 }
 
 static inline void layerfree(struct layer* l)
@@ -68,12 +70,13 @@ static inline void layerfree(struct layer* l)
   l->tokid = nullptr;
   l->rnum = 0;
   l->cap = 0;
+  l->isdirty = false;
 }
 
-static inline void layer_reserve_rects(struct layer* l, int32_t need)
+static inline bool layer_reserve_rects(struct layer* l, int32_t need)
 {
   if(!l || need < 0 || need <= l->cap){
-    return;
+    return false;
   }
   int32_t newcap = l->cap;
   if(newcap == 0){
@@ -89,22 +92,35 @@ static inline void layer_reserve_rects(struct layer* l, int32_t need)
   if(newcap < need){
     newcap = need;
   }
-  struct rectangle* tmpr = (struct rectangle*)realloc(l->rects, (size_t)(newcap * sizeof(*tmpr)));
+  /*Deep rectangle and tokid copy*/
+    /*Allocation*/
+  struct rectangle* tmpr = (struct rectangle*)calloc((size_t)newcap, sizeof(struct rectangle));
   if(!tmpr){
-    return;
+    return false;
   }
-  int32_t* tmptokid = (int32_t*)realloc(l->tokid, (size_t)(newcap * sizeof(*tmptokid)));
+  int32_t* tmptokid = (int32_t*)calloc((size_t)newcap, sizeof(int32_t));
   if(!tmptokid){
     free(tmpr);
-    return;
+    return false;
   }
+    /*Copy*/
+  for(int32_t i = 0; i < l->cap; ++i){
+    tmpr[i] = l->rects[i];
+    tmptokid[i] = l->tokid[i];
+  }
+  /*Set invalid token id for not registed tokens*/
+  for(int32_t i = l->cap; i < newcap; ++i){
+    tmptokid[i] = -1;
+  }
+  /*Free old pointers*/
+  free(l->rects);
+  free(l->tokid);
+  /*Sets*/
   l->rects = tmpr;
   l->tokid = tmptokid;
-  /*Set not registerred tokid to -1*/
-  for(int32_t i = l->rnum; i < newcap; ++i){
-    l->tokid[i] = -1;
-  }
   l->cap = newcap;
+  l->isdirty = true;
+  return true;
 }
 
 static inline void layer_resize_rects(struct layer* l, int32_t count)
@@ -195,6 +211,17 @@ static inline void rectset(struct rectangle* rect, float x, float y, float w, fl
   rect_set_RGBA(rect, cr, cg, cb ,ca);
 }
 
+static inline float rect_get_w(struct rectangle* rect)
+{
+  return rect->vert[2].x - rect->vert[0].x;
+}
+
+static inline float rect_get_h(struct rectangle* rect)
+{
+  return rect->vert[1].y - rect->vert[0].y;
+}
+
+
 static inline void layer_add_quad(struct layer* l, float x, float y, float w, float h,
                                                    float u0, float v0, float u1, float v1,
                                                    float cr, float cg, float cb, float ca)
@@ -213,6 +240,17 @@ static inline void layer_link_last_rect_with_token(struct layer* l, struct token
   }
   l->tokid[l->rnum - 1] = tok->id;
   rect_set_UV(&l->rects[l->rnum - 1], tok->u0, tok->v0, tok->u1, tok->v1);
+  l->isdirty = true;
+}
+
+static inline void layer_move_rect(struct layer* l, int32_t rnum, float x, float y)
+{
+  if(!l || rnum >= l->rnum){
+    return;
+  }
+  struct rectangle* r = &l->rects[rnum - 1];
+  rect_set_XYWH(r, x, y, rect_get_w(r), rect_get_h(r));
+  l->isdirty = true;
 }
 
 #endif/*MAP_MAP_DATA_H*/

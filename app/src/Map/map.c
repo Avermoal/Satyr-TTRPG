@@ -14,7 +14,6 @@ void createmap(struct map* m)
   m->cam.zoom = 1.0f;
   /*View*/
   m->lrnum = 0;
-  m->opos = -1;
   /*Grid layer*/
   map_add_layer(m, GRID, -1);
   m->l[0].gridstep = 96;
@@ -88,16 +87,15 @@ void updatemap(struct map* m)
 
 }
 
-void create_map_from_data(struct map* m, int32_t lrnum, int32_t opos, struct layer* l)
+void create_map_from_data(struct map* m, int32_t lrnum, struct layer* l)
 {
   memset(m, 0, sizeof(struct map));
   /*View*/
   m->lrnum = lrnum;
-  m->opos = opos;
   m->l = l;
   /*Renderer*/
   m->ren = (struct renderer*)calloc((size_t)lrnum, sizeof(struct renderer));
-  if(m->ren){
+  if(!m->ren){
     return;
   }
   for(int32_t i = 0; i < lrnum; ++i){
@@ -110,17 +108,17 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
   if(!m){
     return nullptr;
   }
+  /*Reallocation*/
   struct layer* ltmp = (struct layer *)realloc(m->l, (size_t)(m->lrnum + 1) * sizeof(struct layer));
-  if(!ltmp){
-    return nullptr;
-  }
-  layerinit(&ltmp[m->lrnum], type, toktype);
-  //layer_add_empty(&ltmp[m->lrnum]);
-  m->l = ltmp;
   struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
-  if(!rtmp){
+  /*Check*/
+  if(!rtmp || !ltmp){
     return nullptr;
   }
+  /*Init*/
+  layerinit(&ltmp[m->lrnum], type, toktype);
+  /*Sets*/
+  m->l = ltmp;
   m->ren = rtmp;
   int32_t index = m->lrnum;
   m->lrnum++;

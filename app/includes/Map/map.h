@@ -13,7 +13,6 @@ struct renderer;
 struct map{
   struct camera cam;
   int32_t lrnum;
-  int32_t opos;               /*opos - other layers position*/
   struct eventdata evdata;
   struct layer* l;            /*owner: game scene*/
   struct renderer* ren;       /*Slave*/
@@ -33,7 +32,7 @@ void rendermap(struct map* m, float ww, float wh); /*widget width, widget height
 
 void updatemap(struct map* m);
 
-void create_map_from_data(struct map* m, int32_t lrnum, int32_t opos, struct layer* l);
+void create_map_from_data(struct map* m, int32_t lrnum, struct layer* l);
 
 struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype);
 

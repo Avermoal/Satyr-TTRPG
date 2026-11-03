@@ -112,7 +112,7 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
   struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   /*Render map*/
   glDepthMask(GL_FALSE);
-  rendermap(m, width, height);
+  rendermap(m, (float)width, (float)height);
   glDepthMask(GL_TRUE);
   return TRUE;
 }

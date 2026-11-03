@@ -64,8 +64,24 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     option(TSAN "Enable thread sanitizer" OFF)
     message(STATUS "Building with ASan and LSan.")
     if(ASAN)
-      target_compile_options(${APP_NAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-      target_link_options(${APP_NAME} PRIVATE -fsanitize=address)
+      option(USAN "Enable ub sanitizer" OFF)
+      if(USAN)
+        target_compile_options(${APP_NAME} PRIVATE
+          -fsanitize=address,undefined -fno-omit-frame-pointer
+          -Wall -Wextra -Wpedantic -Wconversion
+          -Wshadow -Wformat=2 -Wstrict-prototypes
+          -Wmissing-prototypes
+        )
+        target_link_options(${APP_NAME} PRIVATE -fsanitize=address,undefined)
+      else()
+        target_compile_options(${APP_NAME} PRIVATE
+          -fsanitize=address -fno-omit-frame-pointer
+          -Wall -Wextra -Wpedantic -Wconversion
+          -Wshadow -Wformat=2 -Wstrict-prototypes
+          -Wmissing-prototypes
+        )
+        target_link_options(${APP_NAME} PRIVATE -fsanitize=address)
+      endif()
     elseif(TSAN)
       target_compile_options(${APP_NAME} PRIVATE -fsanitize=thread)
       target_link_options(${APP_NAME} PRIVATE -fsanitize=thread)

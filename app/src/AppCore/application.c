@@ -68,6 +68,8 @@ static void on_window_destroy(GtkWidget* win, GtkApplication* app)
   struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(win), "dms_ui_data");
   free(dms_ui);
   dms_ui = nullptr;
+  g_object_set_data(G_OBJECT(win), "dms_ui_data", nullptr);
+  g_print("Exit programm\n");
 }
 
 static void load_custom_theme(const char* path)

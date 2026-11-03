@@ -53,14 +53,14 @@ sh_p create_shader_program(const char* vsh_txt, const char* fsh_txt)
   if(!success){
     glGetShaderInfoLog(vsh_id, 512, NULL, log);
     g_printerr("SHADER_CREATION: Vertex shader not created:\n");
-    g_printerr(log);
+    g_printerr("%s", log);
     return 0;
   }
   glGetShaderiv(fsh_id, GL_COMPILE_STATUS, &success);
   if(!success){
     glGetShaderInfoLog(fsh_id, 512, NULL, log);
     g_printerr("SHADER_CREATION: Fragment shader not created:\n");
-    g_printerr(log);
+    g_printerr("%s", log);
     return 0;
   }
   /*Create shader program*/
@@ -79,8 +79,9 @@ sh_p create_shader_program(const char* vsh_txt, const char* fsh_txt)
   glGetProgramiv(id, GL_LINK_STATUS, &success);
   if(!success){
     glGetProgramInfoLog(id, 512, NULL, log);
+    glDeleteProgram(id);
     g_printerr("SHADER_PROGRAM_LINK: Shader program not linking:\n");
-    g_printerr(log);
+    g_printerr("%s", log);
     return 0;
   }
   return id;
@@ -123,7 +124,9 @@ static bool readshader(char* sh_txt, const char* path, const int64_t length)
     return false;
   }
   /*Read shader text*/
-  fread(sh_txt, sizeof(char), length, f);
+  if(fread(sh_txt, sizeof(char), length, f) == 0){
+    return false;
+  }
   fclose(f);
   /*Set null-terminator*/
   sh_txt[length] = '\0';
@@ -136,7 +139,15 @@ static void load_shp(const char* vsh_path, const char* fsh_path, sh_p* id)
   int64_t fsh_length = shaderlength(fsh_path);
   /*Read shaders text*/
   char* vsh_txt = (char*)calloc(vsh_length + 1, sizeof(char));
+  if(!vsh_txt){
+    return;
+  }
   char* fsh_txt = (char*)calloc(fsh_length + 1, sizeof(char));
+  if(!fsh_txt){
+    free(vsh_txt);
+    vsh_txt = nullptr;
+    return;
+  }
   if(readshader(vsh_txt, vsh_path, vsh_length) && readshader(fsh_txt, fsh_path, fsh_length)){
     *id = create_shader_program(vsh_txt, fsh_txt);
   }

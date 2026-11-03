@@ -76,7 +76,10 @@ void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* orth
     glUseProgram(ren->prog);
     glBindVertexArray(ren->vao);
     glBindBuffer(GL_ARRAY_BUFFER, ren->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)(sizeof(struct vertex)*VERTEX_PER_RECT*l->rnum), l->rects);
+    if(l->isdirty){
+      glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)(sizeof(struct vertex)*VERTEX_PER_RECT*l->rnum), l->rects);
+      l->isdirty = false;
+    }
     glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
     glUniform1f(ren->u_lrnum_loc, lrnum);
     /*DRAW*/

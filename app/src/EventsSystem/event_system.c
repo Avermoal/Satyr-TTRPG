@@ -97,6 +97,9 @@ gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpoint
 {
   /*Get gstate*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate || !gstate->m){
+    return FALSE;
+  }
   zoomat(&gstate->m->cam, (float)dy);
   return TRUE;
 }
@@ -131,10 +134,16 @@ void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer use
 
 void eventpoll(struct map* m)
 {
+  if(!m){
+    return;
+  }
   /*Get camera, event data and delta time*/
   struct camera* cam = &m->cam;
   struct eventdata* evdata = &m->evdata;
   float deltatime = (float)m->evdata.deltatime;
+  if(deltatime >= 1000.0f){
+    return;
+  }
   /*Motion*/
   if(evdata->key_w){
     cam->cam_y -= MOTION_SPEED * deltatime;

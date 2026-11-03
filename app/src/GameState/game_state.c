@@ -31,9 +31,6 @@ void save_game_state(struct gamestate* gstate)/*!!!!!!!!!!!!!!!!TOKENS!!!!!!!!!!
 
 void destroy_game_state(struct gamestate* gstate)
 {
-  if(!gstate->gamename){
-    return;
-  }
   for(int32_t i = 0; i < gstate->snum; ++i){
     for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
       layerfree(&gstate->gscns[i].l[j]);
@@ -54,6 +51,9 @@ void destroy_game_state(struct gamestate* gstate)
   gstate->tokens = nullptr;
   gstate->maps = nullptr;
   gstate->gamename = nullptr;
+  gstate->snum = 0;
+  gstate->tnum = 0;
+  gstate->mnum = 0;
 }
 
 struct gamestate* get_game_state(const char* path)
@@ -65,18 +65,24 @@ void game_state_register_token(struct gamestate* gstate, int32_t toktype, const 
 {
   switch(toktype){
     case TOKEN:
-      gstate->tokens = realloc(gstate->tokens,
-                               (gstate->tnum + 1) * sizeof(struct token));
-      memset(&gstate->tokens[gstate->tnum], 0, sizeof(struct token));
-      settoken(&gstate->tokens[gstate->tnum], TOKEN, gstate->tnum, tokpath, NULL);
+      struct token* tmpt = realloc(gstate->tokens, (gstate->tnum + 1) * sizeof(struct token));
+      if(!tmpt){
+        return;
+      }
+      memset(&tmpt[gstate->tnum], 0, sizeof(struct token));
+      settoken(&tmpt[gstate->tnum], TOKEN, gstate->tnum, tokpath, NULL);
       gstate->tnum++;
+      gstate->tokens = tmpt;
       break;
     case MAP:
-      gstate->maps = realloc(gstate->maps,
-                             (gstate->mnum + 1) * sizeof(struct token));
-      memset(&gstate->maps[gstate->mnum], 0, sizeof(struct token));
-      settoken(&gstate->maps[gstate->mnum], MAP, gstate->mnum, tokpath, cache);
+      struct token* tmpm = realloc(gstate->maps, (gstate->mnum + 1) * sizeof(struct token));
+      if(!tmpm){
+        return;
+      }
+      memset(&tmpm[gstate->mnum], 0, sizeof(struct token));
+      settoken(&tmpm[gstate->mnum], MAP, gstate->mnum, tokpath, cache);
       gstate->mnum++;
+      gstate->maps = tmpm;
       break;
   }
 }
@@ -97,13 +103,15 @@ struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layerty
 
 void make_current(struct gamestate* gstate, int32_t snum)
 {
-  if(gstate->current_map_id == snum){
+  if(gstate->current_map_id == snum || snum < 0 || snum >= gstate->snum){
     return;
   }
   struct map* curmap = gstate->m;
   struct map* newmap = malloc(sizeof(struct map));
-  create_map_from_data(newmap, gstate->gscns[snum].lrnum,
-                       gstate->gscns[snum].opos, gstate->gscns[snum].l);
+  if(!newmap){
+    return;
+  }
+  create_map_from_data(newmap, gstate->gscns[snum - 1].lrnum, gstate->gscns[snum - 1].l);
   destroy_map_renderer(curmap);
   free(curmap);
   gstate->m = newmap;
@@ -115,7 +123,6 @@ struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct
   struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
   gscn->l = m->l;
   gscn->lrnum = m->lrnum;
-  gscn->opos = m->opos;
   gstate->m = m;
   gstate->snum++;
   gstate->current_map_id = gstate->snum;
@@ -139,7 +146,6 @@ static char* get_game_path(const char* name)
 static void save_game_scene(struct gamescene* gscn, FILE* state)
 {
   fwrite(&gscn->lrnum, sizeof(int32_t), 1, state);
-  fwrite(&gscn->opos, sizeof(int32_t), 1, state);
   for(int i = 0; i < gscn->lrnum; ++i){
     fwrite(&gscn->l[i].rnum, sizeof(int32_t), 1, state);
     fwrite(&gscn->l[i].type, sizeof(uint32_t), 1, state);

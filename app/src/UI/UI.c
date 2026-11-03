@@ -19,24 +19,40 @@ void createUI(struct UI* ui, GtkWindow* win)
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(win), "interfacestack"); 
   /*Loading ui's files (get builders) and expose objects for callbacks*/
     /*Menu*/
+  GError* err = nullptr;
   GtkBuilder* menu_builder = gtk_builder_new();
   gtk_builder_expose_object(menu_builder, "win", G_OBJECT(win));
   set_menu_page_callbacks(menu_builder, win);
-  gtk_builder_add_from_file(menu_builder, MENU_SOURCES, nullptr);
+  gtk_builder_add_from_file(menu_builder, MENU_SOURCES, &err);
+  if(err){
+    g_print("Menu builder error: %s\n", err->message);
+    g_object_unref(menu_builder);
+    g_error_free(err);
+    return;
+  }
     /*Players*/
+  /*
   GtkBuilder* players_builder = gtk_builder_new();
   gtk_builder_expose_object(players_builder, "win", G_OBJECT(win));
   gtk_builder_add_from_file(players_builder, PLAYERS_SOURCES, nullptr);
+  */
     /*New campaign*/
   GtkBuilder* new_campagin_builder = gtk_builder_new();
   set_new_campaign_page_callbacks(new_campagin_builder, win);
-  gtk_builder_add_from_file(new_campagin_builder, NEW_CAMPAIGN_SOURCES, nullptr);
+  gtk_builder_add_from_file(new_campagin_builder, NEW_CAMPAIGN_SOURCES, &err);
+  if(err){
+    g_print("New campaign builder error: %s\n", err->message);
+    g_object_unref(menu_builder);
+    g_object_unref(new_campagin_builder);
+    g_error_free(err);
+    return;
+  }
   /*Get root page's widgets*/
   ui->menu_page = GTK_WIDGET(gtk_builder_get_object(menu_builder, "menu_page"));
-  ui->players_page = GTK_WIDGET(gtk_builder_get_object(players_builder, "players_page"));
+  //ui->players_page = GTK_WIDGET(gtk_builder_get_object(players_builder, "players_page"));
   ui->new_campaign_page = GTK_WIDGET(gtk_builder_get_object(new_campagin_builder, "new_campaign_page"));
   gtk_stack_add_named(interfacestack, ui->menu_page, "menu_page");
-  gtk_stack_add_named(interfacestack, ui->players_page, "players_page");
+  //gtk_stack_add_named(interfacestack, ui->players_page, "players_page");
   gtk_stack_add_named(interfacestack, ui->new_campaign_page, "new_campaign_page");
   /*Get Entry Buffer and set like obj data*/
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(gtk_builder_get_object(new_campagin_builder, "campaign_name_buffer"));
@@ -45,7 +61,7 @@ void createUI(struct UI* ui, GtkWindow* win)
   gtk_stack_set_visible_child_name(interfacestack, "menu_page");
   /*Destroy builders*/
   g_object_unref(menu_builder);
-  g_object_unref(players_builder);
+  //g_object_unref(players_builder);
   g_object_unref(new_campagin_builder);
 }
 
