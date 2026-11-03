@@ -65,6 +65,13 @@ void createUI(struct UI* ui, GtkWindow* win)
   g_object_unref(new_campagin_builder);
 }
 
+void change_widget_cursor(GtkWidget* widget, const char* name)
+{
+  GdkCursor *cursor = gdk_cursor_new_from_name(name, NULL);
+  gtk_widget_set_cursor(widget, cursor);
+  g_object_unref(cursor);
+}
+
 static void set_menu_page_callbacks(GtkBuilder* builder, GtkWindow* win)
 {
   GtkBuilderScope* scope = gtk_builder_cscope_new();

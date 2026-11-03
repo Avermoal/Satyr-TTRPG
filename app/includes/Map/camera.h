@@ -13,4 +13,6 @@ void getortho(float* ortho, float l, float r, float b, float t, float n, float f
 
 void getviewport(struct camera* cam, float ww, float wh, float* l, float* r, float* b, float* t);
 
+void movecamera(struct camera* cam, float x, float y);
+
 #endif/*MAP_CAMERA_H*/

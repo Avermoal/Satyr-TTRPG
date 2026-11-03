@@ -194,10 +194,10 @@
                     <property name="halign">center</property>
                     <property name="valign">start</property>
                     <child>
-                      <object class="GtkToggleButton">
+                      <object class="GtkToggleButton" id="drag_btn">
                         <property name="child">
                           <object class="GtkImage">
-                            <property name="file">res/icons/dice.svg</property>
+                            <property name="file">res/icons/cursor.svg</property>
                             <property name="icon-size">large</property>
                           </object>
                         </property>

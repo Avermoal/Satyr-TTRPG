@@ -10,4 +10,6 @@ struct UI{
 
 void createUI(struct UI* ui, GtkWindow* win);
 
+void change_widget_cursor(GtkWidget* widget, const char* name);
+
 #endif/*UI_UI_H*/

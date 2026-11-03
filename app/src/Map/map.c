@@ -137,4 +137,5 @@ void layer_update_texture_atlas(struct layer* l, const char* atlas_path)
   l->tex.id = load_png(atlas_path, &w, &h);
   l->tex.width = w;
   l->tex.height = h;
+  l->isdirty = true;
 }

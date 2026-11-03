@@ -45,3 +45,9 @@ void getviewport(struct camera* cam, float ww, float wh, float* l, float* r, flo
     *b = cam->cam_y + half_h;
   }
 }
+
+void movecamera(struct camera* cam, float x, float y)
+{
+  cam->cam_x = x;
+  cam->cam_y = y;
+}

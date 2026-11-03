@@ -4,11 +4,17 @@
 #define TO_CURRENT_TIME(frametime) (double) frametime / 1000000.0
 
 struct eventdata{
-  double drag_last_dx;
-  double drag_last_dy;
+  float drag_off_x;
+  float drag_off_y;
 
-  double mousex;
-  double mousey;
+  int32_t draglayer;
+  int32_t drag_rid;
+
+  bool dragging;
+  bool draggingscene;
+
+  float mousex;
+  float mousey;
 
   double last_frame_time;
   double deltatime;

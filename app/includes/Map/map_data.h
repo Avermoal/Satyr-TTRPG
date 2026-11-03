@@ -75,8 +75,11 @@ static inline void layerfree(struct layer* l)
 
 static inline bool layer_reserve_rects(struct layer* l, int32_t need)
 {
-  if(!l || need < 0 || need <= l->cap){
+  if(!l || need < 0){
     return false;
+  }
+  if(need <= l->cap){
+    return true;
   }
   int32_t newcap = l->cap;
   if(newcap == 0){
@@ -128,7 +131,9 @@ static inline void layer_resize_rects(struct layer* l, int32_t count)
   if(!l || count < 0){
     return;
   }
-  layer_reserve_rects(l, count);
+  if(!layer_reserve_rects(l, count)){
+    return;
+  }
   if(count > l->rnum){
     memset(l->rects + l->rnum, 0, (size_t)(count - l->rnum)*sizeof(struct rectangle));
   }
@@ -137,7 +142,12 @@ static inline void layer_resize_rects(struct layer* l, int32_t count)
 
 static inline struct rectangle* layer_add_empty(struct layer* l)
 {
-  layer_reserve_rects(l, l->rnum + 1);
+  if(!l){
+    return nullptr;
+  }
+  if(!layer_reserve_rects(l, l->rnum + 1)){
+    return nullptr;
+  }
   struct rectangle* rect = &l->rects[l->rnum];
   l->rnum++;
   memset(rect, 0, sizeof(*rect));
@@ -243,14 +253,47 @@ static inline void layer_link_last_rect_with_token(struct layer* l, struct token
   l->isdirty = true;
 }
 
-static inline void layer_move_rect(struct layer* l, int32_t rnum, float x, float y)
+static inline void layer_move_rect(struct layer* l, int32_t rid, float x, float y)
 {
-  if(!l || rnum >= l->rnum){
+  if(!l || rid < 0 || rid >= l->rnum){
     return;
   }
-  struct rectangle* r = &l->rects[rnum - 1];
-  rect_set_XYWH(r, x, y, rect_get_w(r), rect_get_h(r));
+  struct rectangle* r = &l->rects[rid];
+  rect_set_XYWH(r, x - 0.5f * rect_get_w(r), y - 0.5f * rect_get_h(r), rect_get_w(r), rect_get_h(r));
   l->isdirty = true;
+}
+
+static inline bool mouse_XY_in_layer_rects(float x, float y, struct layer* l, int32_t* tokid, int32_t* rid)
+{
+  for(int32_t i = 0; i < l->rnum; ++i){
+    if((x >= l->rects[i].vert[0].x && x <= l->rects[i].vert[2].x)
+        &&
+       (y >= l->rects[i].vert[0].y && y <= l->rects[i].vert[2].y)){
+      *tokid = l->tokid[i];
+      *rid = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+static inline bool mouse_XY_in_layer_token(float x, float y, struct layer* l, int32_t* tokid, int32_t* rid)
+{
+  float cx = 0.0f, cy = 0.0f, cr = 0.0f, dx = 0.0f, dy = 0.0f, distsqrt = 0.0f;
+  for(int32_t i = 0; i < l->rnum; ++i){
+    cx = l->rects[i].vert[0].x + 0.5 * rect_get_w(&l->rects[i]);
+    cy = l->rects[i].vert[0].y + 0.5 * rect_get_h(&l->rects[i]);
+    cr = 0.5f * rect_get_w(&l->rects[i]);
+    dx = x - cx;
+    dy = y - cy;
+    distsqrt = dx * dx + dy * dy;
+    if(distsqrt <= (cr * cr)){
+      *tokid = l->tokid[i];
+      *rid = i;
+      return true;
+    }
+  }
+  return false;
 }
 
 #endif/*MAP_MAP_DATA_H*/

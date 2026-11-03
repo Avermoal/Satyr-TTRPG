@@ -424,7 +424,7 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
     /*Register tokens in main thread*/
     for(int32_t i = 0; i < data->pnum; ++i){
       if(data->path[i]){
-        if(data->cache != nullptr){
+        if(data->cache[i] != nullptr){
           game_state_register_token(gstate, data->toktype, data->path[i], data->cache[i]);
         }else{
           game_state_register_token(gstate, data->toktype, data->path[i], nullptr);
@@ -475,14 +475,14 @@ static void drop_final_data_free(gpointer data)
     g_free(datafinal->path[i]);
     datafinal->path[i] = nullptr;
     if(datafinal->toktype == MAP){
-      free(datafinal->cache[i]);
+      g_free(datafinal->cache[i]);
     }
   }
   if(datafinal->toktype == TOKEN){
     for(int32_t i = 0; i < datafinal->tnum + datafinal->pnum; ++i){
       g_free(datafinal->ts[i].path);
       datafinal->ts[i].path = nullptr;
-      free(datafinal->ts[i].cache);
+      g_free(datafinal->ts[i].cache);
       datafinal->ts[i].cache = nullptr;
     }
     free(datafinal->atlas_path);
@@ -620,13 +620,11 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   if(type == TOKEN){
     if(id >= gstate->tnum){
       g_print("Token id is out of range: %d\n", id);
-      mime_read_ctx_free(ctx);
       return;
     }
   }else if(type == MAP){
     if(id >= gstate->mnum){
       g_print("Map id is out of range: %d\n", id);
-      mime_read_ctx_free(ctx);
       return;
     }
   }
@@ -909,18 +907,12 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   if(data->righttoks[0].type == MAP){
     /*Layer update texture atlas for MAP and rects set UV*/
     int32_t n = L->rnum < data->tnum ? L->rnum : data->tnum;
-    if(data->righttoks[0].type == MAP){
-      layer_update_texture_atlas(L, fl->atlas_path);
-      /*Rect set UV*/
-      for(int32_t i = 0; i < n; ++i){
-        rect_set_UV(&L->rects[i],
-                    data->righttoks[i].u0, data->righttoks[i].v0,
-                    data->righttoks[i].u1, data->righttoks[i].v1);
-      }
-    }else{
-      rect_set_UV(&L->rects[n - 1],
-                  data->righttoks[n - 1].u0, data->righttoks[n - 1].v0,
-                  data->righttoks[n - 1].u1, data->righttoks[n - 1].v1);
+    layer_update_texture_atlas(L, fl->atlas_path);
+    /*Rect set UV*/
+    for(int32_t i = 0; i < n; ++i){
+      rect_set_UV(&L->rects[i],
+                  data->righttoks[i].u0, data->righttoks[i].v0,
+                  data->righttoks[i].u1, data->righttoks[i].v1);
     }
   }
   /*Free*/

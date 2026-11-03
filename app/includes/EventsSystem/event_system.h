@@ -15,6 +15,10 @@ gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpoint
 
 void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer userdata);
 
+void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdata);
+
+void on_drag_end(GtkGestureDrag* gesture, double x, double y, gpointer userdata);
+
 void eventpoll(struct map* m);
 
 #endif/*EVENTSYSTEM_EVENT_SYSTEM_H*/

@@ -54,7 +54,9 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   dms_ui->tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
   dms_ui->tokens_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_btn"));
   dms_ui->maps_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "maps_btn"));
+  dms_ui->drag_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "drag_btn"));
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
+  g_object_set_data(G_OBJECT(dms_ui->overlay), "drag_btn", dms_ui->drag_btn);
   /*Set GtkOpenGLArea ticker*/
   GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
   gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
@@ -70,6 +72,13 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
   g_signal_connect(dms_ui->tokens_btn, "toggled", G_CALLBACK(on_tokens_btn_toggled), userdata);
   g_signal_connect(dms_ui->maps_btn, "toggled", G_CALLBACK(on_maps_btn_toggled), userdata);
+  GtkGesture* longpress = gtk_gesture_drag_new();
+  g_signal_connect(longpress, "drag-begin", G_CALLBACK(on_drag_begin), userdata);
+  g_signal_connect(longpress, "drag-end", G_CALLBACK(on_drag_end), userdata);
+  gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(longpress), 0);
+  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(longpress));
+  /*Set drag btn active*/
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->drag_btn), TRUE);
   /*Set Drag and Drop target*/
     /*Content formats*/
   GdkContentFormatsBuilder* formatsbuilder = gdk_content_formats_builder_new();
