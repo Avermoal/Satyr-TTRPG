@@ -76,7 +76,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     return;
   }
   /*Get atlas*/
-  img_info* tmpimg = (img_info*)calloc((size_t)tnum * sizeof(img_info));
+  img_info* tmpimg = (img_info*)calloc((size_t)tnum, sizeof(img_info));
   if(!tmpimg){
     free(*atlas_path);
     *atlas_path = nullptr;
@@ -84,7 +84,6 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   float* wstmp = (float*)calloc((size_t)tnum, sizeof(float));
   if(!wstmp){
     free(tmpimg);
-    free(placed);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;
@@ -93,7 +92,6 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   if(!hstmp){
     free(wstmp);
     free(tmpimg);
-    free(placed);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;
@@ -117,16 +115,15 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     tmpimg[thruth_img_count].originalindex = i;
     /*Set tokens sizes*/
     wstmp[thruth_img_count] = w;
-    hstms[thruth_img_count] = h;
+    hstmp[thruth_img_count] = h;
     thruth_img_count++;
   }
   /*Copy only read img*/
   img_info* img = (img_info*)malloc((size_t)thruth_img_count * sizeof(img_info));
   if(!img){
     free(tmpimg);
-    free(placed);
     free(wstmp);
-    free(hstms);
+    free(hstmp);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;

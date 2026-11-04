@@ -900,7 +900,7 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, m->u0, m->v0, m->u1, m->v1);
     if(layer_add_rect(L, &rect)){
-      layer_link_last_rect_with_token(L, t);
+      layer_link_last_rect_with_token(L, m);
     }
   }
   /*Create new renderer*/
