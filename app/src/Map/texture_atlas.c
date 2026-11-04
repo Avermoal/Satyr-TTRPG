@@ -141,10 +141,9 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   free(tmpimg);
   free(wstmp);
   free(hstmp);
-  /*Allocation*/
-  rect* placed = (rect*)malloc((size_t)thruth_img_count * sizeof(rect));
+  /*Allocation (tnum cuz thruth_img_count -> buffer overflow)*/
+  rect* placed = (rect*)malloc((size_t)tnum * sizeof(rect));
   if(!placed){
-    free(tmpimg);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;
@@ -226,7 +225,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
       return;
     }
 
-    if(w != placed[i].w || h != placed[i].h){
+    if(w != placed[img[i].originalindex].w || h != placed[img[i].originalindex].h){
       fprintf(stderr, "Image: %s, have wrong sizes (%d x %d) != (%d x %d)\n",
               toks[img[i].originalindex].path, w, h, placed[i].w, placed[i].h);
       free(*atlas_path);
@@ -241,8 +240,8 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     blit_image_rgba(
       canvas,
       finalctx.w,
-      placed[i].x,
-      placed[i].y,
+      placed[img[i].originalindex].x,
+      placed[img[i].originalindex].y,
       pixels,
       w,
       h);
@@ -269,11 +268,11 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   }
     /*UV, sizes*/
   for(int i = 0; i < thruth_img_count; i++){
-    float u0 = (float)placed[i].x / (float)finalctx.w;
-    float v0 = (float)placed[i].y / (float)finalctx.h;
+    float u0 = (float)placed[img[i].originalindex].x / (float)finalctx.w;
+    float v0 = (float)placed[img[i].originalindex].y / (float)finalctx.h;
 
-    float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
-    float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
+    float u1 = (float)(placed[img[i].originalindex].x + placed[img[i].originalindex].w) / (float)finalctx.w;
+    float v1 = (float)(placed[img[i].originalindex].y + placed[img[i].originalindex].h) / (float)finalctx.h;
     /*Set tokens data*/
     set_token_UV(&toks[img[i].originalindex], u0, v0, u1, v1);
   }

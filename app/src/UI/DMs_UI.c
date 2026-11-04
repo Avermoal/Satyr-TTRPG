@@ -67,6 +67,7 @@ void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata)
       /*Create widget*/
       GdkTexture* texture = gdk_texture_new_from_filename(gstate->tokens[i].path, nullptr);
       GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
+      gtk_image_set_pixel_size(GTK_IMAGE(image), 64);
       tokensdata* tdata = (tokensdata*)g_new0(tokensdata, 1);
       if(!tdata){
         continue;
@@ -112,6 +113,7 @@ void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
       /*Create widget*/
       GdkTexture* texture = gdk_texture_new_from_filename(gstate->maps[i].cache, nullptr);
       GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
+      gtk_image_set_pixel_size(GTK_IMAGE(image), 64);
       tokensdata* tdata = (tokensdata*)g_new0(tokensdata, 1);
       if(!tdata){
         continue;
@@ -141,3 +143,8 @@ void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
   }
 }
 
+gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata)
+{
+  /*Only stop*/
+  return GDK_EVENT_STOP;
+}

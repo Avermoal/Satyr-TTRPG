@@ -173,8 +173,6 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
         evdata->drag_rid = rid;
         evdata->dragging = true;
         evdata->draggingscene = false;
-        change_widget_cursor(overlay, "grabbed");
-        g_print("GRAB token id=%d layer=%d rid=%d\n", tokid, i, rid);
         break;
       }
     }
@@ -211,8 +209,6 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
       evdata->drag_rid = rid;
       evdata->dragging = true;
       evdata->draggingscene = false;
-      change_widget_cursor(overlay, "grabbed");
-      g_print("GRAB token id=%d layer=%d rid=%d\n", tokid, i, rid);
       break;
     }
   }

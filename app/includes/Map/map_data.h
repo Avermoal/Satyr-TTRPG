@@ -297,4 +297,23 @@ static inline bool mouse_XY_in_layer_token(float x, float y, struct layer* l, in
   return false;
 }
 
+/*Not thread save? Fuck...*/
+static inline void layer_move_rt_to_begin(struct layer* l, int32_t rid)
+{
+  /*If rid == 0 then move don't need*/
+  if(rid <=0 || rid >= l->rnum){
+    return;
+  }
+  struct rectangle tmpr = l->rects[rid];
+  int32_t tmptokid = l->tokid[rid];
+  /*Move + Shift*/
+  memmove(&l->rects[1], &l->rects[0], (size_t)rid * sizeof(struct rectangle));
+  memmove(&l->tokid[1], &l->tokid[0], (size_t)rid * sizeof(int32_t));
+  /*To begin*/
+  l->rects[0] = tmpr;
+  l->tokid[0] = tmptokid;
+  /*Flag*/
+  l->isdirty = true;
+}
+
 #endif/*MAP_MAP_DATA_H*/

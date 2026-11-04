@@ -61,10 +61,13 @@
                                   <object class="GtkNotebookPage">
                                     <property name="child">
                                       <object class="GtkScrolledWindow">
+                                        <property name="css-classes">sy-scrolled_win</property>
                                         <property name="min-content-height">1</property>
                                         <property name="min-content-width">1</property>
                                         <child>
-                                          <object class="GtkBox"/>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
                                         </child>
                                       </object>
                                     </property>
@@ -184,7 +187,7 @@
           </object>
         </child>
         <child type="center">
-          <object class="GtkCenterBox">
+          <object class="GtkCenterBox" id="center_box_center">
             <child type="center">
               <object class="GtkBox">
                 <property name="orientation">vertical</property>
@@ -298,7 +301,7 @@
                     <property name="hexpand">True</property>
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkScrolledWindow">
+                      <object class="GtkScrolledWindow" id="tokens_scrolled_win">
                         <property name="vscrollbar-policy">never</property>
                         <child>
                           <object class="GtkBox" id="tokens_box">

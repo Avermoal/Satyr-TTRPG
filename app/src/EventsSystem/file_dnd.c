@@ -786,6 +786,7 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
   if(!w){
     free(uniques);
     free(atlas_dir_path);
+    g_task_return_pointer(task, nullptr, nullptr);
     return;
   }
   float* h = (float*)calloc(unum, sizeof(float));
@@ -793,6 +794,7 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
     free(w);
     free(uniques);
     free(atlas_dir_path);
+    g_task_return_pointer(task, nullptr, nullptr);
     return;
   }
   get_path_to_atlas(data->max_atlas_size, atlas_dir_path, data->lrnum, uniques, unum, w, h, &atlas_path);
@@ -801,6 +803,7 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
     free(h);
     free(uniques);
     free(atlas_dir_path);
+    g_task_return_pointer(task, nullptr, nullptr);
     return;
   }
   /*Asociate uniques UV with righttoks UV*/
@@ -822,6 +825,7 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
     free(atlas_path);
     free(w);
     free(h);
+    g_task_return_pointer(task, nullptr, nullptr);
     return;
   }
   fl->atlas_path = atlas_path;
@@ -853,6 +857,18 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     g_object_unref(data->userdata);
     g_free(data);
     free(fl);
+    return;
+  }
+  if(!fl){
+    g_warning("Recived nullptr forlayer pointer\n");
+    for(int32_t i = 0; i < data->tnum; ++i){
+      free(data->righttoks[i].path);
+      free(data->righttoks[i].cache);
+    }
+    free(data->righttoks);
+    free(data->gamename);
+    g_object_unref(data->userdata);
+    g_free(data);
     return;
   }
   /*Make current gl context*/

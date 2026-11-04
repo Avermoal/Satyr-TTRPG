@@ -63,15 +63,15 @@ button:focus-visible {
 
 button.satyr-button {
   font-family: "Manrope ExtraLight", sans-serif;
-  min-width: 15rem;                 /* 240px */
-  padding: 1.125rem 3rem;           /* 18px 48px */
-  border-radius: 1.5rem;            /* 24px, rounded-3xl */
+  min-width: 15rem;
+  padding: 1.125rem 3rem;
+  border-radius: 1.5rem;
   background-color: @sy_surface;
   color: @sy_fg;
-  font-size: 0.9375rem;             /* 15px */
+  font-size: 0.9375rem;
   font-weight: 700;
-  letter-spacing: 0.14em;           /* уже относительное */
-  box-shadow: 0 0.375rem 1.125rem rgba(0, 0, 0, 0.35);  /* 0 6px 18px */
+  letter-spacing: 0.14em;
+  box-shadow: 0 0.375rem 1.125rem rgba(0, 0, 0, 0.35);
 }
 button.satyr-button:hover    { background-color: @sy_surface_hi; }
 button.satyr-button:active   { background-color: @sy_surface_lo;

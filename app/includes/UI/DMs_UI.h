@@ -27,4 +27,6 @@ void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 
 void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 
+gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata);
+
 #endif/*UI_DMS_UI_H*/

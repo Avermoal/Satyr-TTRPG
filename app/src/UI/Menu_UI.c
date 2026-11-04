@@ -97,11 +97,17 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
   gdk_content_formats_unref(formats);
   /*Set scroll controller*/
   GtkEventController* scroll = gtk_event_controller_scroll_new(
-    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL |
     GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
   );
   g_signal_connect(scroll, "scroll", G_CALLBACK(onscroll), userdata);
   gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(scroll));
+  /*Scroll intercept for tokens_scrolled_win*/
+  GtkWidget* tokens_scrolled_win = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_scrolled_win"));
+  GtkEventController* blockscroll = gtk_event_controller_scroll_new(
+    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
+  );
+  g_signal_connect(blockscroll, "scroll", G_CALLBACK(on_tokens_scrolled_win_scroll_block), nullptr);
+  gtk_widget_add_controller(tokens_scrolled_win, GTK_EVENT_CONTROLLER(blockscroll));
   /*Motion controller*/
   GtkEventController* motion = gtk_event_controller_motion_new();
   g_signal_connect(motion, "motion", G_CALLBACK(onmotion), userdata);

@@ -95,7 +95,7 @@ struct gamescene* get_game_scene(const char* path, int32_t snum)
 struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layertype, int32_t toktype)
 {
   struct layer* ls = map_add_layer(gstate->m, layertype, toktype);
-  if(!l){
+  if(!ls){
     return nullptr;
   }
   gstate->gscns[gstate->current_map_id - 1].l = ls;
