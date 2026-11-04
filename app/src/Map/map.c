@@ -107,37 +107,44 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
   if(!m){
     return nullptr;
   }
+  /*New lrnum*/
+  size_t total = (size_t) m->lrnum + 1;
   /*Reallocation*/
-  struct layer* ltmp = (struct layer *)realloc(m->l, (size_t)(m->lrnum + 1) * sizeof(struct layer));
+  struct layer* ltmp = (struct layer*)calloc(total, sizeof(struct layer));
   /*Check*/
   if(!ltmp){
-    /*Return old layers*/
-    return m->l;
+    return nullptr;
   }
   /*Reallocation*/
-  struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
+  struct renderer* rtmp = (struct renderer*)calloc(total, sizeof(struct renderer));
   /*Check*/
   if(!rtmp){
     free(ltmp);
-    /*Return old layers*/
-    return m->l;
+    return nullptr;
+  }
+  /*Copy*/
+  if(m->lrnum > 0){
+    memcpy(ltmp, m->l, (size_t)m->lrnum * sizeof(struct layer));
+    memcpy(rtmp, m->ren, (size_t)m->lrnum * sizeof(struct renderer));
   }
   /*Init*/
   layerinit(&ltmp[m->lrnum], type, toktype);
+  /*New renderer invalidation*/
+  struct renderer* ren = &rtmp[m->lrnum];
+  ren->u_proj_loc = -1;
+  ren->u_tex_loc = -1;
+  ren->u_grid_step_loc = -1;
+  ren->u_visible_half_x_loc = -1;
+  ren->u_visible_half_y_loc = -1;
+  ren->u_camera_pos_loc = -1;
+  ren->u_lrnum_loc = -1;
+  /*Free old*/
+  free(m->l);
+  free(m->ren);
   /*Sets*/
   m->l = ltmp;
   m->ren = rtmp;
-  int32_t index = m->lrnum;
-  m->lrnum++;
-  memset(&m->ren[index], 0, sizeof(struct renderer));
-  /*New renderer invalidation*/
-  m->ren[index].u_proj_loc = -1;
-  m->ren[index].u_tex_loc = -1;
-  m->ren[index].u_grid_step_loc = -1;
-  m->ren[index].u_visible_half_x_loc = -1;
-  m->ren[index].u_visible_half_y_loc = -1;
-  m->ren[index].u_camera_pos_loc = -1;
-  m->ren[index].u_lrnum_loc = -1;
+  m->lrnum = total;
   /*Return new layers*/
   return m->l;
 }
