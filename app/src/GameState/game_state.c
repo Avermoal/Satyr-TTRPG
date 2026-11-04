@@ -103,7 +103,7 @@ struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layerty
 
 void make_current(struct gamestate* gstate, int32_t snum)
 {
-  if(gstate->current_map_id == snum || snum < 0 || snum >= gstate->snum){
+  if(gstate->current_map_id == snum || snum < 1 || snum >= gstate->snum){
     return;
   }
   struct map* curmap = gstate->m;

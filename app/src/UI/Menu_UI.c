@@ -45,6 +45,7 @@ void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
     g_print("DMs page builder error: %s\n", err->message);
     g_object_unref(dms_builder);
     g_error_free(err);
+    return;
   }
   /*Set DMs UI widgets*/
   dms_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(dms_builder, "side_menu_revealer"));

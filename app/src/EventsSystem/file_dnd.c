@@ -257,7 +257,7 @@ static void work_with_files(GTask* task, gpointer source, gpointer taskdata, GCa
     }
     if(!is_registered_token){
       size_t len = strlen(basename);
-      if(basename[len - 4] != '.' || !(basename[len - 3] == 'j' || basename[len - 3] == 'p')){
+      if(len < 4 || basename[len - 4] != '.' || !(basename[len - 3] == 'j' || basename[len - 3] == 'p')){
         g_free(basename);
         continue;
       }
@@ -606,10 +606,12 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   }
   if(type != MAP && type != TOKEN){
     g_print("Invalid token type: %d\n", type);
+    mime_read_ctx_free(ctx);
     return;
   }
   if(id < 0){
     g_print("Invalid token id: %d\n", id);
+    mime_read_ctx_free(ctx);
     return;
   }
   /*Get userdata*/
@@ -885,8 +887,9 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
                   current->l[0].gridstep, current->l[0].gridstep);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, t->u0, t->v0, t->u1, t->v1);
-    layer_add_rect(L, &rect);
-    layer_link_last_rect_with_token(L, t);
+    if(layer_add_rect(L, &rect)){
+      layer_link_last_rect_with_token(L, t);
+    }
   }else if(data->righttoks[0].type == MAP){
     /*Get map*/
     struct token* m = fl->not_link_tok;
@@ -896,8 +899,9 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
                   gstate->m->cam.cam_y - fl->h * 0.5, fl->w, fl->h);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, m->u0, m->v0, m->u1, m->v1);
-    layer_add_rect(L, &rect);
-    layer_link_last_rect_with_token(L, m);
+    if(layer_add_rect(L, &rect)){
+      layer_link_last_rect_with_token(L, t);
+    }
   }
   /*Create new renderer*/
   if(data->is_new_layer){

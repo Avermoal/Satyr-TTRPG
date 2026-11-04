@@ -154,16 +154,17 @@ static inline struct rectangle* layer_add_empty(struct layer* l)
   return rect;
 }
 
-static inline void layer_add_rect(struct layer* l, const struct rectangle* rect)
+static inline bool layer_add_rect(struct layer* l, const struct rectangle* rect)
 {
   if(!l || !rect){
-    return;
+    return false;
   }
   struct rectangle* dst = layer_add_empty(l);
   if(!dst){
-    return;
+    return false;
   }
   *dst = *rect;
+  return true;
 }
 
 static inline void rect_set_XYWH(struct rectangle* rect, float x, float y, float w, float h)
@@ -245,7 +246,7 @@ static inline void layer_add_quad(struct layer* l, float x, float y, float w, fl
 
 static inline void layer_link_last_rect_with_token(struct layer* l, struct token* tok)
 {
-  if(l->toktype != tok->type){
+  if(l->toktype != tok->type || l->rnum == 0){
     return;
   }
   l->tokid[l->rnum - 1] = tok->id;

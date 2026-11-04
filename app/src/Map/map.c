@@ -58,7 +58,6 @@ void rendermap(struct map* m, float ww, float wh)
   float l, r, b, t;
   getviewport(&m->cam, ww, wh, &l, &r, &b, &t);
   getortho(m->cam.ortho, l, r, b, t, -1.0f, 1.0f);
-
   /*Maps*/
   for(int32_t i = m->lrnum - 1; i >= 0; --i){
     if(m->l[i].type != GRID && m->l[i].toktype != TOKEN){
@@ -110,10 +109,18 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
   }
   /*Reallocation*/
   struct layer* ltmp = (struct layer *)realloc(m->l, (size_t)(m->lrnum + 1) * sizeof(struct layer));
+  /*Check*/
+  if(!ltmp){
+    /*Return old layers*/
+    return m->l;
+  }
+  /*Reallocation*/
   struct renderer* rtmp = (struct renderer *)realloc(m->ren, (size_t)(m->lrnum + 1) * sizeof(struct renderer));
   /*Check*/
-  if(!rtmp || !ltmp){
-    return nullptr;
+  if(!rtmp){
+    free(ltmp);
+    /*Return old layers*/
+    return m->l;
   }
   /*Init*/
   layerinit(&ltmp[m->lrnum], type, toktype);
@@ -123,8 +130,15 @@ struct layer* map_add_layer(struct map* m, uint32_t type, int32_t toktype)
   int32_t index = m->lrnum;
   m->lrnum++;
   memset(&m->ren[index], 0, sizeof(struct renderer));
+  /*New renderer invalidation*/
   m->ren[index].u_proj_loc = -1;
   m->ren[index].u_tex_loc = -1;
+  m->ren[index].u_grid_step_loc = -1;
+  m->ren[index].u_visible_half_x_loc = -1;
+  m->ren[index].u_visible_half_y_loc = -1;
+  m->ren[index].u_camera_pos_loc = -1;
+  m->ren[index].u_lrnum_loc = -1;
+  /*Return new layers*/
   return m->l;
 }
 

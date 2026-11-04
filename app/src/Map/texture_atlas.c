@@ -76,15 +76,24 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     return;
   }
   /*Get atlas*/
-  img_info* img = (img_info*)malloc(tnum * sizeof(img_info));
-  if(!img){
+  img_info* tmpimg = (img_info*)calloc((size_t)tnum * sizeof(img_info));
+  if(!tmpimg){
+    free(*atlas_path);
+    *atlas_path = nullptr;
+  }
+  float* wstmp = (float*)calloc((size_t)tnum, sizeof(float));
+  if(!wstmp){
+    free(tmpimg);
+    free(placed);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;
   }
-  rect* placed = (rect*)malloc(tnum * sizeof(rect));
-  if(!placed){
-    free(img);
+  float* hstmp = (float*)calloc((size_t)tnum, sizeof(float));
+  if(!hstmp){
+    free(wstmp);
+    free(tmpimg);
+    free(placed);
     free(*atlas_path);
     *atlas_path = nullptr;
     return;
@@ -93,6 +102,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   const int32_t padding = 2;
     /*Get images sizes*/
   int sinfo = 0;
+  int32_t thruth_img_count = 0;
   for(int i = 0; i < tnum; ++i){
     int w = 0;
     int h = 0;
@@ -101,22 +111,53 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     if(!sinfo){
       continue;
     }
-    img[i].path = toks[i].path;/*WARRNING*/
-    img[i].w = w;
-    img[i].h = h;
-    img[i].originalindex = i;
+    tmpimg[thruth_img_count].path = toks[i].path;/*WARRNING*/
+    tmpimg[thruth_img_count].w = w;
+    tmpimg[thruth_img_count].h = h;
+    tmpimg[thruth_img_count].originalindex = i;
     /*Set tokens sizes*/
-    if(toks[0].type == MAP && ws && hs){
-      ws[i] = w;
-      hs[i] = h;
+    wstmp[thruth_img_count] = w;
+    hstms[thruth_img_count] = h;
+    thruth_img_count++;
+  }
+  /*Copy only read img*/
+  img_info* img = (img_info*)malloc((size_t)thruth_img_count * sizeof(img_info));
+  if(!img){
+    free(tmpimg);
+    free(placed);
+    free(wstmp);
+    free(hstms);
+    free(*atlas_path);
+    *atlas_path = nullptr;
+    return;
+  }
+  for(int32_t i = 0; i < thruth_img_count; ++i){
+    img[i].path = tmpimg[i].path;
+    img[i].w = tmpimg[i].w;
+    img[i].h = tmpimg[i].h;
+    img[i].originalindex = tmpimg[i].originalindex;
+    if(toks[0].type == MAP){
+      ws[i] = wstmp[i];
+      hs[i] = hstmp[i];
     }
   }
+  free(tmpimg);
+  free(wstmp);
+  free(hstmp);
+  /*Allocation*/
+  rect* placed = (rect*)malloc((size_t)thruth_img_count * sizeof(rect));
+  if(!placed){
+    free(tmpimg);
+    free(*atlas_path);
+    *atlas_path = nullptr;
+    return;
+  }
     /*Sort*/
-  qsort(img, tnum, sizeof(img_info), compare_by_height_desc);
+  qsort(img, thruth_img_count, sizeof(img_info), compare_by_height_desc);
     /*Prepare start atlas sizes*/
-  uint64_t estimated_area = estimatearea(img, tnum, padding);
+  uint64_t estimated_area = estimatearea(img, thruth_img_count, padding);
   int side = estimate_initial_side(estimated_area, 256, max_atlas_size);
-  int required_width = max_required_width(img, tnum, padding);
+  int required_width = max_required_width(img, thruth_img_count, padding);
   int start_width = side;
   if(start_width < required_width){
     start_width = required_width;
@@ -134,7 +175,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   }
     /*Packaing*/
   shelfcontext finalctx;
-  if(!pack_all(img, tnum, padding, max_atlas_size, start_width, start_height, &finalctx, placed)){
+  if(!pack_all(img, thruth_img_count, padding, max_atlas_size, start_width, start_height, &finalctx, placed)){
     free(*atlas_path);
     *atlas_path = nullptr;
     free(img);
@@ -172,14 +213,14 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
     return;
   }
     /*Loading image to atlas*/
-  for(int i = 0; i < tnum; i++){
+  for(int i = 0; i < thruth_img_count; i++){
     int w = 0;
     int h = 0;
     int channels = 0;
 
-    uint8_t* pixels = stbi_load(toks[i].path, &w, &h, &channels, 4);
+    uint8_t* pixels = stbi_load(toks[img[i].originalindex].path, &w, &h, &channels, 4);
     if(!pixels){
-      fprintf(stderr, "Image: %s, not load\n", toks[i].path);
+      fprintf(stderr, "Image: %s, not load\n", toks[img[i].originalindex].path);
       free(*atlas_path);
       *atlas_path = nullptr;
       free(canvas);
@@ -190,7 +231,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
 
     if(w != placed[i].w || h != placed[i].h){
       fprintf(stderr, "Image: %s, have wrong sizes (%d x %d) != (%d x %d)\n",
-              toks[i].path, w, h, placed[i].w, placed[i].h);
+              toks[img[i].originalindex].path, w, h, placed[i].w, placed[i].h);
       free(*atlas_path);
       *atlas_path = nullptr;
       stbi_image_free(pixels);
@@ -225,15 +266,19 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
            *atlas_path,
            finalctx.w,
            finalctx.h);
+    /*Set fictive tokens UV*/
+  for(int32_t i = 0; i < tnum; ++i){
+    set_token_UV(&toks[i], 0.0f, 0.0f, 0.0f, 0.0f);
+  }
     /*UV, sizes*/
-  for(int i = 0; i < tnum; i++){
+  for(int i = 0; i < thruth_img_count; i++){
     float u0 = (float)placed[i].x / (float)finalctx.w;
     float v0 = (float)placed[i].y / (float)finalctx.h;
 
     float u1 = (float)(placed[i].x + placed[i].w) / (float)finalctx.w;
     float v1 = (float)(placed[i].y + placed[i].h) / (float)finalctx.h;
     /*Set tokens data*/
-    set_token_UV(&toks[i], u0, v0, u1, v1);
+    set_token_UV(&toks[img[i].originalindex], u0, v0, u1, v1);
   }
   /*Free*/
   free(canvas);
