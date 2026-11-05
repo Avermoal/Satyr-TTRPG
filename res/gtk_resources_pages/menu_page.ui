@@ -24,6 +24,9 @@
             <property name="margin-top">16</property>
             <property name="valign">center</property>
             <signal name="clicked" handler="on_to_new_campaign_btn_clicked"/>
+            <style>
+              <class name="satyr_button"/>
+            </style>
           </object>
         </child>
         <child>
@@ -59,6 +62,7 @@
         </child>
         <child>
           <object class="GtkImage" id="satyr_qr">
+            <property name="css-classes">satyr-qr</property>
             <property name="halign">center</property>
             <property name="icon-name">view-refresh</property>
             <property name="icon-size">large</property>

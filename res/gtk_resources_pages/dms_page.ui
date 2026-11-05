@@ -47,6 +47,7 @@
                                     <property name="icon-size">large</property>
                                   </object>
                                 </property>
+                                <property name="css-classes">game-button</property>
                                 <property name="focusable">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
@@ -61,7 +62,6 @@
                                   <object class="GtkNotebookPage">
                                     <property name="child">
                                       <object class="GtkScrolledWindow">
-                                        <property name="css-classes">sy-scrolled_win</property>
                                         <property name="min-content-height">1</property>
                                         <property name="min-content-width">1</property>
                                         <child>
@@ -86,7 +86,9 @@
                                         <property name="min-content-height">1</property>
                                         <property name="min-content-width">1</property>
                                         <child>
-                                          <object class="GtkBox"/>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
                                         </child>
                                       </object>
                                     </property>
@@ -105,7 +107,9 @@
                                         <property name="min-content-height">1</property>
                                         <property name="min-content-width">1</property>
                                         <child>
-                                          <object class="GtkBox"/>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
                                         </child>
                                       </object>
                                     </property>
@@ -124,7 +128,9 @@
                                         <property name="min-content-height">1</property>
                                         <property name="min-content-width">1</property>
                                         <child>
-                                          <object class="GtkBox"/>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
                                         </child>
                                       </object>
                                     </property>
@@ -158,6 +164,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <property name="focusable">False</property>
                         <property name="halign">center</property>
                         <property name="valign">center</property>
@@ -179,6 +186,7 @@
                     <property name="icon-size">large</property>
                   </object>
                 </property>
+                <property name="css-classes">game-button</property>
                 <property name="focusable">False</property>
                 <property name="halign">start</property>
                 <property name="valign">start</property>
@@ -204,6 +212,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">0</property>
                           <property name="row">0</property>
@@ -218,6 +227,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">1</property>
                           <property name="row">0</property>
@@ -232,6 +242,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">2</property>
                           <property name="row">0</property>
@@ -246,6 +257,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">3</property>
                           <property name="row">0</property>
@@ -260,6 +272,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">4</property>
                           <property name="row">0</property>
@@ -274,6 +287,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">5</property>
                           <property name="row">0</property>
@@ -288,6 +302,7 @@
                             <property name="icon-size">large</property>
                           </object>
                         </property>
+                        <property name="css-classes">game-button</property>
                         <layout>
                           <property name="column">6</property>
                           <property name="row">0</property>
@@ -302,9 +317,11 @@
                     <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkScrolledWindow" id="tokens_scrolled_win">
+                        <property name="css-classes">tokens-scrolled-win</property>
                         <property name="vscrollbar-policy">never</property>
                         <child>
                           <object class="GtkBox" id="tokens_box">
+                            <property name="css-classes">tokens-box</property>
                             <property name="spacing">4</property>
                           </object>
                         </child>
