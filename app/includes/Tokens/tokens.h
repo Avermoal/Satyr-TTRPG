@@ -2,6 +2,7 @@
 #define TOKENS_TOKENS_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 enum{
   TOKEN = 0,
@@ -28,5 +29,9 @@ void set_token_UV(struct token* tok, float u0, float v0, float u1, float v1);
 void copytoken(struct token* dst, struct token* src);
 
 void set_token_UV_from_token(struct token* dst, struct token* src);
+
+bool savetoken(struct token* t, FILE* state);
+
+struct token* gettokens(int32_t tnum, FILE* state);
 
 #endif/*TOKENS_TOKENS_H*/

@@ -41,7 +41,7 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_escape_pressed), userdata);
   gtk_widget_add_controller(GTK_WIDGET(userdata), keycontroller);
   /*Create or load game state and map*/
-  int ISNEW = 1; // *(int*)g_object_get_data(G_OBJECT(userdata), "ISNEW_p");
+  int ISNEW = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISNEW"));
   if(ISNEW){
     /*Allocation*/
     struct gamestate* gstate = (struct gamestate*)calloc(1, sizeof(struct gamestate));
@@ -51,7 +51,7 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     /*Make game scene from map*/
     gstate->gscns = make_game_scene_from_map_once(gstate, m);
     /*Get game name*/
-    GtkEntryBuffer* entrybuffer = g_object_get_data(G_OBJECT(userdata), "entrybuffer");
+    GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
     gstate->gamename = strdup(gtk_entry_buffer_get_text(entrybuffer));
     /*Campaign dir init*/
     campaign_dir_init(gstate->gamename);
@@ -59,7 +59,7 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
     g_object_set_data(G_OBJECT(userdata), "map", m);
   }else{
-
+    /*Game path*/
   }
 }
 

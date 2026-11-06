@@ -14,6 +14,8 @@ struct DMs_UI{
   GtkWidget* drag_btn;
 };
 
+void create_DMs_UI(int ISNEW, gpointer userdata);
+
 void on_side_menu_btn_clicked(GtkButton* btn, gpointer userdata);
 
 void on_side_hide_btn_clicked(GtkButton* btn, gpointer userdata);

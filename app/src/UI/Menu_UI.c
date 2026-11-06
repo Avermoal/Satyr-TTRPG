@@ -3,12 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "UI/UIs_info.h"
 #include "UI/DMs_UI.h"
-#include "GameState/game_state.h"
-#include "DisplaySystem/display_system.h"
-#include "EventsSystem/event_system.h"
-#include "EventsSystem/file_dnd.h"
 
 void on_to_new_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
 {
@@ -33,95 +28,7 @@ void on_exit_btn_clicked(GtkButton* btn, gpointer userdata)
 
 void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
 {
-  GtkWindow* win = GTK_WINDOW(userdata);
-  /*CREATE dms_page UI*/
-    /*Allocation memory*/
-  struct DMs_UI* dms_ui = (struct DMs_UI*)calloc(1, sizeof(struct DMs_UI));
-    /*DMs*/
-  GError* err = nullptr;
-  GtkBuilder* dms_builder = gtk_builder_new();
-  gtk_builder_add_from_file(dms_builder, DMS_SOURCES, &err);
-  if(err){
-    g_print("DMs page builder error: %s\n", err->message);
-    g_object_unref(dms_builder);
-    g_error_free(err);
-    return;
-  }
-  /*Set DMs UI widgets*/
-  dms_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(dms_builder, "side_menu_revealer"));
-  dms_ui->side_box_for_btn = GTK_BOX(gtk_builder_get_object(dms_builder, "side_box_for_btn"));
-  dms_ui->side_menu_btn = GTK_BUTTON(gtk_builder_get_object(dms_builder, "side_menu_btn"));
-  dms_ui->overlay = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
-  dms_ui->tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
-  dms_ui->tokens_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_btn"));
-  dms_ui->maps_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "maps_btn"));
-  dms_ui->drag_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "drag_btn"));
-  g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
-  g_object_set_data(G_OBJECT(dms_ui->overlay), "drag_btn", dms_ui->drag_btn);
-  /*Set GtkOpenGLArea ticker*/
-  GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
-  gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
-  g_object_set_data(G_OBJECT(win), "gl_area", gl_area);
-  /*Manualy set signals*/
-  g_signal_connect(gl_area, "realize", G_CALLBACK(onrealize), userdata);
-  g_signal_connect(gl_area, "unrealize", G_CALLBACK(onunrealize), userdata);
-  g_signal_connect(gl_area, "render", G_CALLBACK(onrender), userdata);
-  GtkWidget* side_menu_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_menu_btn"));
-  g_signal_connect(side_menu_btn, "clicked", G_CALLBACK(on_side_menu_btn_clicked), userdata);
-  GtkWidget* side_hide_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_hide_btn"));
-  g_signal_connect(side_hide_btn, "clicked", G_CALLBACK(on_side_hide_btn_clicked), userdata);
-  GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
-  g_signal_connect(dms_ui->tokens_btn, "toggled", G_CALLBACK(on_tokens_btn_toggled), userdata);
-  g_signal_connect(dms_ui->maps_btn, "toggled", G_CALLBACK(on_maps_btn_toggled), userdata);
-  GtkGesture* longpress = gtk_gesture_drag_new();
-  g_signal_connect(longpress, "drag-begin", G_CALLBACK(on_drag_begin), userdata);
-  g_signal_connect(longpress, "drag-end", G_CALLBACK(on_drag_end), userdata);
-  gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(longpress), 0);
-  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(longpress));
-  /*Set drag btn active*/
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->drag_btn), TRUE);
-  /*Set Drag and Drop target*/
-    /*Content formats*/
-  GdkContentFormatsBuilder* formatsbuilder = gdk_content_formats_builder_new();
-  gdk_content_formats_builder_add_mime_type(formatsbuilder, "text/uri-list");
-  GdkContentFormats* formats = gdk_content_formats_builder_free_to_formats(formatsbuilder);
-    /*Set*/
-  GtkDropTargetAsync* target = gtk_drop_target_async_new(
-    gdk_content_formats_new((const char* []){"text/uri-list", "text/plain"}, 2), GDK_ACTION_COPY);
-  g_signal_connect(target, "drop", G_CALLBACK(on_toks_drop), userdata);
-  g_signal_connect(target, "drag-enter", G_CALLBACK(on_toks_drag_enter), userdata);
-  g_signal_connect(target, "drag-leave", G_CALLBACK(on_toks_drag_leave), userdata);
-  gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(target), GTK_PHASE_CAPTURE);
-  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(target));
-    /*Free formats*/
-  gdk_content_formats_unref(formats);
-  /*Set scroll controller*/
-  GtkEventController* scroll = gtk_event_controller_scroll_new(
-    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
-  );
-  g_signal_connect(scroll, "scroll", G_CALLBACK(onscroll), userdata);
-  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(scroll));
-  /*Scroll intercept for tokens_scrolled_win*/
-  GtkWidget* tokens_scrolled_win = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_scrolled_win"));
-  GtkEventController* blockscroll = gtk_event_controller_scroll_new(
-    GTK_EVENT_CONTROLLER_SCROLL_VERTICAL
-  );
-  g_signal_connect(blockscroll, "scroll", G_CALLBACK(on_tokens_scrolled_win_scroll_block), nullptr);
-  gtk_widget_add_controller(tokens_scrolled_win, GTK_EVENT_CONTROLLER(blockscroll));
-  /*Motion controller*/
-  GtkEventController* motion = gtk_event_controller_motion_new();
-  g_signal_connect(motion, "motion", G_CALLBACK(onmotion), userdata);
-  gtk_widget_add_controller(dms_ui->overlay, motion);
-  /*Get entrybuffer with game name*/
-  GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
-  g_object_set_data(G_OBJECT(userdata), "entrybuffer", entrybuffer);
-  /*Switch to dms_page*/
-  GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
-  GtkWidget* dms_page = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));
-  gtk_stack_add_named(interfacestack, dms_page, "dms_page");
-  gtk_stack_set_visible_child_name(interfacestack, "dms_page");
-  /*Unref builder*/
-  g_object_unref(dms_builder);
+  create_DMs_UI(1, userdata);
 }
 
 void on_back_btn_clicked(GtkButton* btn, gpointer userdata)
