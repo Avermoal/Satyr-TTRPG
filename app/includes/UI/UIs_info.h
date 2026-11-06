@@ -5,5 +5,6 @@
 #define DMS_SOURCES "res/gtk_resources_pages/dms_page.ui"
 #define PLAYERS_SOURCES "res/gtk_resources_pages/players_page.ui"
 #define NEW_CAMPAIGN_SOURCES "res/gtk_resources_pages/new_campaign_window.ui"
+#define CAMPAIGN_ELEMENT_SOURCES "res/gtk_resources_pages/campaign_menu_element.ui"
 
 #endif/*UI_UIS_INFO_H*/

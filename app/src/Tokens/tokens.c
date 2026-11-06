@@ -135,6 +135,10 @@ struct token* gettokens(int32_t tnum, FILE* state)
       free(ts);
       return nullptr;
     }
+    if(pathlen < 0 || pathlen >= 512 || cachelen < 0 || cachelen >= 512){
+      free(ts);
+      return nullptr;
+    }
     if(fread(path, sizeof(char), pathlen, state) < pathlen){
       free(ts);
       return nullptr;

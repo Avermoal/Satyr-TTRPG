@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "UI/UI.h"
+#include "GameState/file_initialize.h"
 
 void createwindow(GtkApplication* app, struct window* win)
 {
@@ -19,6 +20,10 @@ void createwindow(GtkApplication* app, struct window* win)
   gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->interfacestack));
   /*Memory allocation for UI*/
   win->ui = (struct UI*)calloc(1, sizeof(struct UI));
+  if(!win->ui){
+    return;
+  }
+  makedir("saves/");
   /*Create UIs*/
   createUI(win->ui, GTK_WINDOW(win->win));
 }

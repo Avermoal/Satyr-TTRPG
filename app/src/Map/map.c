@@ -90,6 +90,9 @@ void create_map_from_data(struct map* m, int32_t lrnum, struct layer* l)
 {
   memset(m, 0, sizeof(struct map));
   /*View*/
+  m->cam.zoom = 1.0f;
+  m->cam.cam_x = 0.0f;
+  m->cam.cam_y = 0.0f;
   m->lrnum = lrnum;
   m->l = l;
   /*Renderer*/

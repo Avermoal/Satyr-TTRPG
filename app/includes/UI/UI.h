@@ -5,7 +5,6 @@
 
 struct UI{
   GtkWidget* menu_page;
-  GtkWidget* new_campaign_page;
 };
 
 void createUI(struct UI* ui, GtkWindow* win);

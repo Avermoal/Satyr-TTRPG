@@ -54,6 +54,8 @@ sh_p create_shader_program(const char* vsh_txt, const char* fsh_txt)
     glGetShaderInfoLog(vsh_id, 512, NULL, log);
     g_printerr("SHADER_CREATION: Vertex shader not created:\n");
     g_printerr("%s", log);
+    glDeleteShader(vsh_id);
+    glDeleteShader(fsh_id);
     return 0;
   }
   glGetShaderiv(fsh_id, GL_COMPILE_STATUS, &success);
@@ -61,6 +63,8 @@ sh_p create_shader_program(const char* vsh_txt, const char* fsh_txt)
     glGetShaderInfoLog(fsh_id, 512, NULL, log);
     g_printerr("SHADER_CREATION: Fragment shader not created:\n");
     g_printerr("%s", log);
+    glDeleteShader(vsh_id);
+    glDeleteShader(fsh_id);
     return 0;
   }
   /*Create shader program*/

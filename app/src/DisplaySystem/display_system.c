@@ -1,6 +1,7 @@
 #include "DisplaySystem/display_system.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <epoxy/gl.h>
 
@@ -60,6 +61,28 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     g_object_set_data(G_OBJECT(userdata), "map", m);
   }else{
     /*Game path*/
+    GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
+    const char* basename = gtk_entry_buffer_get_text(entrybuffer);
+    char gamepath[512];
+    snprintf(gamepath, sizeof(gamepath), "saves/%s/%s", basename, basename);
+    struct gamestate* gstate = get_game_state(gamepath);
+    if(!gstate){
+      return;
+    }
+    struct map* m = (struct map*)calloc(1, sizeof(struct map));
+    if(!m){
+      free(gstate);
+      return;
+    }
+    create_map_from_data(
+      m,
+      gstate->gscns[gstate->current_map_id - 1].lrnum,
+      gstate->gscns[gstate->current_map_id - 1].l
+    );
+    gstate->m = m;
+    /*Set data*/
+    g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
+    g_object_set_data(G_OBJECT(userdata), "map", m);
   }
 }
 
@@ -94,6 +117,10 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
   /*Make area current*/
   gtk_gl_area_make_current(area);
   if(gtk_gl_area_get_error(area) != NULL){
+    return FALSE;
+  }
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate){
     return FALSE;
   }
   /*GL NEEDS*/

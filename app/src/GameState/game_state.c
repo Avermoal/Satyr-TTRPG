@@ -333,7 +333,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
     if(fread(&lrnum, sizeof(int32_t), 1, state) < 1){
       /*Free layers in other scenes*/
       for(int32_t j = s - 1; j >= 0; --j){
-        for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+        for(int32_t k = 0; k < gscns[j].lrnum; ++k){
           layerfree(&gscns[j].l[k]);
         }
         free(gscns[j].l);
@@ -358,7 +358,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -370,7 +370,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -382,7 +382,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -394,7 +394,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -406,33 +406,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
-            layerfree(&gscns[j].l[k]);
-          }
-          free(gscns[j].l);
-        }
-        free(gscns);
-        return nullptr;
-      }
-      struct rectangle* rects = (struct rectangle*)calloc(cap, sizeof(struct rectangle));
-      if(!rects){
-        free(ls);
-        /*Free layers in other scenes*/
-        for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
-            layerfree(&gscns[j].l[k]);
-          }
-          free(gscns[j].l);
-        }
-        free(gscns);
-        return nullptr;
-      }
-      if(fread(rects, sizeof(struct rectangle), rnum, state) < rnum){
-        free(rects);
-        free(ls);
-        /*Free layers in other scenes*/
-        for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -442,11 +416,10 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
       }
       int32_t* tokid = (int32_t*)calloc(cap, sizeof(int32_t));
       if(!tokid){
-        free(rects);
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[i].l);
@@ -456,11 +429,38 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
       }
       if(fread(tokid, sizeof(int32_t), rnum, state) < rnum){
         free(tokid);
-        free(rects);
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
+            layerfree(&gscns[j].l[k]);
+          }
+          free(gscns[j].l);
+        }
+        free(gscns);
+        return nullptr;
+      }
+      struct rectangle* rects = (struct rectangle*)calloc(cap, sizeof(struct rectangle));
+      if(!rects){
+        free(tokid);
+        free(ls);
+        /*Free layers in other scenes*/
+        for(int32_t j = s - 1; j >= 0; --j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
+            layerfree(&gscns[j].l[k]);
+          }
+          free(gscns[j].l);
+        }
+        free(gscns);
+        return nullptr;
+      }
+      if(fread(rects, sizeof(struct rectangle), rnum, state) < rnum){
+        free(rects);
+        free(tokid);
+        free(ls);
+        /*Free layers in other scenes*/
+        for(int32_t j = s - 1; j >= 0; --j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
@@ -474,24 +474,25 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         if(toktype == TOKEN){
           snprintf(path_to_atlas, sizeof(path_to_atlas), "saves/%s/presets/atlas/tokens_atlas.png", gamename);
         }else if(toktype == MAP){
-          snprintf(path_to_atlas, sizeof(path_to_atlas), "saves/%s/presets/atlas/%d/%d.png", gamename, (snum + 1), i);
+          snprintf(path_to_atlas, sizeof(path_to_atlas), "saves/%s/presets/atlas/%d/%d.png", gamename, snum, i);
         }
       }
       /*Load texture atlas*/
       int32_t w = 0, h = 0;
       uint32_t texid = load_png(path_to_atlas, &w, &h);
-      if(texid == 0 || w < 0 || h < 0){
+      if(rnum != 0 && type == IMG && (texid == 0 || w < 0 || h < 0)){
         free(tokid);
         free(rects);
         free(ls);
         /*Free layers in other scenes*/
         for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
           free(gscns[j].l);
         }
         free(gscns);
+        return nullptr;
       }
       /*Sets layer*/
       ls[i].toktype = toktype;
