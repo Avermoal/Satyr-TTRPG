@@ -115,7 +115,7 @@ static void on_back_btn_clicked(GtkButton* btn, gpointer userdata)
 {
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
   GtkWidget* child = gtk_stack_get_child_by_name(interfacestack, "new_campaign_page");
-  gtk_widget_unparent(child);
+  gtk_stack_remove(interfacestack, child);
   gtk_stack_set_visible_child_name(interfacestack, "menu_page");
 }
 

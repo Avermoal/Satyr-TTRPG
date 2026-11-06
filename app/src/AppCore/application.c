@@ -7,7 +7,8 @@
 #include "ViewInterface/window.h"
 
 #define PATH_TO_CUSTOM_CSS_THEME_MENU "res/themes/satyr.css"
-#define CINZEL_PATH "res/fonts/CinzelDecorative-Bold.ttf"
+#define CINZEL_DECORATIVE_PATH "res/fonts/CinzelDecorative-Bold.ttf"
+#define CINZEL_PATH "res/fonts/Cinzel-Medium.ttf"
 #define MANROPE_PATH "res/fonts/Manrope-Medium.ttf"
 
 static void onactivate(GtkApplication* app, gpointer userdata);
@@ -42,6 +43,7 @@ void destroyapp(GtkApplication* app)
 static void onactivate(GtkApplication* app, gpointer userdata)
 {
   /*Add custom fonts*/
+  load_custom_fonts(app, CINZEL_DECORATIVE_PATH);
   load_custom_fonts(app, CINZEL_PATH);
   load_custom_fonts(app, MANROPE_PATH);
   /*Set custom css theme*/
