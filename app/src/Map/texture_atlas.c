@@ -80,6 +80,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
   if(!tmpimg){
     free(*atlas_path);
     *atlas_path = nullptr;
+    return;
   }
   float* wstmp = (float*)calloc((size_t)tnum, sizeof(float));
   if(!wstmp){
@@ -227,7 +228,7 @@ void get_path_to_atlas(const int32_t max_atlas_size, const char* atlas_dir_path,
 
     if(w != placed[img[i].originalindex].w || h != placed[img[i].originalindex].h){
       fprintf(stderr, "Image: %s, have wrong sizes (%d x %d) != (%d x %d)\n",
-              toks[img[i].originalindex].path, w, h, placed[i].w, placed[i].h);
+              toks[img[i].originalindex].path, w, h, placed[img[i].originalindex].w, placed[img[i].originalindex].h);
       free(*atlas_path);
       *atlas_path = nullptr;
       stbi_image_free(pixels);

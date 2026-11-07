@@ -104,47 +104,91 @@ struct token* gettokens(int32_t tnum, FILE* state)
   }
   for(int32_t i = 0; i < tnum; ++i){
     if(fread(&type, sizeof(int32_t), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&id, sizeof(int32_t), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&u0, sizeof(float), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&v0, sizeof(float), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&u1, sizeof(float), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&v1, sizeof(float), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&pathlen, sizeof(int32_t), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(&cachelen, sizeof(int32_t), 1, state) < 1){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(pathlen < 0 || pathlen >= 512 || cachelen < 0 || cachelen >= 512){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     if(fread(path, sizeof(char), pathlen, state) < pathlen){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
     path[pathlen] = '\0';
     if(fread(cache, sizeof(char), cachelen, state) < cachelen){
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }
@@ -156,6 +200,10 @@ struct token* gettokens(int32_t tnum, FILE* state)
       settoken(&ts[i], type, id, path, cache);
       set_token_UV(&ts[i], u0, v0, u1, v1);
     }else{
+      for(int32_t j = i; j >= 0; --j){
+        free(ts[j].path);
+        free(ts[j].cache);
+      }
       free(ts);
       return nullptr;
     }

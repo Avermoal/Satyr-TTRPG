@@ -240,7 +240,7 @@ struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layerty
 
 void make_current(struct gamestate* gstate, int32_t snum)
 {
-  if(gstate->current_map_id == snum || snum < 1 || snum >= gstate->snum){
+  if(gstate->current_map_id == snum || snum < 1 || snum > gstate->snum){
     return;
   }
   struct map* curmap = gstate->m;
@@ -422,7 +422,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
           for(int32_t k = 0; k < gscns[j].lrnum; ++k){
             layerfree(&gscns[j].l[k]);
           }
-          free(gscns[i].l);
+          free(gscns[j].l);
         }
         free(gscns);
         return nullptr;
@@ -479,7 +479,10 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
       }
       /*Load texture atlas*/
       int32_t w = 0, h = 0;
-      uint32_t texid = load_png(path_to_atlas, &w, &h);
+      uint32_t texid = 0;
+      if(type != GRID){
+        texid = load_png(path_to_atlas, &w, &h);
+      }
       if(rnum != 0 && type == IMG && (texid == 0 || w < 0 || h < 0)){
         free(tokid);
         free(rects);
