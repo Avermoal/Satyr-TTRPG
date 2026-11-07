@@ -60,4 +60,6 @@ struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct
 
 struct gamescene* add_clear_game_scene(struct gamestate* gstate);
 
+char* get_basename(char* path);
+
 #endif/*GAMESTATE_GAME_STATE_H*/

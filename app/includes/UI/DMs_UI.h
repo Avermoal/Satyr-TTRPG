@@ -12,23 +12,11 @@ struct DMs_UI{
   GtkWidget* tokens_btn;
   GtkWidget* maps_btn;
   GtkWidget* drag_btn;
+  GtkWidget* settings_btn;
+  GtkWidget* settings_grid;
+  GtkWidget* layers_box;
 };
 
 void create_DMs_UI(int ISNEW, gpointer userdata);
-
-void on_side_menu_btn_clicked(GtkButton* btn, gpointer userdata);
-
-void on_side_hide_btn_clicked(GtkButton* btn, gpointer userdata);
-
-/*ESCAPE*/
-gboolean on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
-                       guint keycode, GdkModifierType state, gpointer userdata);
-
-/*Top menu*/
-void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata);
-
-void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata);
-
-gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata);
 
 #endif/*UI_DMS_UI_H*/

@@ -1,1 +1,27 @@
 #include "UI/universal_callbacks.h"
+
+#include "UI/DMs_UI.h"
+
+/*ESCAPE*/
+gboolean on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
+                       guint keycode, GdkModifierType state, gpointer userdata)
+{
+  if(keyval != GDK_KEY_Escape){
+    return FALSE;
+  }
+  /*Get interfacestack*/
+  GtkStack* interfacestack = GTK_STACK(g_object_get_data(G_OBJECT(userdata), "interfacestack"));
+  /*Set visible menu*/
+  gtk_stack_set_visible_child_name(interfacestack, "menu_page");
+  /*Remove dms_page from interfacestack*/
+  GtkWidget* dms_page = GTK_WIDGET(gtk_stack_get_child_by_name(interfacestack, "dms_page"));
+  gtk_stack_remove(interfacestack, dms_page);
+  /*DMs_UI free*/
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
+  free(dms_ui);
+  dms_ui = nullptr;
+  g_object_set_data(G_OBJECT(userdata), "dms_ui_data", nullptr);
+  /*Remove on_escape_pressed callback*/
+  g_signal_handlers_disconnect_by_func(controller, G_CALLBACK(on_escape_pressed), userdata);
+  return TRUE;
+}

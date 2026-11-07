@@ -22,12 +22,18 @@ button{
 	color: var(--sy-text);
 	background-color: var(--sy-surf);
 	box-shadow: 0 .375rem 1.125rem rgba(0, 0, 0, 0.35);
+	border-color: var(--sy-syrf);
+	border-width: 0.18em;
+	transition: transform 0.2s ease;
 }
 button:hover{
 	background-color: var(--sy-btn-hi);
+	transform: scale(0.95);
+	border-color: var(--sy-surf);
 }
 button:active{
 	background-color: var(--sy-btn-lo);
+	transform: scale(0.90);
 }
 
 button:checked{
@@ -65,10 +71,16 @@ label.satyr-title{
 	text-shadow: 0 0.25rem 1.125rem rgba(0, 0, 0, 0.45);
 }
 
+
 /*Maybe no...*/
 image.satyr-image{
 	min-width: 10em;
 	min-height: 10em;
+	border-radius: 50%;
+	transition: filter 0.7s;
+}
+image.satyr-image:hover{
+	filter: drop-shadow(0 0.25rem 1.125rem rgba(255, 255 ,255, 0.45));
 }
 
 image.satyr-qr{

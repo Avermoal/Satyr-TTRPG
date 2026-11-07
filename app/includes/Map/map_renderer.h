@@ -16,6 +16,7 @@ struct renderer{
   GLint u_proj_loc;
   GLint u_tex_loc;
   GLint u_grid_step_loc;
+  GLint u_grid_opacity_loc;
   GLint u_visible_half_x_loc;
   GLint u_visible_half_y_loc;
   GLint u_camera_pos_loc;

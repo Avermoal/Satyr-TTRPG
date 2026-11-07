@@ -13,7 +13,7 @@
 #include "GameState/file_initialize.h"
 #include "EventsSystem/event_system.h"
 #include "EventsSystem/token_dnd.h"
-#include "UI/DMs_UI.h"
+#include "UI/universal_callbacks.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
 {

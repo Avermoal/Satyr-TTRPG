@@ -14,7 +14,6 @@
 #include "Tokens/tokens.h"
 
 static char* get_game_path(const char* name);
-static char* get_basename(char* path);
 /*If scene element not save just return false*/
 static bool save_game_scene(struct gamescene* gscn, FILE* state);
 static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FILE* state);
@@ -271,6 +270,15 @@ struct gamescene* add_clear_game_scene(struct gamestate* gstate)
   return nullptr;
 }
 
+char* get_basename(char* path)
+{
+  const char* filename = strrchr(path, '/');
+  if(!filename){
+    return path;
+  }
+  return filename + 1;
+}
+
 static char* get_game_path(const char* name)
 {
   const char* saves = "saves";
@@ -278,15 +286,6 @@ static char* get_game_path(const char* name)
   char* path = calloc(size + 1, sizeof(char));
   snprintf(path, size + 1, "%s/%s/%s", saves, name, name);
   return path;
-}
-
-static char* get_basename(char* path)
-{
-  const char* filename = strrchr(path, '/');
-  if(!filename){
-    return path;
-  }
-  return filename + 1;
 }
 
 static bool save_game_scene(struct gamescene* gscn, FILE* state)
@@ -402,6 +401,7 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(gscns);
         return nullptr;
       }
+      layerinit(&ls[i], type, toktype);
       if(fread(&rnum, sizeof(int32_t), 1, state) < 1){
         free(ls);
         /*Free layers in other scenes*/

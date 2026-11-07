@@ -48,6 +48,7 @@ void destroyrenderer(struct renderer* ren)
     ren->u_proj_loc = -1;
     ren->u_tex_loc = -1;
     ren->u_grid_step_loc = -1;
+    ren->u_grid_opacity_loc = -1;
     ren->u_visible_half_x_loc = -1;
     ren->u_visible_half_y_loc = -1;
     ren->u_camera_pos_loc = -1;
@@ -105,6 +106,7 @@ void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* orth
     glBindVertexArray(ren->vao);
     glUniformMatrix4fv(ren->u_proj_loc, 1, GL_FALSE, ortho);
     glUniform1f(ren->u_grid_step_loc, l->gridstep);
+    glUniform1f(ren->u_grid_opacity_loc, l->gridopacity);
     glUniform1f(ren->u_visible_half_x_loc, vhalf_x);
     glUniform1f(ren->u_visible_half_y_loc, vhalf_y);
     glUniform2f(ren->u_camera_pos_loc, cam_x, cam_y);
@@ -120,6 +122,7 @@ static void cr_grid(struct renderer* ren, struct layer* l)
   load_shader_program(&ren->prog, GRID);
   ren->u_proj_loc = glGetUniformLocation(ren->prog, "u_proj");
   ren->u_grid_step_loc = glGetUniformLocation(ren->prog, "u_grid_step");
+  ren->u_grid_opacity_loc = glGetUniformLocation(ren->prog, "u_grid_opacity");
   ren->u_visible_half_x_loc = glGetUniformLocation(ren->prog, "u_visible_half_x");
   ren->u_visible_half_y_loc = glGetUniformLocation(ren->prog, "u_visible_half_y");
   ren->u_camera_pos_loc = glGetUniformLocation(ren->prog, "u_camera_pos");

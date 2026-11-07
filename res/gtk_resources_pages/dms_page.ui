@@ -178,18 +178,44 @@
         </child>
         <child type="start">
           <object class="GtkBox" id="side_box_other">
-            <child type="center">
-              <object class="GtkButton" id="layers_btn">
-                <property name="child">
-                  <object class="GtkImage">
-                    <property name="file">res/icons/gear.svg</property>
-                    <property name="icon-size">large</property>
+            <child>
+              <object class="GtkGrid" id="settings_grid">
+                <child>
+                  <object class="GtkToggleButton" id="settings_btn">
+                    <property name="child">
+                      <object class="GtkImage">
+                        <property name="file">res/icons/gear.svg</property>
+                        <property name="icon-size">large</property>
+                      </object>
+                    </property>
+                    <property name="css-classes">game-button</property>
+                    <property name="halign">start</property>
+                    <property name="valign">start</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">1</property>
+                      <property name="row">0</property>
+                      <property name="row-span">1</property>
+                    </layout>
                   </object>
-                </property>
-                <property name="css-classes">game-button</property>
-                <property name="focusable">False</property>
-                <property name="halign">start</property>
-                <property name="valign">start</property>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="GtkBox" id="layers_box">
+                        <property name="orientation">vertical</property>
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="column-span">3</property>
+                      <property name="row">1</property>
+                      <property name="row-span">1</property>
+                    </layout>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

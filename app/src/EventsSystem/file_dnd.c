@@ -9,6 +9,7 @@
 #include <stb_image_resize2.h>
 #include <stb_image_write.h>
 
+#include "UI/DMs_UI.h"
 #include "GameState/game_state.h"
 #include "GameState/file_initialize.h"
 #include "Map/map_data.h"
@@ -419,8 +420,9 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
     return;
   }
   if(data){
-    /*Get game state*/
+    /*Get game state and dms ui data*/
     struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
+    struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(data->userdata), "dms_ui_data");
     /*Register tokens in main thread*/
     for(int32_t i = 0; i < data->pnum; ++i){
       if(data->path[i]){
@@ -430,6 +432,15 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
           game_state_register_token(gstate, data->toktype, data->path[i], nullptr);
         }
       }
+    }
+    /*Update tokens and maps on tokens_box*/
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn))){
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn), FALSE);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn), TRUE);
+    }
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn))){
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn), FALSE);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn), TRUE);
     }
     /*Update layers tokens texture atlas in current scene*/
     if(data->toktype == TOKEN){
@@ -934,6 +945,12 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
                   data->righttoks[i].u0, data->righttoks[i].v0,
                   data->righttoks[i].u1, data->righttoks[i].v1);
     }
+  }
+  /*Update layers_box*/
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(data->userdata), "dms_ui_data");
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn))){
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn), FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn), TRUE);
   }
   /*Free*/
   for(int32_t i = 0; i < data->tnum; ++i){

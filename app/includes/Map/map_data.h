@@ -32,6 +32,7 @@ struct layer{
   int32_t cap;
   uint32_t type;
   int32_t gridstep;
+  float gridopacity;
   struct texture tex;         /*TEXTURE ATLAS*/
   struct rectangle* rects;
   int32_t* tokid;             /*Slave*/
@@ -54,6 +55,7 @@ static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
   l->rects = nullptr;
   l->tokid = nullptr;
   l->isdirty = true;
+  l->gridopacity = 1.0f;
 }
 
 static inline void layerfree(struct layer* l)
@@ -164,6 +166,42 @@ static inline bool layer_add_rect(struct layer* l, const struct rectangle* rect)
     return false;
   }
   *dst = *rect;
+  return true;
+}
+
+/*!!!??NOT THREAD SAFETY??!!!*/
+static inline bool layer_remove_rt_by_id(struct layer* l, int32_t id)
+{
+  /*Id is 0-based*/
+  if(!l || id < 0 || id >= l->rnum){
+    return false;
+  }
+  struct rectangle* tmprs = (struct rectangle*)calloc((size_t)l->cap - 1, sizeof(struct rectangle));
+  int32_t* tmptids = (int32_t*)calloc((size_t)l->cap -1, sizeof(int32_t));
+  if(!tmprs || !tmptids){
+    free(tmprs);
+    free(tmptids);
+    return false;
+  }
+  /*Fill to id (without)*/
+  for(int32_t i = 0; i < id; ++i){
+    tmprs[i] = l->rects[i];
+    tmptids[i] = l->tokid[i];
+  }
+  /*Shift*/
+  for(int32_t i = id; i < l->rnum - 1; ++i){
+    tmprs[i] = l->rects[i + 1];
+    tmptids[i] = l->tokid[i + 1];
+  }
+  /*Free*/
+  free(l->rects);
+  free(l->tokid);
+  /*Sets*/
+  l->rects = tmprs;
+  l->tokid = tmptids;
+  l->isdirty = true;
+  l->rnum--;
+  l->cap--;
   return true;
 }
 
