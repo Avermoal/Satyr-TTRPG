@@ -341,6 +341,18 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
       free(gscns);
       return nullptr;
     }
+    if(lrnum < 0 || lrnum > 64){
+      /*Free layers in other scenes*/
+      for(int32_t j = s - 1; j >= 0; --j){
+        for(int32_t k = 0; k < gscns[j].lrnum; ++k){
+          layerfree(&gscns[j].l[k]);
+        }
+        free(gscns[j].l);
+      }
+      free(gscns);
+
+      return nullptr;
+    }
     struct layer* ls = (struct layer*)calloc(lrnum, sizeof(struct layer));
     if(!ls){
       free(gscns);
@@ -413,6 +425,30 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         }
         free(gscns);
         return nullptr;
+      }
+      if(cap < 0 || cap > 1024){
+        free(ls);
+        /*Free layers in other scenes*/
+        for(int32_t j = s - 1; j >= 0; --j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
+            layerfree(&gscns[j].l[k]);
+          }
+          free(gscns[j].l);
+        }
+        free(gscns);
+        return nullptr;
+      }
+      if(rnum < 0 || rnum > cap){
+        free(ls);
+        /*Free layers in other scenes*/
+        for(int32_t j = s - 1; j >= 0; --j){
+          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
+            layerfree(&gscns[j].l[k]);
+          }
+          free(gscns[j].l);
+        }
+        free(gscns);
+        return nullptr; 
       }
       int32_t* tokid = (int32_t*)calloc(cap, sizeof(int32_t));
       if(!tokid){
