@@ -82,6 +82,7 @@ void on_to_load_save_btn_clicked(GtkButton* btn, gpointer userdata)
   /*Free enumerator*/
   g_file_enumerator_close(enumerator, nullptr, nullptr);
   g_object_unref(enumerator);
+  g_object_unref(saves);
   /*Set back btn*/
   GtkWidget* back_btn = gtk_button_new_with_label("Back");
   g_signal_connect(back_btn, "clicked", G_CALLBACK(on_back_from_load_btn_clicked), userdata);
@@ -134,6 +135,9 @@ static void set_new_campaign_page_callbacks(GtkBuilder* builder, gpointer userda
 
 static void on_back_from_load_btn_clicked(GtkButton* btn, gpointer userdata)
 {
+  GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
+  g_object_unref(entrybuffer);
+  g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", nullptr);
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
   GtkWidget* child = gtk_stack_get_child_by_name(interfacestack, "load_campaign_page");
   gtk_stack_remove(interfacestack, child);

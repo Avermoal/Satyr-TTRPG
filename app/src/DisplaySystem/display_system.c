@@ -56,6 +56,15 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     createmap(m);
     /*Make game scene from map*/
     gstate->gscns = make_game_scene_from_map_once(gstate, m);
+    if(!gstate->gscns){
+      destroy_game_state(gstate);
+      free(gstate);
+      destroymap(m);
+      free(m);
+      gstate = nullptr;
+      m = nullptr;
+      return;
+    }
     /*Get game name*/
     GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
     gstate->gamename = strdup(gtk_entry_buffer_get_text(entrybuffer));

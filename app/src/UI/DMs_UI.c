@@ -261,17 +261,15 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
         GtkWidget* gridlabel = gtk_label_new("Grid");
         GtkWidget* scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 1.0, 0.01);
         gtk_range_set_value(GTK_RANGE(scale), current->l[i].gridopacity);
-        gtk_scale_set_draw_value(GTK_SCALE(scale), TRUE);
         gtk_widget_set_size_request(scale, 150, -1);
         gtk_widget_set_halign(scale, GTK_ALIGN_START);
         gtk_scale_set_digits(GTK_SCALE(scale), 2);
         gtk_widget_set_hexpand(scale, TRUE);
         GtkWidget* step = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 4.0, 124.0, 0.1);
         gtk_range_set_value(GTK_RANGE(step), current->l[i].gridstep);
-        gtk_scale_set_draw_value(GTK_SCALE(step), TRUE);
         gtk_widget_set_size_request(step, 150, -1);
         gtk_widget_set_halign(step, GTK_ALIGN_START);
-        gtk_scale_set_digits(GTK_SCALE(step), 0);
+        gtk_scale_set_digits(GTK_SCALE(step), 1);
         gtk_widget_set_hexpand(step, TRUE);
         /*Grid opacity signal*/
         g_signal_connect(GTK_RANGE(scale), "value-changed", G_CALLBACK(on_grid_scale_value_changed), current);

@@ -98,5 +98,4 @@ static void load_custom_fonts(GtkApplication* app, const char* path)
     g_printerr("APP: Loading font error: %s: %s", path, err->message);
     g_error_free(err);
   }
-  g_object_set_data(G_OBJECT(app), path, fontmap);
 }

@@ -884,6 +884,19 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   }
   /*Make current gl context*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
+  if(!gstate){
+    g_print("Scene %d is not current", data->current_map_id);
+    for(int32_t i = 0; i < data->tnum; ++i){
+      free(data->righttoks[i].path);
+      free(data->righttoks[i].cache);
+    }
+    free(data->righttoks);
+    free(data->gamename);
+    g_object_unref(data->userdata);
+    g_free(data);
+    free(fl);
+    return;
+  }
   GtkGLArea* gl_area = GTK_GL_AREA(g_object_get_data(G_OBJECT(data->userdata), "gl_area"));
   gtk_gl_area_make_current(gl_area);
   if(data->current_map_id != gstate->current_map_id){

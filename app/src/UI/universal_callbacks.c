@@ -21,6 +21,10 @@ gboolean on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
   free(dms_ui);
   dms_ui = nullptr;
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", nullptr);
+  /*Entry buffer free*/
+  GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
+  g_object_unref(entrybuffer);
+  g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", nullptr);
   /*Remove on_escape_pressed callback*/
   g_signal_handlers_disconnect_by_func(controller, G_CALLBACK(on_escape_pressed), userdata);
   return TRUE;

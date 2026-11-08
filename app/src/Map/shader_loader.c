@@ -111,6 +111,7 @@ static int64_t shaderlength(const char* path)
   FILE* f = fopen(path, "rb");
   if(!f){
     g_printerr("SHADER: can't find shader by path: %s\n", path);
+    fclose(f);
     return 0;
   }
   fseek(f, 0L, SEEK_END);
@@ -125,10 +126,12 @@ static bool readshader(char* sh_txt, const char* path, const int64_t length)
   FILE* f = fopen(path, "rb");
   if(!f){
     g_printerr("SHADER: can't read shader by path: %s\n", path);
+    fclose(f);
     return false;
   }
   /*Read shader text*/
   if(fread(sh_txt, sizeof(char), length, f) == 0){
+    fclose(f);
     return false;
   }
   fclose(f);

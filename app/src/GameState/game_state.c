@@ -24,6 +24,10 @@ void save_game_state(struct gamestate* gstate)
     return;
   }
   char* path = get_game_path(gstate->gamename);
+  if(!path){
+    perror("Game state not save!!!\n");
+    return;
+  }
   /*Open file*/
   FILE* state = fopen(path, "wb");
   free(path);
@@ -257,6 +261,9 @@ void make_current(struct gamestate* gstate, int32_t snum)
 struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct map* m)
 {
   struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
+  if(!gscn){
+    return nullptr;
+  }
   gscn->l = m->l;
   gscn->lrnum = m->lrnum;
   gstate->m = m;
@@ -284,6 +291,9 @@ static char* get_game_path(const char* name)
   const char* saves = "saves";
   int size = strlen(saves) + 1 + strlen(name) + 1 + strlen(name);
   char* path = calloc(size + 1, sizeof(char));
+  if(!path){
+    return nullptr;
+  }
   snprintf(path, size + 1, "%s/%s/%s", saves, name, name);
   return path;
 }
