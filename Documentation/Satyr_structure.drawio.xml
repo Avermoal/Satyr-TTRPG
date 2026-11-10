@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron">
+  <diagram name="SATYR" id="yQYjN8WmsYbDnJpET4h6">
+    <mxGraphModel dx="2847" dy="1189" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="a8LDQpFz_hDYZ-8Oqil_-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;MAIN&lt;/div&gt;" vertex="1">
+          <mxGeometry height="80" width="120" x="354" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=87;strokeWidth=2;" value="AppCore:&lt;div&gt;Only gtk preparing to start programm.&lt;br&gt;(Window, Fonts, CSS Themes)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="160" x="334" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-4" edge="1" parent="1" source="SVSgjLwsLqQM4gsL5TQB-2" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="a8LDQpFz_hDYZ-8Oqil_-1" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="350" y="330" as="sourcePoint" />
+            <mxPoint x="510" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-14" edge="1" parent="1" source="SVSgjLwsLqQM4gsL5TQB-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="SVSgjLwsLqQM4gsL5TQB-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="265.33333333333337" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="330" width="400" x="-200" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ViewInterface" vertex="1">
+          <mxGeometry height="30" width="60" x="-180" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-8" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="struct window" vertex="1">
+          <mxGeometry height="142" width="360" x="-180" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-9" parent="SVSgjLwsLqQM4gsL5TQB-8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="GtkWidget* win;&lt;div&gt;GtkStack* interfacestack;&lt;/div&gt;&lt;div&gt;struct UI* ui;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="54" width="360" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-10" parent="SVSgjLwsLqQM4gsL5TQB-8" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-11" parent="SVSgjLwsLqQM4gsL5TQB-8" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="void createwindow(GtkApplication* app, struct window* win)" vertex="1">
+          <mxGeometry height="54" width="360" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Interfacestack -&amp;gt; just containter for main applacations pages.&lt;div&gt;UI -&amp;gt; menu page container (In future can be depricated?)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;createwindow -&amp;gt; create application window, and fill window structure, just sets window size and create UI.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="360" x="-180" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-19" edge="1" parent="1" source="SVSgjLwsLqQM4gsL5TQB-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="SVSgjLwsLqQM4gsL5TQB-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="730" width="880" x="-440" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="UI" vertex="1">
+          <mxGeometry height="30" width="60" x="-430" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-26" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="struct UI" vertex="1">
+          <mxGeometry height="100" width="390" x="-195" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-27" parent="SVSgjLwsLqQM4gsL5TQB-26" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="GtkWidget*&amp;nbsp; menu_page" vertex="1">
+          <mxGeometry height="26" width="390" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-28" parent="SVSgjLwsLqQM4gsL5TQB-26" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="390" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-29" parent="SVSgjLwsLqQM4gsL5TQB-26" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="void createUI(struct UI* ui, GtkWindoew* win)&lt;div&gt;void change_widget_cursor(GtkWidget* widget, const char* name)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="40" width="390" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="SVSgjLwsLqQM4gsL5TQB-30" parent="1" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;UI&lt;/h1&gt;&lt;div&gt;createUI -&amp;gt;&lt;/div&gt;&lt;div&gt;Create menu pages UI and connect callbacks.&lt;/div&gt;&lt;div&gt;change_widget_cursor -&amp;gt;&lt;/div&gt;&lt;div&gt;just change cursor on widget, (&quot;default&quot;, &quot;grab&quot;, &quot;grabbing&quot;, etc. system cursors)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="142" width="230" x="200" y="450" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
