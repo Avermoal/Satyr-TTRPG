@@ -291,7 +291,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkToggleButton">
+                      <object class="GtkToggleButton" id="scene_btn">
                         <property name="child">
                           <object class="GtkImage">
                             <property name="file">res/icons/dice.svg</property>

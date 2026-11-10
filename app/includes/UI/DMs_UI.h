@@ -11,6 +11,7 @@ struct DMs_UI{
   GtkWidget* tokens_box;
   GtkWidget* tokens_btn;
   GtkWidget* maps_btn;
+  GtkWidget* scene_btn;
   GtkWidget* drag_btn;
   GtkWidget* settings_btn;
   GtkWidget* settings_grid;

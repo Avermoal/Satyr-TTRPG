@@ -25,4 +25,25 @@ struct eventdata{
   bool key_a;
 };
 
+static inline void init_event_data(struct eventdata* evdata)
+{
+  if(!evdata){
+    return;
+  }
+  evdata->drag_off_y = 0.0f;
+  evdata->drag_off_y = 0.0f;
+  evdata->draglayer = 0;
+  evdata->drag_rid = 0;
+  evdata->dragging = false;
+  evdata->draggingscene = false;
+  evdata->mousex = 0.0f;
+  evdata->mousey = 0.0f;
+  evdata->last_frame_time = 0.0;
+  evdata->deltatime = 0.0;
+  evdata->key_w = false;
+  evdata->key_s = false;
+  evdata->key_d = false;
+  evdata->key_a = false;
+}
+
 #endif/*EVENTSYSTEM_EVENT_DATA_H*/

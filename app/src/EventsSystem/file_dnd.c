@@ -608,7 +608,22 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   char* type_id = ctx->buffer;
   /*Drop finish*/
   gdk_drop_finish(drop, GDK_ACTION_COPY);
-  /*Parsing "<type>-<id>"*/
+  /*Parsing "<type>-<id>" or <sid>*/
+  if(strcmp(type_id, "-1") == 0){
+    /*To new scene*/
+    struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(ctx->userdata), "gstate");
+    add_clear_game_scene(gstate);
+    mime_read_ctx_free(ctx);
+    return;
+  }else if(strchr(type_id, '-') == nullptr){
+    /*Switch scene*/
+    struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(ctx->userdata), "gstate");
+    int32_t sid = 0;
+    sscanf(type_id, "%d", &sid);
+    make_current(gstate, sid);
+    mime_read_ctx_free(ctx);
+    return;
+  }
   char* _id = nullptr;
   int32_t type = strtol(type_id, &_id, 10);
   int32_t id = 0;

@@ -6,7 +6,6 @@
 #include <errno.h>
 
 #include "GameState/file_initialize.h"
-#include "Map/map.h"
 #include "Map/map_data.h"
 #include "Map/map_renderer.h"
 #include "Map/texture.h"
@@ -17,6 +16,118 @@ static char* get_game_path(const char* name);
 /*If scene element not save just return false*/
 static bool save_game_scene(struct gamescene* gscn, FILE* state);
 static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FILE* state);
+
+bool create_default_game_state(struct gamestate* gstate, const char* name)
+{
+  if(!gstate){
+    return false;
+  }
+  gstate->gamename = strdup(name);
+  if(!gstate->gamename){
+    return false;
+  }
+  /*Create default scene*/
+  if(!append_default_game_scene(gstate)){
+    free(gstate->gamename);
+    return false;
+  }
+  gstate->current_scene_id = 0;
+  /*Create render data*/
+  uint32_t types[gstate->gscns->lrnum] = {GRID, IMG};
+  const char* const textures_paths[gstate->gscns->lrnum] = {nullptr, nullptr};
+  if(!fill_render_data(&gstate->rens, gstate->gscns->ls, gstate->gscns->lrnum,
+                       types, textures_paths)){
+    free(gstate->gamename);
+    /*Free layers of scenes*/
+    for(int32_t i = 0; i < gstate->snum; ++i){
+      for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
+        layerfree(&gstate->gscns[i].l[j]);
+      }
+      free(gstate->gscns[i].l);
+    }
+    free(gstate->gscns);
+    return false;
+  }
+  return true;
+}
+
+bool append_default_game_scene(struct gamestate* gstate);
+{
+  if(!gstate){
+    return false;
+  }
+  /*Allocation*/
+  struct gamescene* gscns = (struct gamescene*)calloc((size_t)(gstate->snum + 1) * sizeof(struct gamescene));
+  if(!gscns){
+    return false;
+  }
+  if(gstate->snum > 0 && gscns){
+    memcpy(gscns, gstate->gscns, gstate->snum * sizeof(struct gamescene));
+  }
+  /*Add GRID layer*/
+  if(!scene_add_layer(&gscns[gstate->snum], GRID, -1)){
+    free(gscns);
+    return false;
+  }
+  /*Add MAP (IMG) layer*/
+  if(!scene_add_layer(&gscns[gstate->snum], IMG, MAP)){
+    /*Free GRID layer*/
+    layerfree(&gscns[gstate->snum].ls[0]);
+    free(gscns[gstate->snum].ls);
+    free(gscns);
+    return false;
+  }
+  /*Free old*/
+  free(gstate->gscns);
+  /*Sets*/
+  gstate->gscns = gscns;
+  gstate->snum++;
+}
+
+bool create_game_render_data(struct gamestate* gstate, const uint32_t* types, const char* const* textures_path)
+{
+  if(!gstate){
+    return false;
+  }
+  /*Create render data*/
+  uint32_t types[gstate->gscns->lrnum] = {GRID, IMG};
+  const char* const textures_paths[gstate->gscns->lrnum] = {nullptr, nullptr};
+  if(!fill_render_data(&gstate->rens, gstate->gscns->ls, gstate->gscns->lrnum,
+                       types, textures_paths)){
+    free(gstate->gamename);
+    /*Free layers of scenes*/
+    for(int32_t i = 0; i < gstate->snum; ++i){
+      for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
+        layerfree(&gstate->gscns[i].l[j]);
+      }
+      free(gstate->gscns[i].l);
+    }
+    free(gstate->gscns);
+    return false;
+  }
+}
+
+bool scene_add_layer(struct gamescene* gscn, uint32_t layertype, int32_t toktype)
+{
+  if(!gscn){
+    return false;
+  }
+  struct layer* ls = (struct layer*)calloc((size_t)gscn->lrnum + 1, sizeof(struct layer));
+  if(ls){
+    return false;
+  }
+  if(gscn->lrnum > 0 && gscn->ls){
+    memcpy(ls, gscn->ls, gscn->lrnum * sizeof(struct layer));
+  }
+  /*Init new layer*/
+  layerinit(&ls[gscn->lrnum], layertype, toktype);
+  /*Free old*/
+  free(gscn->ls);
+  /*Sets*/
+  gscn->ls =ls;
+  gscn->lrnum++;
+  return true;
+}
 
 void save_game_state(struct gamestate* gstate)
 {
@@ -46,9 +157,9 @@ void save_game_state(struct gamestate* gstate)
     perror("Game state save interrapt on tnum :(\n");
     return;
   }
-  if(fwrite(&gstate->current_map_id, sizeof(int32_t), 1, state) < 1){
+  if(fwrite(&gstate->current_scene_id, sizeof(int32_t), 1, state) < 1){
     fclose(state);
-    perror("Game state save interrapt on current_map_id :(\n");
+    perror("Game state save interrapt on current_scene_id :(\n");
     return;
   }
   if(fwrite(&gstate->snum, sizeof(int32_t), 1, state) < 1){
@@ -90,6 +201,9 @@ void save_game_state(struct gamestate* gstate)
 
 void destroy_game_state(struct gamestate* gstate)
 {
+  /*Free renderer data*/
+  clear_render_data(&gstate->rens, gstate->gscns[gstate->current_scene_id].lrnum);
+  /*Free layers of scenes*/
   for(int32_t i = 0; i < gstate->snum; ++i){
     for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
       layerfree(&gstate->gscns[i].l[j]);
@@ -97,6 +211,7 @@ void destroy_game_state(struct gamestate* gstate)
     free(gstate->gscns[i].l);
   }
   free(gstate->gscns);
+  /*Free tokens*/
   for(int32_t i = 0; i < gstate->tnum; ++i){
     free(gstate->tokens[i].path);
   }
@@ -120,7 +235,7 @@ struct gamestate* get_game_state(const char* path)
   /*Game state var*/
   int32_t mnum = 0;
   int32_t tnum = 0;
-  int32_t current_map_id = 0;
+  int32_t current_scene_id = 0;
   int32_t snum = 0;
   /*File open*/
   FILE* state = fopen(path, "rb");
@@ -139,7 +254,7 @@ struct gamestate* get_game_state(const char* path)
     fclose(state);
     return nullptr;
   }
-  if(fread(&current_map_id, sizeof(int32_t), 1, state) != 1){
+  if(fread(&current_scene_id, sizeof(int32_t), 1, state) != 1){
     perror("Game state not loaded!\n");
     fclose(state);
     return nullptr;
@@ -189,7 +304,7 @@ struct gamestate* get_game_state(const char* path)
   }
   gstate->mnum = mnum;
   gstate->tnum = tnum;
-  gstate->current_map_id = current_map_id;
+  gstate->current_scene_id = current_scene_id;
   gstate->snum = snum;
   gstate->maps = maps;
   gstate->tokens = tokens;
@@ -224,57 +339,29 @@ void game_state_register_token(struct gamestate* gstate, int32_t toktype, const 
   }
 }
 
-struct gamescene* get_game_scene(const char* path, int32_t snum)
+void make_current(struct gamestate* gstate, int32_t sid)
 {
-  return nullptr;
-}
-
-struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layertype, int32_t toktype)
-{
-  struct layer* ls = map_add_layer(gstate->m, layertype, toktype);
-  if(!ls){
-    return nullptr;
-  }
-  gstate->gscns[gstate->current_map_id - 1].l = ls;
-  /*Update gscn data*/
-  gstate->gscns[gstate->current_map_id - 1].lrnum = gstate->m->lrnum;
-  return ls;
-}
-
-void make_current(struct gamestate* gstate, int32_t snum)
-{
-  if(gstate->current_map_id == snum || snum < 1 || snum > gstate->snum){
+  if(gstate->current_scene_id - 1 == sid || sid < 0 || sid >= gstate->snum){
     return;
   }
   struct map* curmap = gstate->m;
-  struct map* newmap = malloc(sizeof(struct map));
+  struct map* newmap = (struct map*)calloc(1, sizeof(struct map));
   if(!newmap){
     return;
   }
-  create_map_from_data(newmap, gstate->gscns[snum - 1].lrnum, gstate->gscns[snum - 1].l);
+  create_map_from_data(newmap, gstate->gscns[sid].lrnum, gstate->gscns[sid].l);
+  /*Delete current map bind texture from layers*/
   destroy_map_renderer(curmap);
-  free(curmap);
-  gstate->m = newmap;
-  gstate->current_map_id = snum;
-}
-
-struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct map* m)
-{
-  struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
-  if(!gscn){
-    return nullptr;
+  for(int32_t i = 0; i < curmap->lrnum; ++i){
+    layer_texture_free(&curmap->l[i]);
   }
-  gscn->l = m->l;
-  gscn->lrnum = m->lrnum;
-  gstate->m = m;
-  gstate->snum++;
-  gstate->current_map_id = gstate->snum;
-  return gscn;
-}
+  free(curmap);
+  /*Load new layers textures*/
+  for(){
 
-struct gamescene* add_clear_game_scene(struct gamestate* gstate)
-{
-  return nullptr;
+  }
+  gstate->m = newmap;
+  gstate->curren_scene_id = sid;
 }
 
 char* get_basename(char* path)
@@ -514,35 +601,6 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
         free(gscns);
         return nullptr;
       }
-      /*Searching texture atlas*/
-      char path_to_atlas[512];
-      if(type == IMG){
-        if(toktype == TOKEN){
-          snprintf(path_to_atlas, sizeof(path_to_atlas), "saves/%s/presets/atlas/tokens_atlas.png", gamename);
-        }else if(toktype == MAP){
-          snprintf(path_to_atlas, sizeof(path_to_atlas), "saves/%s/presets/atlas/%d/%d.png", gamename, snum, i);
-        }
-      }
-      /*Load texture atlas*/
-      int32_t w = 0, h = 0;
-      uint32_t texid = 0;
-      if(type != GRID){
-        texid = load_png(path_to_atlas, &w, &h);
-      }
-      if(rnum != 0 && type == IMG && (texid == 0 || w < 0 || h < 0)){
-        free(tokid);
-        free(rects);
-        free(ls);
-        /*Free layers in other scenes*/
-        for(int32_t j = s - 1; j >= 0; --j){
-          for(int32_t k = 0; k < gscns[j].lrnum; ++k){
-            layerfree(&gscns[j].l[k]);
-          }
-          free(gscns[j].l);
-        }
-        free(gscns);
-        return nullptr;
-      }
       /*Sets layer*/
       ls[i].toktype = toktype;
       ls[i].gridstep = gridstep;
@@ -551,9 +609,6 @@ static struct gamescene* read_game_scenes(int32_t snum, const char* gamename, FI
       ls[i].cap = cap;
       ls[i].tokid = tokid;
       ls[i].rects = rects;
-      ls[i].tex.id = texid;
-      ls[i].tex.width = w;
-      ls[i].tex.height = h;
       /*Layer is dirty*/
       ls[i].isdirty = true;
     }

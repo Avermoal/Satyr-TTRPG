@@ -52,27 +52,13 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     /*Allocation*/
     struct gamestate* gstate = (struct gamestate*)calloc(1, sizeof(struct gamestate));
     init_game_state(gstate);
-    struct map* m = (struct map*)calloc(1, sizeof(struct map));
-    createmap(m);
-    /*Make game scene from map*/
-    gstate->gscns = make_game_scene_from_map_once(gstate, m);
-    if(!gstate->gscns){
-      destroy_game_state(gstate);
-      free(gstate);
-      destroymap(m);
-      free(m);
-      gstate = nullptr;
-      m = nullptr;
-      return;
-    }
-    /*Get game name*/
+    /*Create game satate*/
     GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
-    gstate->gamename = strdup(gtk_entry_buffer_get_text(entrybuffer));
+    create_default_game_state(gstate, gtk_entry_buffer_get_text(entrybuffer));
     /*Campaign dir init*/
     campaign_dir_init(gstate->gamename);
     /*Set data*/
     g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
-    g_object_set_data(G_OBJECT(userdata), "map", m);
   }else{
     /*Game path*/
     GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
@@ -83,20 +69,9 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     if(!gstate){
       return;
     }
-    struct map* m = (struct map*)calloc(1, sizeof(struct map));
-    if(!m){
-      free(gstate);
-      return;
-    }
-    create_map_from_data(
-      m,
-      gstate->gscns[gstate->current_map_id - 1].lrnum,
-      gstate->gscns[gstate->current_map_id - 1].l
-    );
-    gstate->m = m;
+    create_game_render_data(gstate, );
     /*Set data*/
     g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
-    g_object_set_data(G_OBJECT(userdata), "map", m);
   }
 }
 
@@ -111,14 +86,12 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   if(!gstate){
     return;
   }
-  /*Get map*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   /*Save game*/
   save_game_state(gstate);
   /*Free*/
-  destroymap(m);
-  free(m);
-  m = nullptr;
+  destroymap(gstate->m);
+  free(gstate->m);
+  gstate->m = nullptr;
   destroy_game_state(gstate);
   free(gstate);
   gstate = nullptr;
@@ -149,11 +122,9 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
   if(width <= 0 || height <= 0){
     return FALSE;
   }
-  /*Get map*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
   /*Render map*/
   glDepthMask(GL_FALSE);
-  rendermap(m, (float)width, (float)height);
+  rendermap(gstate->m, (float)width, (float)height);
   glDepthMask(GL_TRUE);
   return TRUE;
 }
@@ -161,10 +132,11 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
 gboolean ontick(GtkWidget* widget, GdkFrameClock* clock, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
-  if(!m){
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate || !gstate->m){
     return FALSE;
   }
+  struct map* m = gstate->m;
   /*Get time*/
   gint64 frametime = gdk_frame_clock_get_frame_time(clock);
   double currenttime = TO_CURRENT_TIME(frametime);

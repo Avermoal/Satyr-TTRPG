@@ -136,7 +136,9 @@ static void set_new_campaign_page_callbacks(GtkBuilder* builder, gpointer userda
 static void on_back_from_load_btn_clicked(GtkButton* btn, gpointer userdata)
 {
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
-  g_object_unref(entrybuffer);
+  if(entrybuffer){
+    g_object_unref(entrybuffer);
+  }
   g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", nullptr);
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
   GtkWidget* child = gtk_stack_get_child_by_name(interfacestack, "load_campaign_page");

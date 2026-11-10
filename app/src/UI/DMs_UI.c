@@ -8,6 +8,7 @@
 #include "Map/map_data.h"
 #include "Tokens/tokens.h"
 #include "EventsSystem/token_dnd.h"
+#include "EventsSystem/scene_dnd.h"
 #include "DisplaySystem/display_system.h"
 #include "EventsSystem/event_system.h"
 #include "EventsSystem/file_dnd.h"
@@ -26,6 +27,7 @@ static void on_side_hide_btn_clicked(GtkButton* btn, gpointer userdata);
 /*Top menu*/
 static void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata);
+static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata);
 static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata);
 static void on_grid_scale_value_changed(GtkRange* range, gpointer useradta);
@@ -56,12 +58,14 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   dms_ui->tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
   dms_ui->tokens_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_btn"));
   dms_ui->maps_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "maps_btn"));
+  dms_ui->scene_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "scene_btn"));
   dms_ui->drag_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "drag_btn"));
   dms_ui->settings_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "settings_btn"));
   dms_ui->settings_grid = GTK_WIDGET(gtk_builder_get_object(dms_builder, "settings_grid"));
   dms_ui->layers_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "layers_box"));
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
   g_object_set_data(G_OBJECT(dms_ui->overlay), "drag_btn", dms_ui->drag_btn);
+  /*!Toggle button group is not nedded!*/
   /*Set GtkOpenGLArea ticker*/
   GtkWidget* gl_area = GTK_WIDGET(gtk_builder_get_object(dms_builder, "gl_area"));
   gtk_widget_add_tick_callback(gl_area, ontick, win, nullptr);
@@ -74,9 +78,9 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   g_signal_connect(side_menu_btn, "clicked", G_CALLBACK(on_side_menu_btn_clicked), userdata);
   GtkWidget* side_hide_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "side_hide_btn"));
   g_signal_connect(side_hide_btn, "clicked", G_CALLBACK(on_side_hide_btn_clicked), userdata);
-  GtkWidget* tokens_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "tokens_box"));
   g_signal_connect(dms_ui->tokens_btn, "toggled", G_CALLBACK(on_tokens_btn_toggled), userdata);
   g_signal_connect(dms_ui->maps_btn, "toggled", G_CALLBACK(on_maps_btn_toggled), userdata);
+  g_signal_connect(dms_ui->scene_btn, "toggled", G_CALLBACK(on_scene_btn_toggled), userdata);
   GtkGesture* longpress = gtk_gesture_drag_new();
   g_signal_connect(longpress, "drag-begin", G_CALLBACK(on_drag_begin), userdata);
   g_signal_connect(longpress, "drag-end", G_CALLBACK(on_drag_end), userdata);
@@ -152,12 +156,18 @@ static void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata)
   struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
   /*Fill/clear tokens box*/
   if(gtk_toggle_button_get_active(btn)){
-    /*Add tokens to box*/
-      /*Switch maps btn to FALSE*/
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn), FALSE);
-    if(gstate->tnum == 0){
-      return;
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
     }
+    g_signal_handlers_block_by_func(dms_ui->maps_btn,  on_maps_btn_toggled,  userdata);
+    g_signal_handlers_block_by_func(dms_ui->scene_btn, on_scene_btn_toggled, userdata);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn),  FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->scene_btn), FALSE);
+    g_signal_handlers_unblock_by_func(dms_ui->maps_btn,  on_maps_btn_toggled,  userdata);
+    g_signal_handlers_unblock_by_func(dms_ui->scene_btn, on_scene_btn_toggled, userdata);
+    /*Add tokens to box*/
     for(int32_t i = 0; i < gstate->tnum; ++i){
       /*Create widget*/
       GdkTexture* texture = gdk_texture_new_from_filename(gstate->tokens[i].path, nullptr);
@@ -188,7 +198,9 @@ static void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata)
     while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
       gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
     }
-    gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
+    if(gtk_widget_get_visible(dms_ui->tokens_box)){
+      gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
+    }
   }
 }
 
@@ -198,12 +210,18 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
   struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
   /*Fill/clear tokens box*/
   if(gtk_toggle_button_get_active(btn)){
-    /*Add tokens to box*/
-      /*Switch tokens btn to FALSE*/
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn), FALSE);
-    if(gstate->mnum == 0){
-      return;
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
     }
+    g_signal_handlers_block_by_func(dms_ui->tokens_btn,  on_tokens_btn_toggled,  userdata);
+    g_signal_handlers_block_by_func(dms_ui->scene_btn, on_scene_btn_toggled, userdata);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn),  FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->scene_btn), FALSE);
+    g_signal_handlers_unblock_by_func(dms_ui->tokens_btn,  on_tokens_btn_toggled,  userdata);
+    g_signal_handlers_unblock_by_func(dms_ui->scene_btn, on_scene_btn_toggled, userdata);
+    /*Add tokens to box*/
     for(int32_t i = 0; i < gstate->mnum; ++i){
       /*Create widget*/
       GdkTexture* texture = gdk_texture_new_from_filename(gstate->maps[i].cache, nullptr);
@@ -234,7 +252,84 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
     while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
       gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
     }
-    gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
+    if(gtk_widget_get_visible(dms_ui->tokens_box)){
+      gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
+    }
+  }
+}
+
+static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata)
+{
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
+  /*Fill/clear tokens box*/
+  if(gtk_toggle_button_get_active(btn)){
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
+    }
+    g_signal_handlers_block_by_func(dms_ui->tokens_btn,  on_tokens_btn_toggled,  userdata);
+    g_signal_handlers_block_by_func(dms_ui->maps_btn, on_maps_btn_toggled, userdata);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->tokens_btn),  FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->maps_btn), FALSE);
+    g_signal_handlers_unblock_by_func(dms_ui->tokens_btn,  on_tokens_btn_toggled,  userdata);
+    g_signal_handlers_unblock_by_func(dms_ui->maps_btn, on_maps_btn_toggled, userdata);
+    /*Add scenes to box*/
+    for(int32_t i = 0; i < gstate->snum; ++i){
+      /*Get path to maps cache*/
+      char* path = nullptr;
+      if(gstate->gscns[i].l[1].tokid &&
+        gstate->gscns[i].l[1].rnum != 0 &&
+        gstate->gscns[i].l[1].tokid[0] != -1 &&
+        gstate->maps){
+        path = gstate->maps[gstate->gscns[i].l[1].tokid[0]].cache;
+      }
+      /*Create widget*/
+      if(path){
+        GdkTexture* texture = gdk_texture_new_from_filename(path, nullptr);
+        GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
+        gtk_image_set_pixel_size(GTK_IMAGE(image), 64);
+        /*Add scene to tokens box*/
+        gtk_box_append(GTK_BOX(dms_ui->tokens_box), image);
+        /*Drag and drop prepare settings*/
+        GtkDragSource* drag_source = gtk_drag_source_new();
+        g_signal_connect(drag_source, "prepare", G_CALLBACK(on_scene_drag_prepare), GINT_TO_POINTER(i));
+        g_signal_connect(drag_source, "drag_begin", G_CALLBACK(on_scene_drag_begin), image);
+        /*Set add controller*/
+        gtk_widget_add_controller(image, GTK_EVENT_CONTROLLER(drag_source));
+        /*Free*/
+        g_object_unref(texture);
+      }else{
+        GtkWidget* null = gtk_label_new("NULL");
+        gtk_box_append(GTK_BOX(dms_ui->tokens_box), null);
+        /*Drag and drop prepare settings*/
+        GtkDragSource* drag_source = gtk_drag_source_new();
+        g_signal_connect(drag_source, "prepare", G_CALLBACK(on_scene_drag_prepare), GINT_TO_POINTER(i));
+        g_signal_connect(drag_source, "drag_begin", G_CALLBACK(on_scene_drag_begin), null);
+        /*Set add controller*/
+        gtk_widget_add_controller(null, GTK_EVENT_CONTROLLER(drag_source));
+      }
+    }
+    /*Set new scene label*/
+    GtkWidget* newlabel = gtk_label_new("NEW");
+    gtk_box_append(GTK_BOX(dms_ui->tokens_box), newlabel);
+    GtkDragSource* drag_source = gtk_drag_source_new();
+    g_signal_connect(drag_source, "prepare", G_CALLBACK(on_scene_drag_prepare), GINT_TO_POINTER(ADDSCENE));
+    g_signal_connect(drag_source, "drag_begin", G_CALLBACK(on_scene_drag_begin), newlabel);
+    /*Set add controller*/
+    gtk_widget_add_controller(newlabel, GTK_EVENT_CONTROLLER(drag_source));
+    /*Set visible*/
+    gtk_widget_set_visible(dms_ui->tokens_box, TRUE);
+  }else{
+    /*Clear box*/
+    GtkWidget* child;
+    while((child = gtk_widget_get_first_child(dms_ui->tokens_box))){
+      gtk_box_remove(GTK_BOX(dms_ui->tokens_box), child);
+    }
+    if(gtk_widget_get_visible(dms_ui->tokens_box)){
+      gtk_widget_set_visible(dms_ui->tokens_box, FALSE);
+    }
   }
 }
 

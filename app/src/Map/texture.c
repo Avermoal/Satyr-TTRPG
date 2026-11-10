@@ -6,9 +6,11 @@
 
 uint32_t load_png(const char* path, int32_t* width, int32_t* height)
 {
-  if(strlen(path) == 0){
-    *width = -1;
-    *height = -1;
+  if(!path || strlen(path) == 0){
+    if(width && height){
+      *width = -1;
+      *height = -1;
+    }
     return 0;
   }
   *width = -1;

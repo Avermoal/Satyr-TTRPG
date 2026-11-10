@@ -19,10 +19,11 @@ gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
-  if(!m){
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate || !gstate->m){
     return GDK_EVENT_STOP;
   }
+  struct map* m = gstate->m;
   GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
   GdkKeymapKey* keys = nullptr;
   guint* keyvals = nullptr;
@@ -62,10 +63,11 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
   /*Get map pointer*/
-  struct map* m = (struct map*)g_object_get_data(G_OBJECT(userdata), "map");
-  if(!m){
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate || !gstate->m){
     return GDK_EVENT_STOP;
   }
+  struct map* m = gstate->m;
   GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
   GdkKeymapKey* keys = nullptr;
   guint* keyvals = nullptr;

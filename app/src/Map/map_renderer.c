@@ -1,5 +1,6 @@
 #include <Map/map_renderer.h>
 
+#include <stdlib.h>
 #include <math.h>
 
 #include "Map/map_data.h"
@@ -12,6 +13,80 @@ static void cr_img(struct renderer* ren, struct layer* l);
 
 static void setup_vertex_attribs(void);
 static bool renderer_ensure_capacity(struct renderer* ren, int32_t rnum);
+
+bool fill_render_data(struct renderdata* rens, struct layer* ls, int32_t lrnum,
+                      uint32_t types[lrnum], const char* const textures_paths[lrnum])
+{
+  if(!rens || lrnum <= 0 || ls == nullptr){
+    return false;
+  }
+  struct renderer* ren = (struct renderer*)calloc(lrnum, sizeof(struct renderer));
+  struct texture* tex = (struct texture*)calloc(lrnum, sizeof(struct texture));
+  if(!ren || !tex){
+    free(ren);
+    free(tex);
+    return false;
+  }
+  for(int32_t i = 0; i < lrnum; ++i){
+    createrenderer(&ren[i], &ls[i], types[i]);
+    tex[i].id = load_png(textures_paths[i], &tex[i].width, &tex[i].height);
+  }
+  rens->ren = ren;
+  rens->tex = tex;
+  return true;
+}
+
+void clear_render_data(struct renderdata* rens, int32_t lrnum)
+{
+  if(!rens){
+    return;
+  }
+  for(int32_t i = 0; i < lrnum; ++i){
+    destroyrenderer(&rens->ren[i]);
+    deletetexture(&rens->tex[i]);
+  }
+  rens->ren = nullptr;
+  rens->tex = nullptr;
+}
+
+bool append_render_data(struct renderdata* rens, struct layer* l, int32_t lrnum,
+                        uint32_t type, const char* const texture_path)
+{
+  if(!rens || !l || lrnum <= 0){
+    return false;
+  }
+  struct renderer* ren = (struct renderer*)calloc((size_t)lrnum + 1, sizeof(struct renderer));
+  struct texture* tex = (struct texture*)calloc((size_t)lrnum + 1, sizeof(struct texture));
+  if(!ren || !tex){
+    free(ren);
+    free(tex);
+    return false;
+  }
+  for(int32_t i = 0; i < lrnum; ++i){
+    ren[i] = rens->ren[i];
+    tex[i] = rens->tex[i];
+  }
+  /*Assosiate renderer and layer*/
+  createrenderer(&ren[lrnum], l, type);
+  tex[lrnum].id = load_png(texture_path, &tex[lrnum].width, &tex[lrnum].height);
+  /*Free old*/
+  free(rens->ren);
+  free(rens->tex);
+  /*Sets*/
+  rens->ren = ren;
+  rens->tex = tex;
+  return true;
+}
+
+bool update_render_data_texture(struct renderdata* rens, int32_t lrid,
+                                uint32_t type, const char* texture_path)
+{
+  if(!rens || !rens->ren || !rens->tex || lrid < 0){
+    return false;
+  }
+  rens->tex[lrid].id = load_png(texture_path, &rens->tex[lrid].width, &rens->tex[lrid].height);
+  return true;
+}
 
 void createrenderer(struct renderer* ren, struct layer* l, uint32_t REN_TYPE)
 {

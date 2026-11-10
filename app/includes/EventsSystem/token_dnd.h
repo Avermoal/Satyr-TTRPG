@@ -1,10 +1,10 @@
-#ifndef EVENTSSYSTEMT_TOKEN_DND_H
-#define EVENTSSYSTEMT_TOKEN_DND_H
+#ifndef EVENTSSYSTEM_TOKEN_DND_H
+#define EVENTSSYSTEM_TOKEN_DND_H
 
 #include <gtk/gtk.h>
 
 GdkContentProvider* on_token_drag_prepare(GtkDragSource* source, double x, double y, gpointer userdata);
 
-void on_token_drag_begin(GtkDragSource* source, GdkDrag* drag, GtkWidget* box);
+void on_token_drag_begin(GtkDragSource* source, GdkDrag* drag, GtkWidget* img);
 
-#endif/*EVENTSSYSTEMT_TOKEN_DND_H*/
+#endif/*EVENTSSYSTEM_TOKEN_DND_H*/

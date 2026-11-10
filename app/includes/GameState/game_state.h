@@ -3,25 +3,28 @@
 
 #include <stdint.h>
 
+#include "Map/map_renderer.h"
 #include "Map/camera.h"
+#include "EventSystem/event_data.h"
 
-struct map;
 struct layer;
 struct token;
 
 struct gamescene{
   int32_t lrnum;
-  struct layer* l;          /*Slave*/
+  struct layer* ls;
 };
 
 struct gamestate{
-  char* gamename;           /*Slave*/
-  struct map* m;            /*CURRENT DISPLAY MAP. owner: gl_area*/
-  struct gamescene* gscns;  /*Slave*/
-  struct token* tokens;     /*Slave*/
-  struct token* maps;       /*Slave*/
+  char* gamename;
+  struct gamescene* gscns;
+  struct token* tokens;
+  struct token* maps;
+  struct renderdata rens;
+  struct camera cam;
+  struct eventdata evdata;
   int32_t snum;
-  int32_t current_map_id;
+  int32_t current_scene_id;
   int32_t tnum;
   int32_t mnum;
 };
@@ -32,15 +35,28 @@ static inline void init_game_state(struct gamestate* gstate)
     return;
   }
   gstate->gamename = nullptr;
-  gstate->m = nullptr;
   gstate->gscns = nullptr;
   gstate->tokens = nullptr;
   gstate->maps = nullptr;
+  gstate->ren.tex = nullptr;
+  gstate->rens.ren = nullptr;
+  gstate->camera.cam_x = 0.0f;
+  gstate->camera.cam_y = 0.0f;
+  gstate->camera.zoom = 1.0f;
+  init_event_data(&gstate->evdata);
   gstate->snum = 0;
-  gstate->current_map_id = 0;
+  gstate->current_scene_id = 0;
   gstate->tnum = 0;
   gstate->mnum = 0;
 }
+
+bool create_default_game_state(struct gamestate* gstate, const char* name);
+
+bool append_default_game_scene(struct gamestate* gstate);
+
+bool create_game_render_data(struct gamestate* gstate, const uint32_t* types, const char* const* textures_path);
+
+bool scene_add_layer(struct gamescene* gscn, uint32_t layertype, int32_t toktype);
 
 void save_game_state(struct gamestate* gstate);
 
@@ -50,15 +66,7 @@ struct gamestate* get_game_state(const char* path);
 
 void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath, const char* cache);
 
-struct gamescene* get_game_scene(const char* path, int32_t snum);
-
-struct layer* current_scene_add_layer(struct gamestate* gstate, uint32_t layertype, int32_t toktype);
-
-void make_current(struct gamestate* gstate, int32_t snum);
-
-struct gamescene* make_game_scene_from_map_once(struct gamestate* gstate, struct map* m);
-
-struct gamescene* add_clear_game_scene(struct gamestate* gstate);
+void make_current(struct gamestate* gstate, int32_t sid);
 
 char* get_basename(char* path);
 

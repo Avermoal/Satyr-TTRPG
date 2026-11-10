@@ -33,7 +33,6 @@ struct layer{
   uint32_t type;
   int32_t gridstep;
   float gridopacity;
-  struct texture tex;         /*TEXTURE ATLAS*/
   struct rectangle* rects;
   int32_t* tokid;             /*Slave*/
   int32_t toktype;
@@ -48,9 +47,6 @@ static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
   l->rnum = 0;
   l->cap = 0;
   l->type = type;
-  l->tex.id = 0;
-  l->tex.width = 0;
-  l->tex.height = 0;
   l->toktype = toktype;
   l->rects = nullptr;
   l->tokid = nullptr;
@@ -65,9 +61,6 @@ static inline void layerfree(struct layer* l)
   }
   free(l->rects);
   free(l->tokid);
-  if(l->tex.id != 0){
-    deletetexture(&l->tex);
-  }
   l->rects = nullptr;
   l->tokid = nullptr;
   l->rnum = 0;
@@ -335,7 +328,7 @@ static inline bool mouse_XY_in_layer_token(float x, float y, struct layer* l, in
   return false;
 }
 
-/*Not thread save? Fuck...*/
+/*Not thread safety? Fuck...*/
 static inline void layer_move_rt_to_begin(struct layer* l, int32_t rid)
 {
   /*If rid == 0 then move don't need*/
