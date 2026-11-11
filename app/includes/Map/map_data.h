@@ -51,6 +51,7 @@ static inline void layerinit(struct layer* l, uint32_t type, int32_t toktype)
   l->rects = nullptr;
   l->tokid = nullptr;
   l->isdirty = true;
+  l->gridstep = 96;
   l->gridopacity = 1.0f;
 }
 

@@ -13,7 +13,6 @@
 #include "GameState/game_state.h"
 #include "GameState/file_initialize.h"
 #include "Map/map_data.h"
-#include "Map/map.h"
 #include "Map/map_renderer.h"
 #include "Tokens/tokens.h"
 #include "Map/texture_atlas.h"
@@ -57,7 +56,7 @@ typedef struct{
   bool is_new_layer;
   /*SNAPSHOT*/
   char* gamename;
-  int32_t current_map_id;
+  int32_t current_scene_id;
   int32_t max_atlas_size;
 }foratlas;
 
@@ -132,9 +131,9 @@ gboolean on_toks_drop(GtkDropTargetAsync* target, GdkDrop* drop,
       }
       float ww = (float)gtk_widget_get_width (gl_area ? gl_area : widget);
       float wh = (float)gtk_widget_get_height(gl_area ? gl_area : widget);
-      struct camera* cam = &gstate->m->cam;
-      gstate->m->evdata.mousex = cam->cam_x + ((float)lx - ww * 0.5f) / cam->zoom;
-      gstate->m->evdata.mousey = cam->cam_y + ((float)ly - wh * 0.5f) / cam->zoom;
+      struct camera* cam = &gstate->cam;
+      gstate->evdata.mousex = cam->cam_x + ((float)lx - ww * 0.5f) / cam->zoom;
+      gstate->evdata.mousey = cam->cam_y + ((float)ly - wh * 0.5f) / cam->zoom;
     }
     /*Async*/
     mime_read_ctx* ctx = g_new0(mime_read_ctx, 1);
@@ -456,8 +455,8 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
       }
       /*Update current map layers texture atlas for tokens*/
       struct layer* L = nullptr;
-      for(int32_t i = 0; i < gstate->gscns[gstate->current_map_id - 1].lrnum; ++i){
-        L = &gstate->gscns[gstate->current_map_id - 1].l[i];
+      for(int32_t i = 0; i < gstate->gscns[gstate->current_scene_id].lrnum; ++i){
+        L = &gstate->gscns[gstate->current_scene_id].ls[i];
         if(L->toktype != TOKEN){
           continue;
         }
@@ -470,7 +469,7 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
           struct token* T = &gstate->tokens[tid];
           rect_set_UV(&L->rects[j], T->u0, T->v0, T->u1, T->v1);
         }
-        layer_update_texture_atlas(L, data->atlas_path);
+        update_render_data_texture(&gstate->rens, i, data->atlas_path);
       }
     }
     /*Free*/
@@ -612,15 +611,26 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   if(strcmp(type_id, "-1") == 0){
     /*To new scene*/
     struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(ctx->userdata), "gstate");
-    add_clear_game_scene(gstate);
+    struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(ctx->userdata), "dms_ui_data");
+    append_default_game_scene(gstate);
+    make_current(gstate, gstate->snum - 1);
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dms_ui->scene_btn))){
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->scene_btn), FALSE);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->scene_btn), TRUE);
+    }
     mime_read_ctx_free(ctx);
     return;
   }else if(strchr(type_id, '-') == nullptr){
     /*Switch scene*/
     struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(ctx->userdata), "gstate");
+    struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(ctx->userdata), "dms_ui_data");
     int32_t sid = 0;
     sscanf(type_id, "%d", &sid);
     make_current(gstate, sid);
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn))){
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn), FALSE);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->settings_btn), TRUE);
+    }
     mime_read_ctx_free(ctx);
     return;
   }
@@ -665,8 +675,8 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   struct layer* rightlayer = nullptr;
   bool is_new_layer = false;
   for(;;){
-    for(int32_t i = 0; i < gstate->m->lrnum; ++i){
-      if(gstate->m->l[i].toktype == type && gstate->m->l[i].type == IMG){
+    for(int32_t i = 0; i < gstate->gscns[gstate->current_scene_id].lrnum; ++i){
+      if(gstate->gscns[gstate->current_scene_id].ls[i].toktype == type && gstate->gscns[gstate->current_scene_id].ls[i].type == IMG){
         lrnum = i;
         break;
       }
@@ -675,14 +685,16 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
       break;
     }
     g_print("Layer with type %d not exist\n-Create new layer!\n", type);
-    if(!current_scene_add_layer(gstate, IMG, type)){
+    struct gamescene* current = &gstate->gscns[gstate->current_scene_id];
+    if(!scene_add_layer(gstate, gstate->current_scene_id, IMG, type) ||
+       !append_render_data(&gstate->rens, &current->ls[current->lrnum - 1], current->lrnum - 1, IMG, nullptr)){
       g_print("ALLERT! Layer not created!\n");
       g_free(data);
       return;
     }
     is_new_layer = true;
   }
-  rightlayer = &gstate->m->l[lrnum];
+  rightlayer = &gstate->gscns[gstate->current_scene_id].ls[lrnum];
     /*Get right tokens*/
   if(is_new_layer){
     tnum = 1;
@@ -735,7 +747,7 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   data->lrnum = lrnum;
   data->tnum = tnum;
   data->is_new_layer = is_new_layer;
-  data->current_map_id = gstate->current_map_id;
+  data->current_scene_id = gstate->current_scene_id;
   data->max_atlas_size = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata_), "max_atlas_size"));
   data->gamename = strdup(gstate->gamename);
   /*Create new task*/
@@ -770,7 +782,7 @@ static void work_with_atlas(GTask* task, gpointer source, gpointer taskdata, GCa
     /*Define atlas_dir_path*/
   char* atlas_dir_path = (char*)calloc(512, sizeof(char));
   if(data->righttoks[0].type == MAP){
-    snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas/%d", data->gamename, data->current_map_id);
+    snprintf(atlas_dir_path, 512, "saves/%s/presets/atlas/%d", data->gamename, data->current_scene_id);
   }else if(data->righttoks[0].type == TOKEN){
     atlas_path = (char*)calloc(512, sizeof(char));
     snprintf(atlas_path, 512, "saves/%s/presets/atlas/tokens_atlas.png", data->gamename);
@@ -900,7 +912,7 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   /*Make current gl context*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
   if(!gstate){
-    g_print("Scene %d is not current", data->current_map_id);
+    g_print("Scene %d is not current", data->current_scene_id);
     for(int32_t i = 0; i < data->tnum; ++i){
       free(data->righttoks[i].path);
       free(data->righttoks[i].cache);
@@ -914,8 +926,8 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   }
   GtkGLArea* gl_area = GTK_GL_AREA(g_object_get_data(G_OBJECT(data->userdata), "gl_area"));
   gtk_gl_area_make_current(gl_area);
-  if(data->current_map_id != gstate->current_map_id){
-    g_print("Scene %d is not current", data->current_map_id);
+  if(data->current_scene_id != gstate->current_scene_id){
+    g_print("Scene %d is not current", data->current_scene_id);
     for(int32_t i = 0; i < data->tnum; ++i){
       free(data->righttoks[i].path);
       free(data->righttoks[i].cache);
@@ -928,18 +940,18 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     return;
   }
   /*Get current game scene*/
-  struct gamescene* current = &gstate->gscns[data->current_map_id - 1];
-  struct layer* L = &current->l[data->lrnum];
-  struct renderer* R = &gstate->m->ren[data->lrnum];
+  struct gamescene* current = &gstate->gscns[data->current_scene_id];
+  struct layer* L = &current->ls[data->lrnum];
+  struct renderer* R = &gstate->rens.ren[data->lrnum];
   /*Link not linking token*/
   if(data->righttoks[0].type == TOKEN){
     /*Get token*/
     struct token* t = fl->not_link_tok;
     /*Put token into layer*/
     struct rectangle rect;
-    rect_set_XYWH(&rect, gstate->m->evdata.mousex - current->l[0].gridstep / 2.0f,
-                  gstate->m->evdata.mousey - current->l[0].gridstep / 2.0f,
-                  current->l[0].gridstep, current->l[0].gridstep);
+    rect_set_XYWH(&rect, gstate->evdata.mousex - current->ls[0].gridstep / 2.0f,
+                  gstate->evdata.mousey - current->ls[0].gridstep / 2.0f,
+                  current->ls[0].gridstep, current->ls[0].gridstep);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, t->u0, t->v0, t->u1, t->v1);
     if(layer_add_rect(L, &rect)){
@@ -950,8 +962,8 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
     struct token* m = fl->not_link_tok;
     /*Put token into layer*/
     struct rectangle rect;
-    rect_set_XYWH(&rect, gstate->m->cam.cam_x - fl->w * 0.5f,
-                  gstate->m->cam.cam_y - fl->h * 0.5, fl->w, fl->h);
+    rect_set_XYWH(&rect, gstate->cam.cam_x - fl->w * 0.5f,
+                  gstate->cam.cam_y - fl->h * 0.5, fl->w, fl->h);
     rect_set_RGBA(&rect, 1.0f, 1.0f, 1.0f, 1.0f);
     rect_set_UV(&rect, m->u0, m->v0, m->u1, m->v1);
     if(layer_add_rect(L, &rect)){
@@ -961,12 +973,12 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   /*Create new renderer*/
   if(data->is_new_layer){
     createrenderer(R, L, IMG);
-    layer_update_texture_atlas(L, fl->atlas_path);
+    update_render_data_texture(&gstate->rens, data->lrnum, fl->atlas_path);
   }
   if(data->righttoks[0].type == MAP){
     /*Layer update texture atlas for MAP and rects set UV*/
     int32_t n = L->rnum < data->tnum ? L->rnum : data->tnum;
-    layer_update_texture_atlas(L, fl->atlas_path);
+    update_render_data_texture(&gstate->rens, data->lrnum, fl->atlas_path);
     /*Rect set UV*/
     for(int32_t i = 0; i < n; ++i){
       rect_set_UV(&L->rects[i],

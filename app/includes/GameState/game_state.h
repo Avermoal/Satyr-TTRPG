@@ -5,7 +5,7 @@
 
 #include "Map/map_renderer.h"
 #include "Map/camera.h"
-#include "EventSystem/event_data.h"
+#include "EventsSystem/event_data.h"
 
 struct layer;
 struct token;
@@ -38,11 +38,11 @@ static inline void init_game_state(struct gamestate* gstate)
   gstate->gscns = nullptr;
   gstate->tokens = nullptr;
   gstate->maps = nullptr;
-  gstate->ren.tex = nullptr;
+  gstate->rens.tex = nullptr;
   gstate->rens.ren = nullptr;
-  gstate->camera.cam_x = 0.0f;
-  gstate->camera.cam_y = 0.0f;
-  gstate->camera.zoom = 1.0f;
+  gstate->cam.cam_x = 0.0f;
+  gstate->cam.cam_y = 0.0f;
+  gstate->cam.zoom = 1.0f;
   init_event_data(&gstate->evdata);
   gstate->snum = 0;
   gstate->current_scene_id = 0;
@@ -50,13 +50,23 @@ static inline void init_game_state(struct gamestate* gstate)
   gstate->mnum = 0;
 }
 
+static inline void init_default_state(struct gamestate* gstate){
+  if(!gstate){
+    return;
+  }
+  gstate->cam.cam_x = 0.0f;
+  gstate->cam.cam_y = 0.0f;
+  gstate->cam.zoom = 1.0f;
+  init_event_data(&gstate->evdata);
+}
+
 bool create_default_game_state(struct gamestate* gstate, const char* name);
 
 bool append_default_game_scene(struct gamestate* gstate);
 
-bool create_game_render_data(struct gamestate* gstate, const uint32_t* types, const char* const* textures_path);
+bool create_game_render_data(struct gamestate* gstate, const uint32_t* types, const char* const* textures_paths);
 
-bool scene_add_layer(struct gamescene* gscn, uint32_t layertype, int32_t toktype);
+bool scene_add_layer(struct gamestate* gstate, int32_t sid, uint32_t layertype, int32_t toktype);
 
 void save_game_state(struct gamestate* gstate);
 
@@ -67,6 +77,8 @@ struct gamestate* get_game_state(const char* path);
 void game_state_register_token(struct gamestate* gstate, int32_t toktype, const char* tokpath, const char* cache);
 
 void make_current(struct gamestate* gstate, int32_t sid);
+
+void renderscene(struct gamestate* gstate, float ww, float wh);
 
 char* get_basename(char* path);
 

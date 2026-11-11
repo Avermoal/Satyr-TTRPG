@@ -29,6 +29,7 @@ void on_to_new_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* new_campaign_page = GTK_WIDGET(gtk_builder_get_object(new_campaign_builder, "new_campaign_page"));
   /*Get Entry Buffer and set like obj data*/
   GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(gtk_builder_get_object(new_campaign_builder, "campaign_name_buffer"));
+  g_object_ref(entrybuffer);
   g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", entrybuffer);
   /*Interfacestack*/
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");

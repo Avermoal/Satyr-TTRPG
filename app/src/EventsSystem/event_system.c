@@ -3,7 +3,6 @@
 #include "UI/UI.h"
 #include "UI/DMs_UI.h"
 #include "GameState/game_state.h"
-#include "Map/map.h"
 #include "Map/map_data.h"
 #include "Map/camera.h"
 
@@ -18,12 +17,11 @@ static bool mouse_on_map(struct layer* l, float x, float y, int32_t* tokid, int3
 gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
-  /*Get map pointer*/
+  /*Get state pointer*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(!gstate || !gstate->m){
+  if(!gstate){
     return GDK_EVENT_STOP;
   }
-  struct map* m = gstate->m;
   GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
   GdkKeymapKey* keys = nullptr;
   guint* keyvals = nullptr;
@@ -45,16 +43,16 @@ gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
   guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
   if(GDK_KEY_w == final_keyval){
-    m->evdata.key_w = true;
+    gstate->evdata.key_w = true;
   }
   if(GDK_KEY_s == final_keyval){
-    m->evdata.key_s = true;
+    gstate->evdata.key_s = true;
   }
   if(GDK_KEY_a == final_keyval){
-    m->evdata.key_a = true;
+    gstate->evdata.key_a = true;
   }
   if(GDK_KEY_d == final_keyval){
-    m->evdata.key_d = true;
+    gstate->evdata.key_d = true;
   }
   return GDK_EVENT_PROPAGATE;
 }
@@ -62,12 +60,11 @@ gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
 gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata)
 {
-  /*Get map pointer*/
+  /*Get state pointer*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(!gstate || !gstate->m){
+  if(!gstate){
     return GDK_EVENT_STOP;
   }
-  struct map* m = gstate->m;
   GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(userdata));
   GdkKeymapKey* keys = nullptr;
   guint* keyvals = nullptr;
@@ -89,16 +86,16 @@ gboolean on_key_released(GtkEventControllerKey* controller, guint keyval,
   guint final_keyval = (latin_keyval != 0) ? latin_keyval : keyval;
   /*Motion*/
   if(GDK_KEY_w == final_keyval){
-    m->evdata.key_w = false;
+    gstate->evdata.key_w = false;
   }
   if(GDK_KEY_s == final_keyval){
-    m->evdata.key_s = false;
+    gstate->evdata.key_s = false;
   }
   if(GDK_KEY_a == final_keyval){
-    m->evdata.key_a = false;
+    gstate->evdata.key_a = false;
   }
   if(GDK_KEY_d == final_keyval){
-    m->evdata.key_d = false;
+    gstate->evdata.key_d = false;
   }
   return GDK_EVENT_PROPAGATE;
 }
@@ -107,11 +104,11 @@ gboolean onscroll(GtkEventControllerScroll* scroll, double dx, double dy, gpoint
 {
   /*Get gstate*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(!gstate || !gstate->m){
+  if(!gstate){
     return FALSE;
   }
-  if(!gstate->m->evdata.draggingscene){
-    zoomat(&gstate->m->cam, (float)dy);
+  if(!gstate->evdata.draggingscene){
+    zoomat(&gstate->cam, (float)dy);
   }
   return TRUE;
 }
@@ -127,19 +124,19 @@ void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer use
   /*Get widget width and height*/
   float ww = (float)gtk_widget_get_width(widget);
   float wh = (float)gtk_widget_get_height(widget);
-  struct camera* cam = &gstate->m->cam;
+  struct camera* cam = &gstate->cam;
   /*Calc mouse pos in world coord*/
-  gstate->m->evdata.mousex = mousex(cam, (float)x, ww);
-  gstate->m->evdata.mousey = mousey(cam, (float)y, wh);
+  gstate->evdata.mousex = mousex(cam, (float)x, ww);
+  gstate->evdata.mousey = mousey(cam, (float)y, wh);
   /*Smooth motion*/
-  struct eventdata* evdata = &gstate->m->evdata;
+  struct eventdata* evdata = &gstate->evdata;
   if(evdata->dragging && !evdata->draggingscene){
-    layer_move_rect(&gstate->m->l[evdata->draglayer], evdata->drag_rid,
+    layer_move_rect(&gstate->gscns[gstate->current_scene_id].ls[evdata->draglayer], evdata->drag_rid,
                     evdata->mousex + evdata->drag_off_x,
                     evdata->mousey + evdata->drag_off_y);
   }
   if(evdata->draggingscene && !evdata->dragging){
-    movecamera(cam, cam->cam_x -evdata->mousex + evdata->drag_off_x, cam->cam_y -evdata->mousey + evdata->drag_off_y);
+    movecamera(cam, cam->cam_x - evdata->mousex + evdata->drag_off_x, cam->cam_y -evdata->mousey + evdata->drag_off_y);
   }
 }
 
@@ -151,22 +148,22 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
   GtkWidget* drag_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(overlay), "drag_btn"));
   /*Get game state*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(!gstate || !gstate->m){
+  if(!gstate){
     return;
   }
-  struct eventdata* evdata = &gstate->m->evdata;
+  struct eventdata* evdata = &gstate->evdata;
   if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(drag_btn))){
     /*Drag map*/
     int32_t tokid = -1;
     int32_t rid = -1;
-    for(int32_t i = gstate->m->lrnum - 1; i >= 0; --i){
-      if(gstate->m->l[i].toktype != MAP){
+    for(int32_t i = gstate->gscns[gstate->current_scene_id].lrnum - 1; i >= 0; --i){
+      if(gstate->gscns[gstate->current_scene_id].ls[i].toktype != MAP){
         continue;
       }
       /*Grab one token*/
-      if(mouse_on_map(&gstate->m->l[i], evdata->mousex, evdata->mousey,
+      if(mouse_on_map(&gstate->gscns[gstate->current_scene_id].ls[i], evdata->mousex, evdata->mousey,
                         &tokid, &rid) && tokid != -1 && rid != -1){
-        struct rectangle* r = &gstate->m->l[i].rects[rid];
+        struct rectangle* r = &gstate->gscns[gstate->current_scene_id].ls[i].rects[rid];
         float cx = r->vert[0].x + 0.5f * rect_get_w(r);
         float cy = r->vert[0].y + 0.5f * rect_get_h(r);
         evdata->drag_off_x = cx - evdata->mousex;
@@ -184,7 +181,7 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
   if(button == 3){
     evdata->draggingscene = true;
     evdata->dragging = false;
-    struct camera* cam = &gstate->m->cam;
+    struct camera* cam = &gstate->cam;
     evdata->drag_off_x = evdata->mousex;
     evdata->drag_off_y = evdata->mousey;
     return;
@@ -195,14 +192,14 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
   /*Drag token*/
   int32_t tokid = -1;
   int32_t rid = -1;
-  for(int32_t i = gstate->m->lrnum - 1; i >= 0; --i){
-    if(gstate->m->l[i].toktype != TOKEN){
+  for(int32_t i = gstate->gscns[gstate->current_scene_id].lrnum - 1; i >= 0; --i){
+    if(gstate->gscns[gstate->current_scene_id].ls[i].toktype != TOKEN){
       continue;
     }
     /*Grab one token*/
-    if(mouse_on_token(&gstate->m->l[i], evdata->mousex, evdata->mousey,
+    if(mouse_on_token(&gstate->gscns[gstate->current_scene_id].ls[i], evdata->mousex, evdata->mousey,
                       &tokid, &rid) && tokid != -1 && rid != -1){
-      struct rectangle* r = &gstate->m->l[i].rects[rid];
+      struct rectangle* r = &gstate->gscns[gstate->current_scene_id].ls[i].rects[rid];
       float cx = r->vert[0].x + 0.5f * rect_get_w(r);
       float cy = r->vert[0].y + 0.5f * rect_get_h(r);
       evdata->drag_off_x = cx - evdata->mousex;
@@ -222,21 +219,21 @@ void on_drag_end(GtkGestureDrag* gesture, double x, double y, gpointer userdata)
   change_widget_cursor(overlay, "default");
   /*Set evdata to default*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(gstate && gstate->m){
-    gstate->m->evdata.dragging = false;
-    gstate->m->evdata.draggingscene = false;
+  if(gstate){
+    gstate->evdata.dragging = false;
+    gstate->evdata.draggingscene = false;
   }
 }
 
-void eventpoll(struct map* m)
+void eventpoll(struct gamestate* gstate)
 {
-  if(!m){
+  if(!gstate){
     return;
   }
   /*Get camera and delta time*/
-  struct camera* cam = &m->cam;
-  struct eventdata* evdata = &m->evdata;
-  float deltatime = (float)m->evdata.deltatime;
+  struct camera* cam = &gstate->cam;
+  struct eventdata* evdata = &gstate->evdata;
+  float deltatime = (float)evdata->deltatime;
   if(deltatime >= 1000.0f){
     return;
   }

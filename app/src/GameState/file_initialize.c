@@ -49,7 +49,7 @@ void makedir(const char* path)
 void campaign_dir_init(const char* name)
 {
   const char* saves = "saves";
-  const char* atlas = "presets/atlas/1";
+  const char* atlas = "presets/atlas/0";
   const char* maps = "presets/textures/maps";
   const char* toks = "presets/textures/tokens";
   const char* cache = "presets/textures/cache";
@@ -69,11 +69,11 @@ void campaign_dir_init(const char* name)
   makedir(cachedir);
 }
 
-void make_scene_dir(const char* name, int snum)
+void make_scene_dir(const char* name, int sid)
 {
   const char* saves = "saves";
   const char* scene = "presets/atlas";
   char dir[256];
-  snprintf(dir, sizeof(dir), "%s/%s/%s/%d", saves, name, scene, snum);
+  snprintf(dir, sizeof(dir), "%s/%s/%s/%d", saves, name, scene, sid);
   makedir(dir);
 }

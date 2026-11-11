@@ -6,6 +6,6 @@ void makedir(const char* path);
 
 void campaign_dir_init(const char* name);
 
-void make_scene_dir(const char* name, int snum);
+void make_scene_dir(const char* name, int sid);
 
 #endif/*GAMESTATE_FILE_INITIALIZE_H*/

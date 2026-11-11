@@ -38,7 +38,7 @@ bool fill_render_data(struct renderdata* rens, struct layer* ls, int32_t lrnum,
 
 void clear_render_data(struct renderdata* rens, int32_t lrnum)
 {
-  if(!rens){
+  if(!rens || !rens->ren || !rens->tex){
     return;
   }
   for(int32_t i = 0; i < lrnum; ++i){
@@ -52,7 +52,7 @@ void clear_render_data(struct renderdata* rens, int32_t lrnum)
 bool append_render_data(struct renderdata* rens, struct layer* l, int32_t lrnum,
                         uint32_t type, const char* const texture_path)
 {
-  if(!rens || !l || lrnum <= 0){
+  if(!rens || !l || lrnum < 0){
     return false;
   }
   struct renderer* ren = (struct renderer*)calloc((size_t)lrnum + 1, sizeof(struct renderer));
@@ -78,8 +78,7 @@ bool append_render_data(struct renderdata* rens, struct layer* l, int32_t lrnum,
   return true;
 }
 
-bool update_render_data_texture(struct renderdata* rens, int32_t lrid,
-                                uint32_t type, const char* texture_path)
+bool update_render_data_texture(struct renderdata* rens, int32_t lrid, const char* texture_path)
 {
   if(!rens || !rens->ren || !rens->tex || lrid < 0){
     return false;
@@ -131,7 +130,7 @@ void destroyrenderer(struct renderer* ren)
   }
 }
 
-void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* ortho,
+void renderlayer(struct renderer* ren, struct texture* tex ,struct layer* l, float lrnum, float* ortho,
                  float ww, float wh, float cam_x, float cam_y, float zoom)
 {
   if(!ren || !l || !ortho){
@@ -160,7 +159,7 @@ void renderlayer(struct renderer* ren, struct layer* l, float lrnum, float* orth
     glUniform1f(ren->u_lrnum_loc, lrnum);
     /*DRAW*/
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, l->tex.id);
+    glBindTexture(GL_TEXTURE_2D, tex->id);
     glUniform1i(ren->u_tex_loc, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren->ibo);
     glDrawElements(GL_TRIANGLES, (GLsizei)(INDEX_PER_RECT * l->rnum), GL_UNSIGNED_INT, NULL);

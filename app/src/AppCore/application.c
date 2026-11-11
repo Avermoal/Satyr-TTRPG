@@ -68,9 +68,10 @@ static void on_window_destroy(GtkWidget* win, GtkApplication* app)
     *win_p = nullptr;
   }
   struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(win), "dms_ui_data");
-  free(dms_ui);
-  dms_ui = nullptr;
-  g_object_set_data(G_OBJECT(win), "dms_ui_data", nullptr);
+  if(dms_ui){
+    free(dms_ui);
+    g_object_set_data(G_OBJECT(win), "dms_ui_data", nullptr);
+  }
   g_print("Exit programm\n");
 }
 

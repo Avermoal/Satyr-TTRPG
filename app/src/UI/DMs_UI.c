@@ -279,11 +279,11 @@ static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata)
     for(int32_t i = 0; i < gstate->snum; ++i){
       /*Get path to maps cache*/
       char* path = nullptr;
-      if(gstate->gscns[i].l[1].tokid &&
-        gstate->gscns[i].l[1].rnum != 0 &&
-        gstate->gscns[i].l[1].tokid[0] != -1 &&
+      if(gstate->gscns[i].ls[1].tokid &&
+        gstate->gscns[i].ls[1].rnum != 0 &&
+        gstate->gscns[i].ls[1].tokid[0] != -1 &&
         gstate->maps){
-        path = gstate->maps[gstate->gscns[i].l[1].tokid[0]].cache;
+        path = gstate->maps[gstate->gscns[i].ls[1].tokid[0]].cache;
       }
       /*Create widget*/
       if(path){
@@ -350,21 +350,23 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
   GtkBox* layers_box = GTK_BOX(dms_ui->layers_box);
   if(gtk_toggle_button_get_active(btn)){
     /*Layers*/
-    struct gamescene* current = &gstate->gscns[gstate->current_map_id - 1];
+    struct gamescene* current = &gstate->gscns[gstate->current_scene_id];
     for(int32_t i = 0; i < current->lrnum; ++i){
-      if(current->l[i].type == GRID){
+      if(current->ls[i].type == GRID){
         GtkWidget* gridlabel = gtk_label_new("Grid");
         GtkWidget* scale = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 1.0, 0.01);
-        gtk_range_set_value(GTK_RANGE(scale), current->l[i].gridopacity);
+        gtk_range_set_value(GTK_RANGE(scale), current->ls[i].gridopacity);
         gtk_widget_set_size_request(scale, 150, -1);
         gtk_widget_set_halign(scale, GTK_ALIGN_START);
         gtk_scale_set_digits(GTK_SCALE(scale), 2);
+        gtk_scale_set_draw_value(GTK_SCALE(scale), TRUE);
         gtk_widget_set_hexpand(scale, TRUE);
         GtkWidget* step = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 4.0, 124.0, 0.1);
-        gtk_range_set_value(GTK_RANGE(step), current->l[i].gridstep);
+        gtk_range_set_value(GTK_RANGE(step), current->ls[i].gridstep);
         gtk_widget_set_size_request(step, 150, -1);
         gtk_widget_set_halign(step, GTK_ALIGN_START);
         gtk_scale_set_digits(GTK_SCALE(step), 1);
+        gtk_scale_set_draw_value(GTK_SCALE(step), TRUE);
         gtk_widget_set_hexpand(step, TRUE);
         /*Grid opacity signal*/
         g_signal_connect(GTK_RANGE(scale), "value-changed", G_CALLBACK(on_grid_scale_value_changed), current);
@@ -373,16 +375,16 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
         gtk_box_append(layers_box, gridlabel);
         gtk_box_append(layers_box, scale);
         gtk_box_append(layers_box, step);
-      }else if(current->l[i].type == IMG){
-        if(current->l[i].toktype == MAP){
+      }else if(current->ls[i].type == IMG){
+        if(current->ls[i].toktype == MAP){
           GtkWidget* maplabel = gtk_label_new("Maps:");
           gtk_box_append(layers_box, maplabel);
-          for(int32_t j = 0; j < current->l[i].rnum; ++j){
+          for(int32_t j = 0; j < current->ls[i].rnum; ++j){
             GtkWidget* box = nullptr;
             GtkWidget* label = nullptr;
             GtkWidget* delbtn = nullptr;
             for(int32_t k = 0; k < gstate->mnum; ++k){
-              if(current->l[i].tokid[j] == gstate->maps[k].id){
+              if(current->ls[i].tokid[j] == gstate->maps[k].id){
                 data_to_delete* data = (data_to_delete*)calloc(1, sizeof(data_to_delete));
                 if(!data){
                   continue;
@@ -408,15 +410,15 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
               }
             }
           }
-        }else if(current->l[i].toktype == TOKEN){
+        }else if(current->ls[i].toktype == TOKEN){
           GtkWidget* maplabel = gtk_label_new("Tokens:");
           gtk_box_append(layers_box, maplabel);
-          for(int32_t j = 0; j < current->l[i].rnum; ++j){
+          for(int32_t j = 0; j < current->ls[i].rnum; ++j){
             GtkWidget* box = nullptr;
             GtkWidget* label = nullptr;
             GtkWidget* delbtn = nullptr;
             for(int32_t k = 0; k < gstate->tnum; ++k){
-              if(current->l[i].tokid[j] == gstate->tokens[k].id){
+              if(current->ls[i].tokid[j] == gstate->tokens[k].id){
                 data_to_delete* data = (data_to_delete*)calloc(1, sizeof(data_to_delete));
                 if(!data){
                   continue;
@@ -460,7 +462,7 @@ static void on_grid_scale_value_changed(GtkRange* range, gpointer userdata)
   if(!current){
     return;
   }
-  struct layer* gridlayer = &current->l[0];
+  struct layer* gridlayer = &current->ls[0];
   if(gridlayer->type != GRID){
     return;
   }
@@ -474,7 +476,7 @@ static void on_grid_step_value_changed(GtkRange* range, gpointer userdata)
   if(!current){
     return;
   }
-  struct layer* gridlayer = &current->l[0];
+  struct layer* gridlayer = &current->ls[0];
   if(gridlayer->type != GRID){
     return;
   }
@@ -485,7 +487,7 @@ static void on_delete_token_from_scene_clicked(GtkButton* btn, gpointer userdata
 {
   data_to_delete* data = (data_to_delete*)userdata;
   /*Delete token from layer*/
-  if(layer_remove_rt_by_id(&data->gscn->l[data->lid], data->tid)){
+  if(layer_remove_rt_by_id(&data->gscn->ls[data->lid], data->tid)){
     gtk_toggle_button_set_active(data->togglebtn, FALSE);
     /*Unparent widget*/
     gtk_widget_unparent(data->box);

@@ -6,15 +6,16 @@
 
 uint32_t load_png(const char* path, int32_t* width, int32_t* height)
 {
-  if(!path || strlen(path) == 0){
-    if(width && height){
-      *width = -1;
-      *height = -1;
-    }
+  if(width && height){
+    *width = -1;
+    *height = -1;
+  }
+  if(!path){
     return 0;
   }
-  *width = -1;
-  *height = -1;
+  if(path && path[0] == '\0'){
+    return 0;
+  }
   int32_t channels = 0;
   uint32_t id = 0;
   /*Flip stbi loading image configure*/

@@ -8,10 +8,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include "Map/map.h"
 #include "GameState/game_state.h"
+#include "Map/map_data.h"
 #include "GameState/file_initialize.h"
 #include "EventsSystem/event_system.h"
+#include "Tokens/tokens.h"
 #include "EventsSystem/token_dnd.h"
 #include "UI/DMs_UI.h"
 #include "UI/universal_callbacks.h"
@@ -54,7 +55,9 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     init_game_state(gstate);
     /*Create game satate*/
     GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
-    create_default_game_state(gstate, gtk_entry_buffer_get_text(entrybuffer));
+    if(!create_default_game_state(gstate, gtk_entry_buffer_get_text(entrybuffer))){
+      return;
+    }
     /*Campaign dir init*/
     campaign_dir_init(gstate->gamename);
     /*Set data*/
@@ -69,7 +72,29 @@ void onrealize(GtkGLArea* area, gpointer userdata)
     if(!gstate){
       return;
     }
-    create_game_render_data(gstate, );
+    init_default_state(gstate);
+    /*Get layers types, get current scene textures paths*/
+    int32_t total = gstate->gscns[gstate->current_scene_id].lrnum;
+    uint32_t types[total];
+    const char* textures_paths[total];
+    char paths_buffer[total][512];
+    for(int32_t i = 0; i < total; ++i){
+      types[i] = gstate->gscns[gstate->current_scene_id].ls[i].type;
+      if(types[i] == GRID){
+        paths_buffer[i][0] = '\0';
+      }else if(gstate->gscns[gstate->current_scene_id].ls[i].toktype == MAP){
+        snprintf(paths_buffer[i], sizeof(paths_buffer[i]), "saves/%s/presets/atlas/%d/%d.png",
+                 gstate->gamename, gstate->current_scene_id, i);
+      }else{
+        snprintf(paths_buffer[i], sizeof(paths_buffer[i]), "saves/%s/presets/atlas/tokens_atlas.png",
+                 gstate->gamename);
+      }
+      textures_paths[i] = paths_buffer[i];
+    }
+    /*Create game render data*/
+    if(!create_game_render_data(gstate, types, textures_paths)){
+      return;
+    }
     /*Set data*/
     g_object_set_data(G_OBJECT(userdata), "gstate", gstate);
   }
@@ -89,9 +114,6 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   /*Save game*/
   save_game_state(gstate);
   /*Free*/
-  destroymap(gstate->m);
-  free(gstate->m);
-  gstate->m = nullptr;
   destroy_game_state(gstate);
   free(gstate);
   gstate = nullptr;
@@ -124,7 +146,7 @@ gboolean onrender(GtkGLArea* area, GdkGLContext* context, gpointer userdata)
   }
   /*Render map*/
   glDepthMask(GL_FALSE);
-  rendermap(gstate->m, (float)width, (float)height);
+  renderscene(gstate, (float)width, (float)height);
   glDepthMask(GL_TRUE);
   return TRUE;
 }
@@ -133,21 +155,19 @@ gboolean ontick(GtkWidget* widget, GdkFrameClock* clock, gpointer userdata)
 {
   /*Get map pointer*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
-  if(!gstate || !gstate->m){
+  if(!gstate){
     return FALSE;
   }
-  struct map* m = gstate->m;
   /*Get time*/
   gint64 frametime = gdk_frame_clock_get_frame_time(clock);
   double currenttime = TO_CURRENT_TIME(frametime);
-  if(m->evdata.last_frame_time == 0.0){
-    m->evdata.last_frame_time = currenttime;
+  if(gstate->evdata.last_frame_time == 0.0){
+    gstate->evdata.last_frame_time = currenttime;
   }
-  m->evdata.deltatime = currenttime - m->evdata.last_frame_time;
-  m->evdata.last_frame_time = currenttime;
+  gstate->evdata.deltatime = currenttime - gstate->evdata.last_frame_time;
+  gstate->evdata.last_frame_time = currenttime;
   /*Update*/
-  updatemap(m);
-  eventpoll(m);
+  eventpoll(gstate);
   /*Let's DRAW*/
   gtk_widget_queue_draw(widget);
   return TRUE;

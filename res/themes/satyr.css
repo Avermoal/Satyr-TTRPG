@@ -127,7 +127,14 @@ scrolledwindow.tokens-scrolled-win{
 scrolledwindow.tokens-scrolled-win > scrollbar{
 	opacity: 10%;
 }
-
+scrollbar > range > trough > slider {
+    min-width: 0px;
+    min-height: 0px;
+}
+scale > trough > slider {
+    min-width: 0px;
+    min-height: 0px;
+}
 box.tokens-box{
 	opacity: 85%;
 	border-radius: 30%;

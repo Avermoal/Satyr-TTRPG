@@ -3,7 +3,7 @@
 
 #include <gtk/gtk.h>
 
-struct map;
+struct gamestate;
 
 gboolean on_key_pressed(GtkEventControllerKey* controller, guint keyval,
                         guint keycode, GdkModifierType state, gpointer userdata);
@@ -19,6 +19,6 @@ void on_drag_begin(GtkGestureDrag* gesture, double x, double y, gpointer userdat
 
 void on_drag_end(GtkGestureDrag* gesture, double x, double y, gpointer userdata);
 
-void eventpoll(struct map* m);
+void eventpoll(struct gamestate* gstate);
 
 #endif/*EVENTSYSTEM_EVENT_SYSTEM_H*/
