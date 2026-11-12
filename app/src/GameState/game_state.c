@@ -70,7 +70,6 @@ bool append_default_game_scene(struct gamestate* gstate)
   gstate->gscns = gscns;
   /*Add GRID layer*/
   if(!scene_add_layer(gstate, gstate->snum, GRID, -1)){
-    free(gscns);
     return false;
   }
   /*Add MAP (IMG) layer*/
@@ -78,7 +77,6 @@ bool append_default_game_scene(struct gamestate* gstate)
     /*Free GRID layer*/
     layerfree(&gscns[gstate->snum].ls[0]);
     free(gscns[gstate->snum].ls);
-    free(gscns);
     return false;
   }
   gstate->snum++;

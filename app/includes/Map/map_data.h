@@ -144,6 +144,7 @@ static inline struct rectangle* layer_add_empty(struct layer* l)
   if(!layer_reserve_rects(l, l->rnum + 1)){
     return nullptr;
   }
+  l->tokid[l->rnum] = -1;
   struct rectangle* rect = &l->rects[l->rnum];
   l->rnum++;
   memset(rect, 0, sizeof(*rect));

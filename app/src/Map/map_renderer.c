@@ -83,6 +83,7 @@ bool update_render_data_texture(struct renderdata* rens, int32_t lrid, const cha
   if(!rens || !rens->ren || !rens->tex || lrid < 0){
     return false;
   }
+  deletetexture(&rens->tex[lrid]);
   rens->tex[lrid].id = load_png(texture_path, &rens->tex[lrid].width, &rens->tex[lrid].height);
   return true;
 }
