@@ -6,9 +6,9 @@
 #include "Map/map_renderer.h"
 #include "Map/camera.h"
 #include "EventsSystem/event_data.h"
+#include "Tokens/tokens.h"
 
 struct layer;
-struct token;
 
 struct gamescene{
   int32_t lrnum;
@@ -68,6 +68,10 @@ bool create_game_render_data(struct gamestate* gstate, const uint32_t* types, co
 
 bool scene_add_layer(struct gamestate* gstate, int32_t sid, uint32_t layertype, int32_t toktype);
 
+bool delete_game_scene(struct gamestate* gstate, int32_t sid);
+
+bool delete_token_full(struct gamestate* gstate, int32_t tid, int32_t toktype);
+
 void save_game_state(struct gamestate* gstate);
 
 void destroy_game_state(struct gamestate* gstate);
@@ -81,5 +85,25 @@ void make_current(struct gamestate* gstate, int32_t sid);
 void renderscene(struct gamestate* gstate, float ww, float wh);
 
 char* get_basename(char* path);
+
+static inline struct token* find_token_by_id(struct gamestate* gstate, int32_t id)
+{
+  for(int32_t i = 0; i < gstate->tnum; ++i){
+    if(gstate->tokens[i].id == id){
+      return &gstate->tokens[i];
+    }
+  }
+  return nullptr;
+}
+
+static inline struct token* find_map_by_id(struct gamestate* gstate, int32_t id)
+{
+  for(int32_t i = 0; i < gstate->mnum; ++i){
+    if(gstate->maps[i].id == id){
+      return &gstate->maps[i];
+    }
+  }
+  return nullptr;
+}
 
 #endif/*GAMESTATE_GAME_STATE_H*/

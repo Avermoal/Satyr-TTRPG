@@ -28,6 +28,9 @@ void set_token_UV(struct token* tok, float u0, float v0, float u1, float v1)
 
 void copytoken(struct token* dst, struct token* src)
 {
+  if(!dst || !src){
+    return;
+  }
   dst->type = src->type;
   dst->id = src->id;
   dst->u0 = src->u0;

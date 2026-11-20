@@ -450,8 +450,17 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
         return;
       }
       /*Update registered tokens UV (old + new)*/
-      for(int32_t i = 0; i < data->tnum + data->pnum && i < gstate->tnum; ++i){
-        set_token_UV_from_token(&gstate->tokens[i], &data->ts[i]);
+      for(int32_t i = 0; i < data->tnum + data->pnum; ++i){
+        if(!data->ts[i].path){
+          continue;
+        }
+        for(int32_t j = 0; j < gstate->tnum; ++j){
+          if(gstate->tokens[j].path &&
+             strcmp(gstate->tokens[j].path, data->ts[i].path) == 0){
+            set_token_UV_from_token(&gstate->tokens[j], &data->ts[i]);
+            break;
+          }
+        }
       }
       /*Update current map layers texture atlas for tokens*/
       struct layer* L = nullptr;
@@ -466,7 +475,7 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
           if(tid < 0 || tid >= gstate->tnum){
             continue;
           }
-          struct token* T = &gstate->tokens[tid];
+          struct token* T = find_token_by_id(gstate, tid);
           rect_set_UV(&L->rects[j], T->u0, T->v0, T->u1, T->v1);
         }
         update_render_data_texture(&gstate->rens, i, data->atlas_path);
@@ -655,17 +664,6 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
   mime_read_ctx_free(ctx);
   /*Get game state*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata_), "gstate");
-  if(type == TOKEN){
-    if(id >= gstate->tnum){
-      g_print("Token id is out of range: %d\n", id);
-      return;
-    }
-  }else if(type == MAP){
-    if(id >= gstate->mnum){
-      g_print("Map id is out of range: %d\n", id);
-      return;
-    }
-  }
   /*Allocate memory for foratlas data*/
   foratlas* data = g_new0(foratlas, 1);
   /*Get right tokens, lrnum and tnum*/
@@ -710,9 +708,10 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
     g_free(data);
     return;
   }
+  struct token* src = nullptr;
   if(type == TOKEN){
       /*Set not linking token*/
-    copytoken(&rts[tnum - 1], &gstate->tokens[id]);
+    src = find_token_by_id(gstate, id);
   }else if(type == MAP){
       /*Get right register tokens*/
     if(!is_new_layer){
@@ -725,8 +724,19 @@ static void on_stream_read_done(GObject* sourcestream, GAsyncResult* res, gpoint
       }
     }
     /*Set not linking token*/
-    copytoken(&rts[tnum - 1], &gstate->maps[id]);
+    src = find_map_by_id(gstate, id);
   }
+  if(!src){
+    g_print("Token/Map by id: %d - not found\n", id);
+    for(int32_t i = 0; i < tnum; ++i){
+      free(rts[i].path);
+      free(rts[i].cache);
+    }
+    free(rts);
+    g_free(data);
+    return;
+  }
+  copytoken(&rts[tnum - 1], src);
   /*Set data*/
   data->userdata = g_object_ref(userdata_);
   data->righttoks = (struct token*)calloc(tnum, sizeof(struct token));

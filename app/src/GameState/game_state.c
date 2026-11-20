@@ -119,6 +119,157 @@ bool scene_add_layer(struct gamestate* gstate, int32_t sid, uint32_t layertype, 
   return true;
 }
 
+bool delete_game_scene(struct gamestate* gstate, int32_t sid)
+{
+  if(!gstate || sid < 0 || sid >= gstate->snum){
+    return false;
+  }
+  /*IF FIRST DELETE*/
+  if(gstate->snum == 1 && sid == 0){
+    struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
+    if(!gscn){
+      return false;
+    }
+    /*Free renderer data*/
+    clear_render_data(&gstate->rens, gstate->gscns[sid].lrnum);
+    /*Free layers of scenes*/
+    for(int32_t j = 0; j < gstate->gscns->lrnum; ++j){
+      layerfree(&gstate->gscns->ls[j]);
+    }
+    free(gstate->gscns->ls);
+    free(gstate->gscns);
+    /*Link new scene*/
+    gstate->gscns = gscn;
+    /*Add GRID layer*/
+    if(!scene_add_layer(gstate, gstate->snum, GRID, -1)){
+      gscn->lrnum = 0;
+      return false;
+    }
+    /*Add MAP (IMG) layer*/
+    if(!scene_add_layer(gstate, gstate->snum, IMG, MAP)){
+      /*Free GRID layer*/
+      layerfree(&gscn->ls[0]);
+      free(gscn->ls);
+      gscn->lrnum = 0;
+      return false;
+    }
+    /*Create render data*/
+    if(!create_game_render_data(gstate, (const uint32_t[]){GRID, IMG}, (const char* const[]){nullptr, nullptr})){
+      /*Free GRID layer*/
+      layerfree(&gscn->ls[0]);
+      /*Free IMG layer*/
+      layerfree(&gscn->ls[1]);
+      free(gscn->ls);
+      gscn->lrnum = 0;
+      return false;
+    }
+    return true;
+  }
+  if(sid == gstate->current_scene_id){
+    if(sid != 0){
+      make_current(gstate, sid - 1);
+    }else{
+      make_current(gstate, sid + 1);
+    }
+  }
+  /*IF LAST DELETE*/
+  if(sid == gstate->snum - 1){
+    struct gamescene* gscns = (struct gamescene*)calloc((size_t)sid, sizeof(struct gamescene));
+    if(!gscns){
+      return false;
+    }
+    memcpy(gscns, gstate->gscns, (size_t)sid * sizeof(struct gamescene));
+    /*Free old*/
+    for(int32_t i = 0; i < gstate->gscns[sid].lrnum; ++i){
+      layerfree(&gstate->gscns[sid].ls[i]);
+    }
+    free(gstate->gscns[sid].ls);
+    free(gstate->gscns);
+    /*Sets*/
+    gstate->gscns = gscns;
+    return true;
+  }
+  /*IF BETWEEN DELETE*/
+  struct gamescene* gscns = (struct gamescene*)calloc((size_t)gstate->snum - 1, sizeof(struct gamescene));
+  if(!gscns){
+    return false;
+  }
+  memcpy(gscns, gstate->gscns, (size_t)(sid - 1) * sizeof(struct gamescene));
+  memcpy(&gscns[sid], &gstate->gscns[sid + 1], (size_t)(gstate->snum - sid - 1) * sizeof(struct gamescene));
+  /*Free old scene by sid*/
+  for(int32_t i = 0; i < gstate->gscns[sid].lrnum; ++i){
+    layerfree(&gstate->gscns[sid].ls[i]);
+  }
+  free(gstate->gscns[sid].ls);
+  free(gstate->gscns);
+  /*Sets*/
+  gstate->gscns = gscns;
+  return true;
+}
+
+bool delete_token_full(struct gamestate* gstate, int32_t tid, int32_t toktype)
+{
+  if(!gstate || tid < 0 || (toktype != TOKEN && toktype != MAP)){
+    return false;
+  }
+  if(toktype == TOKEN){
+    struct token* tokens = (struct token*)calloc((size_t)gstate->tnum - 1, sizeof(struct token));
+    if(!tokens){
+      return false;
+    }
+    int32_t total = 0; /*After coping is should be equal (tnum - 1)*/
+    for(int32_t i = 0; i < gstate->tnum; ++i){
+      if(tid != gstate->tokens[i].id){
+        copytoken(&tokens[total], &gstate->tokens[i]);
+        ++total;
+      }
+    }
+    /*Delete old tokens*/
+    for(int32_t i = 0; i < gstate->tnum; ++i){
+      free(gstate->tokens[i].path);
+      free(gstate->tokens[i].cache);
+    }
+    free(gstate->tokens);
+    /*Sets*/
+    gstate->tokens = tokens;
+    gstate->tnum = total;
+  }
+  if(toktype == MAP){
+    struct token* maps = (struct token*)calloc((size_t)gstate->mnum - 1, sizeof(struct token));
+    if(!maps){
+      return false;
+    }
+    int32_t total = 0; /*After coping is should be equal (mnum - 1)*/
+    for(int32_t i = 0; i < gstate->mnum; ++i){
+      if(tid != gstate->maps[i].id){
+        copytoken(&maps[total], &gstate->maps[i]);
+        ++total;
+      }
+    }
+    /*Delete old tokens*/
+    for(int32_t i = 0; i < gstate->mnum; ++i){
+      free(gstate->maps[i].path);
+      free(gstate->maps[i].cache);
+    }
+    free(gstate->maps);
+    /*Sets*/
+    gstate->maps = maps;
+    gstate->mnum = total;
+  }
+  /*Delete token by id and type from all layers of scenes*/
+  for(int32_t i = 0; i < gstate->snum; ++i){
+    for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
+      if(gstate->gscns[i].ls[j].toktype == toktype){
+        for(int32_t k = 0; k < gstate->gscns[i].ls[j].rnum; ++k){
+          if(gstate->gscns[i].ls[j].tokid[k] == tid){
+            layer_remove_rt_by_id(&gstate->gscns[i].ls[j], tid);
+          }
+        }
+      }
+    }
+  }
+}
+
 void save_game_state(struct gamestate* gstate)
 {
   if(!gstate->gamename){

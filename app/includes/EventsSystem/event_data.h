@@ -30,7 +30,7 @@ static inline void init_event_data(struct eventdata* evdata)
   if(!evdata){
     return;
   }
-  evdata->drag_off_y = 0.0f;
+  evdata->drag_off_x = 0.0f;
   evdata->drag_off_y = 0.0f;
   evdata->draglayer = 0;
   evdata->drag_rid = 0;
