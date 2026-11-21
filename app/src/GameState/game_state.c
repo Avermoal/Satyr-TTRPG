@@ -124,7 +124,7 @@ bool delete_game_scene(struct gamestate* gstate, int32_t sid)
   if(!gstate || sid < 0 || sid >= gstate->snum){
     return false;
   }
-  /*IF FIRST DELETE*/
+  /*IF FIRST ONLY DELETE*/
   if(gstate->snum == 1 && sid == 0){
     struct gamescene* gscn = (struct gamescene*)calloc(1, sizeof(struct gamescene));
     if(!gscn){
@@ -141,12 +141,12 @@ bool delete_game_scene(struct gamestate* gstate, int32_t sid)
     /*Link new scene*/
     gstate->gscns = gscn;
     /*Add GRID layer*/
-    if(!scene_add_layer(gstate, gstate->snum, GRID, -1)){
+    if(!scene_add_layer(gstate, 0, GRID, -1)){
       gscn->lrnum = 0;
       return false;
     }
     /*Add MAP (IMG) layer*/
-    if(!scene_add_layer(gstate, gstate->snum, IMG, MAP)){
+    if(!scene_add_layer(gstate, 0, IMG, MAP)){
       /*Free GRID layer*/
       layerfree(&gscn->ls[0]);
       free(gscn->ls);
@@ -187,6 +187,28 @@ bool delete_game_scene(struct gamestate* gstate, int32_t sid)
     free(gstate->gscns);
     /*Sets*/
     gstate->gscns = gscns;
+    gstate->snum--;
+    return true;
+  }
+  /*IF FIRST DELETE*/
+  if(sid == 0){
+    struct gamescene* gscns = (struct gamescene*)calloc((size_t)gstate->snum - 1, sizeof(struct gamescene));
+    if(!gscns){
+      return false;
+    }
+    memcpy(gscns, &gstate->gscns[1], (size_t)(gstate->snum - 1) * sizeof(struct gamescene));
+    /*Free old*/
+    for(int32_t i = 0; i < gstate->gscns[sid].lrnum; ++i){
+      layerfree(&gstate->gscns[sid].ls[i]);
+    }
+    free(gstate->gscns[sid].ls);
+    free(gstate->gscns);
+    /*Sets*/
+    gstate->gscns = gscns;
+    gstate->snum--;
+    if(gstate->current_scene_id > sid){
+      gstate->current_scene_id--;
+    }
     return true;
   }
   /*IF BETWEEN DELETE*/
@@ -194,7 +216,7 @@ bool delete_game_scene(struct gamestate* gstate, int32_t sid)
   if(!gscns){
     return false;
   }
-  memcpy(gscns, gstate->gscns, (size_t)(sid - 1) * sizeof(struct gamescene));
+  memcpy(gscns, gstate->gscns, (size_t)sid * sizeof(struct gamescene));
   memcpy(&gscns[sid], &gstate->gscns[sid + 1], (size_t)(gstate->snum - sid - 1) * sizeof(struct gamescene));
   /*Free old scene by sid*/
   for(int32_t i = 0; i < gstate->gscns[sid].lrnum; ++i){
@@ -204,6 +226,10 @@ bool delete_game_scene(struct gamestate* gstate, int32_t sid)
   free(gstate->gscns);
   /*Sets*/
   gstate->gscns = gscns;
+  gstate->snum--;
+  if(gstate->current_scene_id > sid){
+    gstate->current_scene_id--;
+  }
   return true;
 }
 

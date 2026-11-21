@@ -31,6 +31,7 @@ typedef struct{
 
 typedef struct{
   GtkWidget* scenegrid;
+  GtkToggleButton* togglebtn;
   gpointer userdata;
   int32_t sid;
 }scene_to_delete;
@@ -44,8 +45,8 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata);
 static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata);
-static void on_grid_scale_value_changed(GtkRange* range, gpointer useradta);
-static void on_grid_step_value_changed(GtkRange* range, gpointer useradta);
+static void on_grid_scale_value_changed(GtkRange* range, gpointer userdata);
+static void on_grid_step_value_changed(GtkRange* range, gpointer userdata);
 static void on_delete_token_from_scene_clicked(GtkButton* btn, gpointer userdata);
 static void on_delete_token_btn_clicked(GtkButton* btn, gpointer userdata);
 static void on_delete_scene_btn_clicked(GtkButton* btn, gpointer userdata);
@@ -208,6 +209,11 @@ static void on_tokens_btn_toggled(GtkToggleButton* btn, gpointer userdata)
       GtkWidget* delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
       gtk_grid_attach(GTK_GRID(grid), delbtn, 3, 0, 1, 1);
       token_to_delete* deldata = (token_to_delete*)g_new0(token_to_delete, 1);
+      if(!deldata){
+        g_object_unref(grid);
+        g_object_unref(texture);
+        continue;
+      }
       deldata->tokgrid = grid;
       deldata->togglebtn = btn;
       deldata->userdata = userdata;
@@ -275,6 +281,11 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
       GtkWidget* delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
       gtk_grid_attach(GTK_GRID(grid), delbtn, 3, 0, 1, 1);
       token_to_delete* deldata = (token_to_delete*)g_new0(token_to_delete, 1);
+      if(!deldata){
+        g_object_unref(grid);
+        g_object_unref(texture);
+        continue;
+      }
       deldata->tokgrid = grid;
       deldata->togglebtn = btn;
       deldata->userdata = userdata;
@@ -332,23 +343,57 @@ static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata)
         GdkTexture* texture = gdk_texture_new_from_filename(path, nullptr);
         GtkWidget* image = gtk_image_new_from_paintable(GDK_PAINTABLE(texture));
         gtk_image_set_pixel_size(GTK_IMAGE(image), 64);
-        /*Add scene to tokens box*/
-        gtk_box_append(GTK_BOX(dms_ui->tokens_box), image);
+        GtkWidget* grid = gtk_grid_new();
+        gtk_grid_attach(GTK_GRID(grid), image, 0, 1, 3, 3);
         /*Drag and drop prepare settings*/
         GtkDragSource* drag_source = gtk_drag_source_new();
         g_signal_connect(drag_source, "prepare", G_CALLBACK(on_scene_drag_prepare), GINT_TO_POINTER(i));
         g_signal_connect(drag_source, "drag_begin", G_CALLBACK(on_scene_drag_begin), image);
         /*Set add controller*/
         gtk_widget_add_controller(image, GTK_EVENT_CONTROLLER(drag_source));
+        /*Delete scene button*/
+        GtkWidget* delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
+        gtk_grid_attach(GTK_GRID(grid), delbtn, 3, 0, 1, 1);
+        scene_to_delete* deldata = (scene_to_delete*)g_new0(scene_to_delete, 1);
+        if(!deldata){
+          g_object_unref(grid);
+          g_object_unref(texture);
+          continue;
+        }
+        deldata->scenegrid = grid;
+        deldata->togglebtn = btn;
+        deldata->userdata = userdata;
+        deldata->sid = i;
+        g_signal_connect_data(delbtn, "clicked", G_CALLBACK(on_delete_scene_btn_clicked),
+                              (gpointer)deldata, (GClosureNotify)(g_free), 0);
+        /*Add scene to tokens box*/
+        gtk_box_append(GTK_BOX(dms_ui->tokens_box), grid);
         /*Free*/
         g_object_unref(texture);
       }else{
         GtkWidget* null = gtk_label_new("NULL");
-        gtk_box_append(GTK_BOX(dms_ui->tokens_box), null);
+        GtkWidget* grid = gtk_grid_new();
+        gtk_grid_attach(GTK_GRID(grid), null, 0, 1, 3, 3);
         /*Drag and drop prepare settings*/
         GtkDragSource* drag_source = gtk_drag_source_new();
         g_signal_connect(drag_source, "prepare", G_CALLBACK(on_scene_drag_prepare), GINT_TO_POINTER(i));
         g_signal_connect(drag_source, "drag_begin", G_CALLBACK(on_scene_drag_begin), null);
+        /*Delete scene button*/
+        GtkWidget* delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
+        gtk_grid_attach(GTK_GRID(grid), delbtn, 3, 0, 1, 1);
+        scene_to_delete* deldata = (scene_to_delete*)g_new0(scene_to_delete, 1);
+        if(!deldata){
+          g_object_unref(grid);
+          continue;
+        }
+        deldata->scenegrid = grid;
+        deldata->togglebtn = btn;
+        deldata->userdata = userdata;
+        deldata->sid = i;
+        g_signal_connect_data(delbtn, "clicked", G_CALLBACK(on_delete_scene_btn_clicked),
+                              (gpointer)deldata, (GClosureNotify)(g_free), 0);
+        /*Add scene to box*/
+        gtk_box_append(GTK_BOX(dms_ui->tokens_box), grid);
         /*Set add controller*/
         gtk_widget_add_controller(null, GTK_EVENT_CONTROLLER(drag_source));
       }
@@ -553,5 +598,13 @@ static void on_delete_token_btn_clicked(GtkButton* btn, gpointer userdata)
 
 static void on_delete_scene_btn_clicked(GtkButton* btn, gpointer userdata)
 {
-
+  scene_to_delete* deldata = (scene_to_delete*)userdata;
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(deldata->userdata), "gstate");
+  /*Delete scene*/
+  if(delete_game_scene(gstate, deldata->sid)){
+    gtk_toggle_button_set_active(deldata->togglebtn, FALSE);
+    /*Unparent widget*/
+    gtk_widget_unparent(deldata->scenegrid);
+    gtk_toggle_button_set_active(deldata->togglebtn, TRUE);
+  }
 }
