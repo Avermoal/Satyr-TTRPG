@@ -6,12 +6,18 @@
 #include "UI/UIs_info.h"
 #include "UI/DMs_UI.h"
 
+typedef struct{
+  GtkWidget* box;
+  char* basename;
+}campaign_to_delete;
+
 static void set_new_campaign_page_callbacks(GtkBuilder* builder, gpointer userdata);
 static void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata);
 static void on_back_btn_clicked(GtkButton* btn, gpointer userdata);
 static void on_back_from_load_btn_clicked(GtkButton* btn, gpointer userdata);
 
 static void on_campaign_btn_clicked(GtkButton* btn, gpointer userdata);
+static void on_delete_campaign_btn_clicked(GtkButton* btn, gpointer userdata);
 
 void on_to_new_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
 {
@@ -73,9 +79,24 @@ void on_to_load_save_btn_clicked(GtkButton* btn, gpointer userdata)
     GFileType type = g_file_info_get_file_type(info);
     if(type == G_FILE_TYPE_DIRECTORY){
       const char* basename = g_file_info_get_name(info);
+      GtkWidget* campaignbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+      campaign_to_delete* deldata = (campaign_to_delete*)g_new0(campaign_to_delete, 1);
+      if(!deldata){
+        g_object_unref(campaignbox);
+        continue;
+      }
+      deldata->box = campaignbox;
+      deldata->basename = strdup(basename);
       GtkWidget* campaignbtn = gtk_button_new_with_label(basename);
       g_signal_connect(campaignbtn, "clicked", G_CALLBACK(on_campaign_btn_clicked), userdata);
-      gtk_box_append(GTK_BOX(box), campaignbtn);
+      /*Delete button*/
+      GtkWidget* delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
+      g_signal_connect_data(delbtn, "clicked", G_CALLBACK(on_delete_campaign_btn_clicked),
+                            (gpointer)deldata, (GClosureNotify)(g_free), 0);
+      /*Append to main box*/
+      gtk_box_append(GTK_BOX(campaignbox), campaignbtn);
+      gtk_box_append(GTK_BOX(campaignbox), delbtn);
+      gtk_box_append(GTK_BOX(box), campaignbox);
     }
     /*Add saved btn*/
     g_object_unref(info);
@@ -155,4 +176,27 @@ static void on_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
   g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", entrybuffer);
   /*Swith to dms_page*/
   create_DMs_UI(0, userdata);
+}
+
+static void on_delete_campaign_btn_clicked(GtkButton* btn, gpointer userdata)
+{
+  campaign_to_delete* deldata = (campaign_to_delete*)userdata;
+  if(deldata && !deldata->basename){
+    return;
+  }
+  /*Delete campaign*/
+  char path_to_dir[512];
+  snprintf(path_to_dir, sizeof(path_to_dir), "saves/%s", deldata->basename);
+  GFile* dir = g_file_new_for_path(path_to_dir);
+  GError* err = nullptr;
+  gboolean success = g_file_trash(dir, nullptr, &err);
+  if(!success){
+    g_print("Campaign %s not move to trash by error: %s\n", deldata->basename, err ? err->message : "UNKNOWN");
+    g_error_free(err);
+    g_object_unref(dir);
+    return;
+  }
+  gtk_widget_unparent(deldata->box);
+  g_object_unref(dir);
+  return;
 }

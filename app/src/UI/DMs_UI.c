@@ -478,7 +478,7 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
                 }
                 box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
                 label = gtk_label_new(get_basename(gstate->maps[k].path));
-                delbtn = gtk_button_new_from_icon_name("list-remove");
+                delbtn = gtk_button_new_from_icon_name("list-remove-symbolic");
                 gtk_box_append(GTK_BOX(box), label);
                 gtk_box_append(GTK_BOX(box), delbtn);
                 data->togglebtn = btn;
