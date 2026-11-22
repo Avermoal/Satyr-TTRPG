@@ -294,6 +294,7 @@ bool delete_token_full(struct gamestate* gstate, int32_t tid, int32_t toktype)
       }
     }
   }
+  return true;
 }
 
 void save_game_state(struct gamestate* gstate)
