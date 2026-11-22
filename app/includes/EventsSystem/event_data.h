@@ -13,6 +13,12 @@ struct eventdata{
   bool dragging;
   bool draggingscene;
 
+  int32_t selected_tid;
+  int32_t selected_toktype;
+  int32_t selected_rid;
+
+  bool selecttoken;
+
   float mousex;
   float mousey;
 
@@ -36,6 +42,10 @@ static inline void init_event_data(struct eventdata* evdata)
   evdata->drag_rid = 0;
   evdata->dragging = false;
   evdata->draggingscene = false;
+  evdata->selected_tid = 0;
+  evdata->selected_toktype = 0;
+  evdata->selected_rid = 0;
+  evdata->selecttoken = false;
   evdata->mousex = 0.0f;
   evdata->mousey = 0.0f;
   evdata->last_frame_time = 0.0;

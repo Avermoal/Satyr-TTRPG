@@ -225,6 +225,48 @@ void on_drag_end(GtkGestureDrag* gesture, double x, double y, gpointer userdata)
   }
 }
 
+void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, gpointer userdata)
+{
+  if(npress != 2){
+    return;
+  }
+  guint button = gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+  if(button == GDK_BUTTON_PRIMARY){
+    /*Get gamestate*/
+    struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+    struct gamescene* current = &gstate->gscns[gstate->current_scene_id];
+    struct eventdata* evdata = &gstate->evdata;
+    /*Checks*/
+      /*If mouse on token*/
+    for(int32_t i = 0; i < current->lrnum; ++i){
+      if(current->ls[i].type == IMG && current->ls[i].toktype == TOKEN){
+        int32_t tid = -1;
+        int32_t rid = -1;
+        if(mouse_on_token(&current->ls[i], (float)x, (float)y, &tid, &rid)){
+          evdata->selecttoken = true;
+          evdata->selected_toktype = TOKEN;
+          evdata->selected_tid = tid;
+          evdata->selected_rid = rid;
+        }
+      }
+    }
+      /*If mouse on map*/
+    for(int32_t i = 0; i < current->lrnum; ++i){
+      if(current->ls[i].type == IMG && current->ls[i].toktype == MAP){
+        int32_t tid = -1;
+        int32_t rid = -1;
+        if(mouse_on_map(&current->ls[i], (float)x, (float)y, &tid, &rid)){
+          evdata->selecttoken = true;
+          evdata->selected_toktype = TOKEN;
+          evdata->selected_tid = tid;
+          evdata->selected_rid = rid;
+        }
+      }
+    }
+
+  }
+}
+
 void eventpoll(struct gamestate* gstate)
 {
   if(!gstate){
@@ -264,7 +306,6 @@ static inline float mousey(struct camera* cam, float y, float wh)
 
 static bool mouse_on_token(struct layer* l, float x, float y, int32_t* tokid, int32_t* rid)
 {
-  /*ONLY IF MAPS LAYERS AND CURRENT GSCN LAYERS IS SAME*/
   if(l->toktype == TOKEN){
     return mouse_XY_in_layer_token(x, y, l, tokid, rid);
   }

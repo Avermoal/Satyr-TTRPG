@@ -462,7 +462,24 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
           }
         }
       }
-      /*Update current map layers texture atlas for tokens*/
+      /*Update all scenes layers TOKEN UV*/
+      for(int32_t i = 0; i < gstate->snum; ++i){
+        for(int32_t j = 0; j < gstate->gscns[i].lrnum; ++j){
+          if(gstate->gscns[i].ls[j].type == IMG && gstate->gscns[i].ls[j].toktype == TOKEN){
+            for(int32_t k = 0; k < gstate->gscns[i].ls[j].rnum; ++k){
+              struct rectangle* R = &gstate->gscns[i].ls[j].rects[k];
+              int32_t tokid = gstate->gscns[i].ls[j].tokid[k];
+              struct token* T = find_token_by_id(gstate, tokid);
+              if(!T){
+                continue;
+              }
+              rect_set_UV(R, T->u0, T->v0, T->u1, T->v1);
+              gstate->gscns[i].ls[j].isdirty = true;
+            }
+          }
+        }
+      }
+      /*Update current scene layers texture atlas for tokens*/
       struct layer* L = nullptr;
       for(int32_t i = 0; i < gstate->gscns[gstate->current_scene_id].lrnum; ++i){
         L = &gstate->gscns[gstate->current_scene_id].ls[i];
@@ -472,7 +489,7 @@ static void on_work_with_files_completed(GObject* source, GAsyncResult* res, gpo
         /*Reset exists rects UV*/
         for(int32_t j = 0; j < L->rnum; ++j){
           int32_t tid = L->tokid[j];
-          if(tid < 0 || tid >= gstate->tnum){
+          if(tid < 0){
             continue;
           }
           struct token* T = find_token_by_id(gstate, tid);

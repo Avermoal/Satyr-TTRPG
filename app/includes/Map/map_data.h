@@ -148,6 +148,7 @@ static inline struct rectangle* layer_add_empty(struct layer* l)
   struct rectangle* rect = &l->rects[l->rnum];
   l->rnum++;
   memset(rect, 0, sizeof(*rect));
+  l->isdirty = true;
   return rect;
 }
 

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "UI/UIs_info.h"
+#include "UI/universal_callbacks.h"
 #include "GameState/game_state.h"
 #include "Map/map_data.h"
 #include "Tokens/tokens.h"
@@ -138,6 +139,17 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   GtkEventController* motion = gtk_event_controller_motion_new();
   g_signal_connect(motion, "motion", G_CALLBACK(onmotion), userdata);
   gtk_widget_add_controller(dms_ui->overlay, motion);
+  /*Set key controller*/
+  GtkEventController* keycontroller = gtk_event_controller_key_new();
+  g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_key_pressed), userdata);
+  g_signal_connect(keycontroller, "key-released", G_CALLBACK(on_key_released), userdata);
+  g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_escape_pressed), userdata);
+  gtk_widget_add_controller(dms_ui->overlay, keycontroller);
+  /*Set double click controller*/
+  GtkGesture* doubleclick = gtk_gesture_click_new();
+  gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(doubleclick), GDK_BUTTON_PRIMARY);
+  g_signal_connect(doubleclick, "pressed", G_CALLBACK(on_click_pressed), userdata);
+  gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(doubleclick));
   /*IS NEW GAME*/
   g_object_set_data(G_OBJECT(userdata), "ISNEW", GINT_TO_POINTER(ISNEW));
   /*Switch to dms_page*/
@@ -290,7 +302,7 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata)
       deldata->togglebtn = btn;
       deldata->userdata = userdata;
       deldata->tid = gstate->maps[i].id;
-      deldata->toktype = TOKEN;
+      deldata->toktype = MAP;
       g_signal_connect_data(delbtn, "clicked", G_CALLBACK(on_delete_token_btn_clicked),
                             (gpointer)deldata, (GClosureNotify)(g_free), 0);
       /*Box append*/
@@ -336,7 +348,8 @@ static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata)
         gstate->gscns[i].ls[1].rnum != 0 &&
         gstate->gscns[i].ls[1].tokid[0] != -1 &&
         gstate->maps){
-        path = gstate->maps[gstate->gscns[i].ls[1].tokid[0]].cache;
+        struct token* m = find_map_by_id(gstate, gstate->gscns[i].ls[1].tokid[0]);
+        path = m->cache;
       }
       /*Create widget*/
       if(path){

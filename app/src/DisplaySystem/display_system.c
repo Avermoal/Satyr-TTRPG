@@ -15,7 +15,6 @@
 #include "Tokens/tokens.h"
 #include "EventsSystem/token_dnd.h"
 #include "UI/DMs_UI.h"
-#include "UI/universal_callbacks.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
 {
@@ -37,17 +36,7 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   if(gamestate){
     return;
   }
-  /*Set controllers*/
-  GtkEventController* keycontroller = gtk_event_controller_key_new();
-  g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_key_pressed), userdata);
-  g_signal_connect(keycontroller, "key-released", G_CALLBACK(on_key_released), userdata);
-  g_signal_connect(keycontroller, "key-pressed", G_CALLBACK(on_escape_pressed), userdata);
-  int ISDM = 1;
-  if(ISDM){
-    struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
-    gtk_widget_add_controller(GTK_WIDGET(dms_ui->overlay), keycontroller);
-  }
-    /*Create or load game state and map*/
+  /*Create or load game state and map*/
   int ISNEW = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISNEW"));
   if(ISNEW){
     /*Allocation*/

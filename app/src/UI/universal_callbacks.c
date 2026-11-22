@@ -37,7 +37,5 @@ gboolean on_escape_pressed(GtkEventControllerKey* controller, guint keyval,
   }
   g_object_unref(entrybuffer);
   g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", nullptr);
-  /*Remove on_escape_pressed callback*/
-  g_signal_handlers_disconnect_by_func(controller, G_CALLBACK(on_escape_pressed), userdata);
   return TRUE;
 }
