@@ -497,7 +497,7 @@ void game_state_register_token(struct gamestate* gstate, int32_t toktype, const 
         return;
       }
       memset(&tmpt[gstate->tnum], 0, sizeof(struct token));
-      settoken(&tmpt[gstate->tnum], TOKEN, gstate->tnum, tokpath, nullptr);
+      settoken(&tmpt[gstate->tnum], TOKEN, gstate->tokens[gstate->tnum - 1].id + 1, tokpath, nullptr);
       gstate->tnum++;
       gstate->tokens = tmpt;
       break;
@@ -507,7 +507,7 @@ void game_state_register_token(struct gamestate* gstate, int32_t toktype, const 
         return;
       }
       memset(&tmpm[gstate->mnum], 0, sizeof(struct token));
-      settoken(&tmpm[gstate->mnum], MAP, gstate->mnum, tokpath, cache);
+      settoken(&tmpm[gstate->mnum], MAP, gstate->maps[gstate->mnum - 1].id + 1, tokpath, cache);
       gstate->mnum++;
       gstate->maps = tmpm;
       break;
