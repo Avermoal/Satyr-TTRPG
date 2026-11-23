@@ -1,5 +1,7 @@
 #include "EventsSystem/event_system.h"
 
+#include "math.h"
+
 #include "UI/UI.h"
 #include "UI/DMs_UI.h"
 #include "GameState/game_state.h"
@@ -130,13 +132,29 @@ void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer use
   gstate->evdata.mousey = mousey(cam, (float)y, wh);
   /*Smooth motion*/
   struct eventdata* evdata = &gstate->evdata;
-  if(evdata->dragging && !evdata->draggingscene){
+  if(evdata->dragging && !evdata->draggingscene && !evdata->selecttoken){
     layer_move_rect(&gstate->gscns[gstate->current_scene_id].ls[evdata->draglayer], evdata->drag_rid,
                     evdata->mousex + evdata->drag_off_x,
                     evdata->mousey + evdata->drag_off_y);
   }
-  if(evdata->draggingscene && !evdata->dragging){
+  if(evdata->draggingscene && !evdata->dragging && !evdata->selecttoken){
     movecamera(cam, cam->cam_x - evdata->mousex + evdata->drag_off_x, cam->cam_y -evdata->mousey + evdata->drag_off_y);
+  }
+  if(evdata->selecttoken){
+    struct layer* L = &gstate->gscns[gstate->current_scene_id].ls[evdata->selected_lid];
+    struct rectangle* R = &L->rects[evdata->selected_rid];
+    rectspotlight(R, 1.4f);
+    float x = evdata->mousex - evdata->drag_off_x;
+    if(x > 0.2f){
+      rect_set_size(R, x);
+    }
+    L->isdirty = true;
+  }else if(evdata->selectend){
+    struct layer* L = &gstate->gscns[gstate->current_scene_id].ls[evdata->selected_lid];
+    struct rectangle* R = &L->rects[evdata->selected_rid];
+    rectspotlight(R, 1.0f);
+    L->isdirty = true;
+    evdata->selectend = false;
   }
 }
 
@@ -230,7 +248,10 @@ void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, 
   if(npress != 2){
     return;
   }
+  GtkWidget* overlay = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture));
+  /*1 - LMB, 3 - RMB*/
   guint button = gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+  GtkWidget* drag_btn = GTK_WIDGET(g_object_get_data(G_OBJECT(overlay), "drag_btn"));
   if(button == GDK_BUTTON_PRIMARY){
     /*Get gamestate*/
     struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
@@ -238,32 +259,53 @@ void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, 
     struct eventdata* evdata = &gstate->evdata;
     /*Checks*/
       /*If mouse on token*/
-    for(int32_t i = 0; i < current->lrnum; ++i){
-      if(current->ls[i].type == IMG && current->ls[i].toktype == TOKEN){
-        int32_t tid = -1;
-        int32_t rid = -1;
-        if(mouse_on_token(&current->ls[i], (float)x, (float)y, &tid, &rid)){
-          evdata->selecttoken = true;
-          evdata->selected_toktype = TOKEN;
-          evdata->selected_tid = tid;
-          evdata->selected_rid = rid;
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(drag_btn))){
+      for(int32_t i = 0; i < current->lrnum; ++i){
+        if(current->ls[i].type == IMG && current->ls[i].toktype == TOKEN){
+          int32_t tid = -1;
+          int32_t rid = -1;
+          if(mouse_on_token(&current->ls[i], evdata->mousex, evdata->mousey, &tid, &rid)){
+            evdata->selecttoken = true;
+            evdata->selected_toktype = TOKEN;
+            evdata->selected_tid = tid;
+            evdata->selected_rid = rid;
+            evdata->selected_lid = i;
+            evdata->drag_off_x = evdata->mousex;
+            evdata->drag_off_y = evdata->mousex;
+            return;
+          }
         }
       }
     }
       /*If mouse on map*/
-    for(int32_t i = 0; i < current->lrnum; ++i){
-      if(current->ls[i].type == IMG && current->ls[i].toktype == MAP){
-        int32_t tid = -1;
-        int32_t rid = -1;
-        if(mouse_on_map(&current->ls[i], (float)x, (float)y, &tid, &rid)){
-          evdata->selecttoken = true;
-          evdata->selected_toktype = TOKEN;
-          evdata->selected_tid = tid;
-          evdata->selected_rid = rid;
+    if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(drag_btn))){
+      for(int32_t i = 0; i < current->lrnum; ++i){
+        if(current->ls[i].type == IMG && current->ls[i].toktype == MAP){
+          int32_t tid = -1;
+          int32_t rid = -1;
+          if(mouse_on_map(&current->ls[i], evdata->mousex, evdata->mousey, &tid, &rid)){
+            evdata->selecttoken = true;
+            evdata->selected_toktype = TOKEN;
+            evdata->selected_tid = tid;
+            evdata->selected_rid = rid;
+            evdata->selected_lid = i;
+            evdata->drag_off_x = evdata->mousex;
+            evdata->drag_off_y = evdata->mousex;
+            return;
+          }
         }
       }
     }
+  }
+}
 
+void on_click_released(GtkGestureClick* gesture, int npress, double x, double y, gpointer userdata)
+{
+  struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  struct eventdata* evdata = &gstate->evdata;
+  if(evdata->selecttoken){
+    evdata->selecttoken = false;
+    evdata->selectend = true;
   }
 }
 

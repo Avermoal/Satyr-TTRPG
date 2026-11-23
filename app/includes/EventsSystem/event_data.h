@@ -16,8 +16,10 @@ struct eventdata{
   int32_t selected_tid;
   int32_t selected_toktype;
   int32_t selected_rid;
+  int32_t selected_lid;
 
   bool selecttoken;
+  bool selectend;
 
   float mousex;
   float mousey;
@@ -45,7 +47,9 @@ static inline void init_event_data(struct eventdata* evdata)
   evdata->selected_tid = 0;
   evdata->selected_toktype = 0;
   evdata->selected_rid = 0;
+  evdata->selected_lid = 0;
   evdata->selecttoken = false;
+  evdata->selectend = false;
   evdata->mousex = 0.0f;
   evdata->mousey = 0.0f;
   evdata->last_frame_time = 0.0;

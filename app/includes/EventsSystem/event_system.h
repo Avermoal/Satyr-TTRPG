@@ -21,6 +21,8 @@ void on_drag_end(GtkGestureDrag* gesture, double x, double y, gpointer userdata)
 
 void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, gpointer userdata);
 
+void on_click_released(GtkGestureClick* gesture, int npress, double x, double y, gpointer userdata);
+
 void eventpoll(struct gamestate* gstate);
 
 #endif/*EVENTSYSTEM_EVENT_SYSTEM_H*/

@@ -149,6 +149,7 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   GtkGesture* doubleclick = gtk_gesture_click_new();
   gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(doubleclick), GDK_BUTTON_PRIMARY);
   g_signal_connect(doubleclick, "pressed", G_CALLBACK(on_click_pressed), userdata);
+  g_signal_connect(doubleclick, "released", G_CALLBACK(on_click_released), userdata);
   gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(doubleclick));
   /*IS NEW GAME*/
   g_object_set_data(G_OBJECT(userdata), "ISNEW", GINT_TO_POINTER(ISNEW));

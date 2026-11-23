@@ -147,7 +147,7 @@ static inline struct rectangle* layer_add_empty(struct layer* l)
   l->tokid[l->rnum] = -1;
   struct rectangle* rect = &l->rects[l->rnum];
   l->rnum++;
-  memset(rect, 0, sizeof(*rect));
+  memset(rect, 0, sizeof(*rect)); /*Analog of rectset(ZERO)*/
   l->isdirty = true;
   return rect;
 }
@@ -262,6 +262,19 @@ static inline void rectset(struct rectangle* rect, float x, float y, float w, fl
   rect_set_RGBA(rect, cr, cg, cb ,ca);
 }
 
+static inline void rectspotlight(struct rectangle* rect, float light)
+{
+  if(!rect){
+    return;
+  }
+  /*Spotlight*/
+  float cr = light;
+  float cg = light;
+  float cb = light;
+  float ca = rect->vert[0].a;
+  rect_set_RGBA(rect, cr, cg, cb, ca);
+}
+
 static inline float rect_get_w(struct rectangle* rect)
 {
   return rect->vert[2].x - rect->vert[0].x;
@@ -272,6 +285,16 @@ static inline float rect_get_h(struct rectangle* rect)
   return rect->vert[1].y - rect->vert[0].y;
 }
 
+static inline void rect_set_size(struct rectangle* rect, float size)
+{
+  if(!rect){
+    return;
+  }
+  /*Size*/
+  float w = size;
+  float h = size;
+  rect_set_XYWH(rect, rect->vert[0].x, rect->vert[0].y, w, h);
+}
 
 static inline void layer_add_quad(struct layer* l, float x, float y, float w, float h,
                                                    float u0, float v0, float u1, float v1,
@@ -306,7 +329,7 @@ static inline void layer_move_rect(struct layer* l, int32_t rid, float x, float 
 
 static inline bool mouse_XY_in_layer_rects(float x, float y, struct layer* l, int32_t* tokid, int32_t* rid)
 {
-  for(int32_t i = 0; i < l->rnum; ++i){
+  for(int32_t i = l->rnum - 1; i >= 0; --i){
     if((x >= l->rects[i].vert[0].x && x <= l->rects[i].vert[2].x)
         &&
        (y >= l->rects[i].vert[0].y && y <= l->rects[i].vert[2].y)){
@@ -321,7 +344,7 @@ static inline bool mouse_XY_in_layer_rects(float x, float y, struct layer* l, in
 static inline bool mouse_XY_in_layer_token(float x, float y, struct layer* l, int32_t* tokid, int32_t* rid)
 {
   float cx = 0.0f, cy = 0.0f, cr = 0.0f, dx = 0.0f, dy = 0.0f, distsqrt = 0.0f;
-  for(int32_t i = 0; i < l->rnum; ++i){
+  for(int32_t i = l->rnum - 1; i >= 0; --i){
     cx = l->rects[i].vert[0].x + 0.5 * rect_get_w(&l->rects[i]);
     cy = l->rects[i].vert[0].y + 0.5 * rect_get_h(&l->rects[i]);
     cr = 0.5f * rect_get_w(&l->rects[i]);
