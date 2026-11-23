@@ -144,9 +144,9 @@ void onmotion(GtkEventControllerMotion* motion, double x, double y, gpointer use
     struct layer* L = &gstate->gscns[gstate->current_scene_id].ls[evdata->selected_lid];
     struct rectangle* R = &L->rects[evdata->selected_rid];
     rectspotlight(R, 1.4f);
-    float x = evdata->mousex - evdata->drag_off_x;
-    if(x > 0.2f){
-      rect_set_size(R, x);
+    float d = evdata->mousex - evdata->drag_off_x;
+    if(d > 0.0f){
+      rect_set_size(R, d);
     }
     L->isdirty = true;
   }else if(evdata->selectend){
@@ -271,7 +271,7 @@ void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, 
             evdata->selected_rid = rid;
             evdata->selected_lid = i;
             evdata->drag_off_x = evdata->mousex;
-            evdata->drag_off_y = evdata->mousex;
+            evdata->drag_off_y = evdata->mousey;
             return;
           }
         }
@@ -290,7 +290,7 @@ void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, 
             evdata->selected_rid = rid;
             evdata->selected_lid = i;
             evdata->drag_off_x = evdata->mousex;
-            evdata->drag_off_y = evdata->mousex;
+            evdata->drag_off_y = evdata->mousey;
             return;
           }
         }
