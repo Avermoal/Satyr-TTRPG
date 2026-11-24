@@ -58,6 +58,9 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   /*CREATE dms_page UI*/
     /*Allocation memory*/
   struct DMs_UI* dms_ui = (struct DMs_UI*)calloc(1, sizeof(struct DMs_UI));
+  if(!dms_ui){
+    return;
+  }
     /*DMs*/
   GError* err = nullptr;
   GtkBuilder* dms_builder = gtk_builder_new();
@@ -153,6 +156,7 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(doubleclick));
   /*IS NEW GAME*/
   g_object_set_data(G_OBJECT(userdata), "ISNEW", GINT_TO_POINTER(ISNEW));
+  g_object_set_data(G_OBJECT(userdata), "ISDM", GINT_TO_POINTER(1));
   /*Switch to dms_page*/
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
   GtkWidget* dms_page = GTK_WIDGET(gtk_builder_get_object(dms_builder, "dms_page"));

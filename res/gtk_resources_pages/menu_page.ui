@@ -48,6 +48,7 @@
             <property name="margin-bottom">16</property>
             <property name="margin-top">16</property>
             <property name="valign">center</property>
+            <signal name="clicked" handler="on_to_join_btn_clicked"/>
           </object>
         </child>
         <child>

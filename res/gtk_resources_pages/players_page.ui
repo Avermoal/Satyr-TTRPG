@@ -1,11 +1,261 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Created with Cambalache 1.0.3 -->
 <interface>
-  <!-- interface-name players_page.ui -->
-  <requires lib="gtk" version="4.12"/>
-  <object class="GtkBox" id="players_page">
-    <child>
-      <object class="GtkPicture" id="test_pic"/>
+  <!-- interface-name dms_page.ui -->
+  <requires lib="gtk" version="4.22"/>
+  <object class="GtkOverlay" id="players_page">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <child>
+          <object class="GtkGLArea" id="gl_area">
+            <property name="has-depth-buffer">True</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <child type="overlay">
+      <object class="GtkCenterBox" id="main_grid">
+        <child type="end">
+          <object class="GtkBox" id="side_box">
+            <property name="halign">fill</property>
+            <property name="hexpand">True</property>
+            <property name="homogeneous">True</property>
+            <property name="orientation">vertical</property>
+            <property name="valign">fill</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkOverlay" id="side_overlay">
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="GtkRevealer" id="side_menu_revealer">
+                        <property name="transition-duration">1000</property>
+                        <property name="transition-type">none</property>
+                        <child>
+                          <object class="GtkBox" id="side_menu">
+                            <child>
+                              <object class="GtkButton" id="side_hide_btn">
+                                <property name="child">
+                                  <object class="GtkImage">
+                                    <property name="file">res/icons/arrow_to_right.svg</property>
+                                    <property name="icon-size">large</property>
+                                  </object>
+                                </property>
+                                <property name="css-classes">game-button</property>
+                                <property name="focusable">False</property>
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkNotebook" id="notebook_menu">
+                                <property name="focusable">False</property>
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <child>
+                                  <object class="GtkNotebookPage">
+                                    <property name="child">
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                    <property name="tab">
+                                      <object class="GtkImage">
+                                        <property name="file">res/icons/chart.svg</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkNotebookPage">
+                                    <property name="child">
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                    <property name="tab">
+                                      <object class="GtkImage">
+                                        <property name="file">res/icons/inventory.svg</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkNotebookPage">
+                                    <property name="child">
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                    <property name="tab">
+                                      <object class="GtkImage">
+                                        <property name="file">res/icons/note.svg</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkNotebookPage">
+                                    <property name="child">
+                                      <object class="GtkScrolledWindow">
+                                        <property name="min-content-height">1</property>
+                                        <property name="min-content-width">1</property>
+                                        <child>
+                                          <object class="GtkBox">
+                                            <property name="css-classes">scrolled-box</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                    <property name="tab">
+                                      <object class="GtkImage">
+                                        <property name="file">res/icons/manual.svg</property>
+                                        <property name="icon-size">large</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <child type="overlay">
+                  <object class="GtkBox" id="side_box_for_btn">
+                    <property name="halign">end</property>
+                    <property name="homogeneous">True</property>
+                    <property name="orientation">vertical</property>
+                    <property name="valign">center</property>
+                    <child>
+                      <object class="GtkButton" id="side_menu_btn">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/arrow_to_left.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <property name="css-classes">game-button</property>
+                        <property name="focusable">False</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkBox" id="side_box_other"/>
+        </child>
+        <child type="center">
+          <object class="GtkCenterBox" id="center_box_center">
+            <child type="center">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="valign">start</property>
+                <child type="center">
+                  <object class="GtkGrid">
+                    <property name="halign">center</property>
+                    <property name="valign">start</property>
+                    <child>
+                      <object class="GtkToggleButton" id="drag_btn">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/cursor.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <property name="css-classes">game-button</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <property name="css-classes">game-button</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <property name="css-classes">game-button</property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton">
+                        <property name="child">
+                          <object class="GtkImage">
+                            <property name="file">res/icons/dice.svg</property>
+                            <property name="icon-size">large</property>
+                          </object>
+                        </property>
+                        <property name="css-classes">game-button</property>
+                        <layout>
+                          <property name="column">3</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
     </child>
   </object>
 </interface>

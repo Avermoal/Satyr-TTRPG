@@ -5,6 +5,7 @@
 
 #include "UI/UIs_info.h"
 #include "UI/DMs_UI.h"
+#include "UI/Players_UI.h"
 
 typedef struct{
   GtkWidget* box;
@@ -13,6 +14,7 @@ typedef struct{
 
 static void set_new_campaign_page_callbacks(GtkBuilder* builder, gpointer userdata);
 static void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata);
+static void on_connect_btn_clicked(GtkButton* btn, gpointer userdata);
 static void on_back_btn_clicked(GtkButton* btn, gpointer userdata);
 static void on_back_from_load_btn_clicked(GtkButton* btn, gpointer userdata);
 
@@ -121,7 +123,30 @@ void on_to_load_save_btn_clicked(GtkButton* btn, gpointer userdata)
 
 void on_to_join_btn_clicked(GtkButton* btn, gpointer userdata)
 {
-
+  GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
+  gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
+  gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
+  /*Entry*/
+  GtkWidget* entry = gtk_entry_new();
+  gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "IP:PORT");
+  gtk_entry_set_max_length(GTK_ENTRY(entry), 32);
+  gtk_box_append(GTK_BOX(box), entry);
+  /*Set connect btn*/
+  GtkWidget* connect_btn = gtk_button_new_with_label("Connect");
+  g_signal_connect(connect_btn, "clicked", G_CALLBACK(on_connect_btn_clicked), userdata);
+  gtk_box_append(GTK_BOX(box), connect_btn);
+  /*Set back btn*/
+  GtkWidget* back_btn = gtk_button_new_with_label("Back");
+  g_signal_connect(back_btn, "clicked", G_CALLBACK(on_back_from_load_btn_clicked), userdata);
+  gtk_box_append(GTK_BOX(box), back_btn);
+  /*Interfacestack*/
+  GtkStack* interfacestack = GTK_STACK(g_object_get_data(G_OBJECT(userdata), "interfacestack"));
+  GtkWidget* child = gtk_stack_get_child_by_name(interfacestack, "join_campaign_page");
+  if(child){
+    gtk_stack_remove(interfacestack, child);
+  }
+  gtk_stack_add_named(interfacestack, box, "join_campaign_page");
+  gtk_stack_set_visible_child_name(interfacestack, "join_campaign_page");
 }
 
 void on_exit_btn_clicked(GtkButton* btn, gpointer userdata)
@@ -132,6 +157,11 @@ void on_exit_btn_clicked(GtkButton* btn, gpointer userdata)
 static void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
 {
   create_DMs_UI(1, userdata);
+}
+
+static void on_connect_btn_clicked(GtkButton* btn, gpointer userdata)
+{
+  create_Players_UI(userdata);
 }
 
 static void on_back_btn_clicked(GtkButton* btn, gpointer userdata)
@@ -163,8 +193,12 @@ static void on_back_from_load_btn_clicked(GtkButton* btn, gpointer userdata)
   }
   g_object_set_data(G_OBJECT(userdata), "campaign_name_buffer", nullptr);
   GtkStack* interfacestack = g_object_get_data(G_OBJECT(userdata), "interfacestack");
-  GtkWidget* child = gtk_stack_get_child_by_name(interfacestack, "load_campaign_page");
-  gtk_stack_remove(interfacestack, child);
+  GtkWidget* child = nullptr;
+  if((child = gtk_stack_get_child_by_name(interfacestack, "load_campaign_page"))){
+    gtk_stack_remove(interfacestack, child);
+  }else if((child = gtk_stack_get_child_by_name(interfacestack, "join_campaign_page"))){
+    gtk_stack_remove(interfacestack, child);
+  }
   gtk_stack_set_visible_child_name(interfacestack, "menu_page");
 }
 

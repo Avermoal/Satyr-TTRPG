@@ -4,6 +4,8 @@
 
 #include <pango/pangocairo.h>
 
+#include <plibsys.h>
+
 #include "ViewInterface/window.h"
 
 #define PATH_TO_CUSTOM_CSS_THEME_MENU "res/themes/satyr.css"
@@ -42,6 +44,8 @@ void destroyapp(GtkApplication* app)
 
 static void onactivate(GtkApplication* app, gpointer userdata)
 {
+  /*Plibsys init*/
+  p_libsys_init();
   /*Add custom fonts*/
   load_custom_fonts(app, CINZEL_DECORATIVE_PATH);
   load_custom_fonts(app, CINZEL_PATH);
@@ -72,6 +76,8 @@ static void on_window_destroy(GtkWidget* win, GtkApplication* app)
     free(dms_ui);
     g_object_set_data(G_OBJECT(win), "dms_ui_data", nullptr);
   }
+  /*Plibsys shutdown*/
+  p_libsys_shutdown();
   g_print("Exit programm\n");
 }
 

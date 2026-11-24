@@ -36,6 +36,11 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   if(gamestate){
     return;
   }
+  int ISDM = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISDM"));
+  if(!ISDM){
+    
+    return;
+  }
   /*Create or load game state and map*/
   int ISNEW = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISNEW"));
   if(ISNEW){
