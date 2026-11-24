@@ -939,7 +939,7 @@ static void set_layer_texture_atlas(GObject* source, GAsyncResult* res, gpointer
   /*Make current gl context*/
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(data->userdata), "gstate");
   if(!gstate){
-    g_print("Scene %d is not current", data->current_scene_id);
+    g_print("Game state is NULL");
     for(int32_t i = 0; i < data->tnum; ++i){
       free(data->righttoks[i].path);
       free(data->righttoks[i].cache);
