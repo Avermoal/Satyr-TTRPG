@@ -24,7 +24,7 @@ void create_Players_UI(gpointer userdata)
   players_ui->side_menu_revealer = GTK_REVEALER(gtk_builder_get_object(pls_builder, "side_menu_revealer"));
   players_ui->side_box_for_btn = GTK_BOX(gtk_builder_get_object(pls_builder, "side_box_for_btn"));
   players_ui->side_menu_btn = GTK_BUTTON(gtk_builder_get_object(pls_builder, "side_menu_btn"));
-  players_ui->overlay = GTK_WIDGET(gtk_builder_get_object(pls_builder, "overlay"));
+  players_ui->overlay = GTK_WIDGET(gtk_builder_get_object(pls_builder, "players_page"));
   players_ui->drag_btn = GTK_WIDGET(gtk_builder_get_object(pls_builder, "drag_btn"));
   g_object_set_data(G_OBJECT(userdata), "players_ui_data", players_ui);
   g_object_set_data(G_OBJECT(players_ui->overlay), "drag_btn", players_ui->drag_btn);

@@ -76,6 +76,14 @@ static void on_window_destroy(GtkWidget* win, GtkApplication* app)
     free(dms_ui);
     g_object_set_data(G_OBJECT(win), "dms_ui_data", nullptr);
   }
+  /*Cancell server thread*/
+  GCancellable* servercancellable = G_CANCELLABLE(g_object_get_data(G_OBJECT(win), "servercancellable"));
+  if(servercancellable){
+    g_cancellable_cancel(servercancellable);
+    g_object_unref(servercancellable);
+    servercancellable = nullptr;
+    g_object_set_data(G_OBJECT(win), "servercancellable", nullptr);
+  }
   /*Plibsys shutdown*/
   p_libsys_shutdown();
   g_print("Exit programm\n");

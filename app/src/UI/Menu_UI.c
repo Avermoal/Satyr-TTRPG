@@ -126,11 +126,22 @@ void on_to_join_btn_clicked(GtkButton* btn, gpointer userdata)
   GtkWidget* box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 16);
   gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
   gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
+  /*Entry name*/
+  GtkWidget* name = gtk_entry_new();
+  gtk_entry_set_placeholder_text(GTK_ENTRY(name), "Name...");
+  gtk_entry_set_max_length(GTK_ENTRY(name), 32);
+  gtk_box_append(GTK_BOX(box), name);
+  GtkEntryBuffer* namebuf = gtk_entry_get_buffer(GTK_ENTRY(name));
+  g_object_ref(namebuf);
+  g_object_set_data(G_OBJECT(userdata), "player_name_buffer", namebuf);
   /*Entry*/
-  GtkWidget* entry = gtk_entry_new();
-  gtk_entry_set_placeholder_text(GTK_ENTRY(entry), "IP:PORT");
-  gtk_entry_set_max_length(GTK_ENTRY(entry), 32);
-  gtk_box_append(GTK_BOX(box), entry);
+  GtkWidget* ipport = gtk_entry_new();
+  gtk_entry_set_placeholder_text(GTK_ENTRY(ipport), "IP:PORT");
+  gtk_entry_set_max_length(GTK_ENTRY(ipport), 32);
+  gtk_box_append(GTK_BOX(box), ipport);
+  GtkEntryBuffer* ipportbuf = gtk_entry_get_buffer(GTK_ENTRY(ipport));
+  g_object_ref(ipportbuf);
+  g_object_set_data(G_OBJECT(userdata), "ipportbuf", ipportbuf);
   /*Set connect btn*/
   GtkWidget* connect_btn = gtk_button_new_with_label("Connect");
   g_signal_connect(connect_btn, "clicked", G_CALLBACK(on_connect_btn_clicked), userdata);
@@ -156,11 +167,21 @@ void on_exit_btn_clicked(GtkButton* btn, gpointer userdata)
 
 static void on_letsgo_btn_clicked(GtkButton* btn, gpointer userdata)
 {
+  GtkEntryBuffer* entrybuffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "campaign_name_buffer"));
+  if(gtk_entry_buffer_get_length(entrybuffer) == 0){
+    return;
+  }
   create_DMs_UI(1, userdata);
 }
 
 static void on_connect_btn_clicked(GtkButton* btn, gpointer userdata)
 {
+  GtkEntryBuffer* player_name_buffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "player_name_buffer"));
+  GtkEntryBuffer* ipportbuf = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "ipportbuf"));
+  if(gtk_entry_buffer_get_length(player_name_buffer) == 0 ||
+     gtk_entry_buffer_get_length(ipportbuf) == 0){
+    return;
+  }
   create_Players_UI(userdata);
 }
 

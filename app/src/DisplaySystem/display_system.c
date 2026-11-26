@@ -14,7 +14,8 @@
 #include "EventsSystem/event_system.h"
 #include "Tokens/tokens.h"
 #include "EventsSystem/token_dnd.h"
-#include "UI/DMs_UI.h"
+#include "NetworkLevel/server.h"
+#include "NetworkLevel/client.h"
 
 void onrealize(GtkGLArea* area, gpointer userdata)
 {
@@ -38,7 +39,17 @@ void onrealize(GtkGLArea* area, gpointer userdata)
   }
   int ISDM = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISDM"));
   if(!ISDM){
-    
+    GtkEntryBuffer* player_name_buffer = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "player_name_buffer"));
+    GtkEntryBuffer* ipportbuf = GTK_ENTRY_BUFFER(g_object_get_data(G_OBJECT(userdata), "ipportbuf"));
+    struct playerclient* pc = getclient(gtk_entry_buffer_get_text(ipportbuf), gtk_entry_buffer_get_text(player_name_buffer));
+    if(!pc){
+      return;
+    }
+    g_print("Player's id: %d\n", pc->plid);
+    struct gamestate* gstate = client_get_game_state(pc);
+    init_default_state(gstate);
+    /*Create game render data*/
+    /*Set data*/
     return;
   }
   /*Create or load game state and map*/
@@ -105,8 +116,11 @@ void onunrealize(GtkGLArea* area, gpointer userdata)
   if(!gstate){
     return;
   }
-  /*Save game*/
-  save_game_state(gstate);
+  int ISDM = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(userdata), "ISDM"));
+  if(ISDM){
+    /*Save game*/
+    save_game_state(gstate);
+  }
   /*Free*/
   destroy_game_state(gstate);
   free(gstate);

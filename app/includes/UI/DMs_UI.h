@@ -14,6 +14,7 @@ struct DMs_UI{
   GtkWidget* scene_btn;
   GtkWidget* drag_btn;
   GtkWidget* settings_btn;
+  GtkWidget* start_server_btn;
   GtkWidget* settings_grid;
   GtkWidget* layers_box;
 };

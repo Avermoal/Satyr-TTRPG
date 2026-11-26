@@ -216,6 +216,25 @@
                     </layout>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkButton" id="start_server_btn">
+                    <property name="child">
+                      <object class="GtkImage">
+                        <property name="file">res/icons/portal.svg</property>
+                        <property name="icon-size">large</property>
+                      </object>
+                    </property>
+                    <property name="css-classes">game-button</property>
+                    <property name="halign">start</property>
+                    <property name="valign">start</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="column-span">1</property>
+                      <property name="row">0</property>
+                      <property name="row-span">1</property>
+                    </layout>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

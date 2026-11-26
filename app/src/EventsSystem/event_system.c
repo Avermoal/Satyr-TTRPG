@@ -302,6 +302,9 @@ void on_click_pressed(GtkGestureClick* gesture, int npress, double x, double y, 
 void on_click_released(GtkGestureClick* gesture, int npress, double x, double y, gpointer userdata)
 {
   struct gamestate* gstate = (struct gamestate*)g_object_get_data(G_OBJECT(userdata), "gstate");
+  if(!gstate){
+    return;
+  }
   struct eventdata* evdata = &gstate->evdata;
   if(evdata->selecttoken){
     evdata->selecttoken = false;

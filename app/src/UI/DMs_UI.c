@@ -13,6 +13,7 @@
 #include "DisplaySystem/display_system.h"
 #include "EventsSystem/event_system.h"
 #include "EventsSystem/file_dnd.h"
+#include "NetworkLevel/server.h"
 
 typedef struct{
   GtkToggleButton* togglebtn;
@@ -46,6 +47,10 @@ static void on_maps_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static void on_scene_btn_toggled(GtkToggleButton* btn, gpointer userdata);
 static gboolean on_tokens_scrolled_win_scroll_block(GtkEventControllerScroll* block, double dx, double dy, gpointer userdata);
 static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata);
+static void on_start_server_btn_clicked(GtkButton* btn, gpointer userdata);
+static void on_server_destroy(GObject* src, GAsyncResult* res, gpointer userdata);
+static void on_work_with_server(GTask* task, gpointer src, gpointer userdata, GCancellable* cancellable);
+
 static void on_grid_scale_value_changed(GtkRange* range, gpointer userdata);
 static void on_grid_step_value_changed(GtkRange* range, gpointer userdata);
 static void on_delete_token_from_scene_clicked(GtkButton* btn, gpointer userdata);
@@ -82,6 +87,7 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   dms_ui->scene_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "scene_btn"));
   dms_ui->drag_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "drag_btn"));
   dms_ui->settings_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "settings_btn"));
+  dms_ui->start_server_btn = GTK_WIDGET(gtk_builder_get_object(dms_builder, "start_server_btn"));
   dms_ui->settings_grid = GTK_WIDGET(gtk_builder_get_object(dms_builder, "settings_grid"));
   dms_ui->layers_box = GTK_WIDGET(gtk_builder_get_object(dms_builder, "layers_box"));
   g_object_set_data(G_OBJECT(userdata), "dms_ui_data", dms_ui);
@@ -108,6 +114,7 @@ void create_DMs_UI(int ISNEW, gpointer userdata)
   gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(longpress), 0);
   gtk_widget_add_controller(dms_ui->overlay, GTK_EVENT_CONTROLLER(longpress));
   g_signal_connect(dms_ui->settings_btn, "toggled", G_CALLBACK(on_settings_button_toggled), userdata);
+  g_signal_connect(dms_ui->start_server_btn, "clicked", G_CALLBACK(on_start_server_btn_clicked), userdata);
   /*Set drag btn active*/
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(dms_ui->drag_btn), TRUE);
   /*Set Drag and Drop target*/
@@ -557,6 +564,63 @@ static void on_settings_button_toggled(GtkToggleButton* btn, gpointer userdata)
     while((child = gtk_widget_get_first_child(GTK_WIDGET(layers_box))) != nullptr){
       gtk_box_remove(layers_box, child);
     }
+  }
+}
+
+static void on_start_server_btn_clicked(GtkButton* btn, gpointer userdata)
+{
+  struct DMs_UI* dms_ui = (struct DMs_UI*)g_object_get_data(G_OBJECT(userdata), "dms_ui_data");
+  GTask* check = G_TASK(g_object_get_data(G_OBJECT(userdata), "serverthread"));
+  if(check){
+    return;
+  }
+  /*Start server*/
+  struct masterserver* ms = getserver();
+  if(!ms){
+    g_print("Server is not running\n");
+    return;
+  }
+  /*Set port to buffer*/
+  char* port = get_server_port_in_text(ms);
+  if(!port){
+    g_print("Can not receive port\n");
+    destroyserver(ms);
+    ms = nullptr;
+    return;
+  }
+  GdkDisplay *display = gdk_display_get_default();
+  GdkClipboard *clipboard = gdk_display_get_clipboard(display);
+  gdk_clipboard_set_text(clipboard, port);
+  free(port);
+  g_object_set_data(G_OBJECT(userdata), "masterserver", ms);
+  /*Start server polling in other thread*/
+  GCancellable* servercancellable = g_cancellable_new();
+  GTask* serverthread = g_task_new(nullptr, servercancellable, on_server_destroy, userdata);
+  g_task_set_task_data(serverthread, userdata, nullptr);
+  g_task_run_in_thread(serverthread, on_work_with_server);
+  g_object_unref(serverthread);
+  g_object_set_data(G_OBJECT(userdata), "servercancellable", servercancellable);
+}
+
+static void on_server_destroy(GObject* src, GAsyncResult* res, gpointer userdata)
+{
+  struct masterserver* ms = (struct masterserver*)g_object_get_data(G_OBJECT(userdata), "masterserver");
+  if(!ms){
+    return;
+  }
+  destroyserver(ms);
+  ms = nullptr;
+  g_object_set_data(G_OBJECT(userdata), "masterserver", nullptr);
+}
+
+static void on_work_with_server(GTask* task, gpointer src, gpointer userdata, GCancellable* cancellable)
+{
+  struct masterserver* ms = (struct masterserver*)g_object_get_data(G_OBJECT(userdata), "masterserver");
+  if(!ms){
+    return;
+  }
+  while(!g_task_return_error_if_cancelled(task)){
+    serverpolling(ms);
   }
 }
 
